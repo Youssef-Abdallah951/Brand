@@ -1,0 +1,135 @@
+import { Link } from "react-router-dom";
+import { useLang } from "../i18n/LanguageContext";
+import { useShop } from "../store/ShopContext";
+import { t } from "../i18n/translations";
+import { ProductCard, SectionTitle, firstProductImage, onImgError } from "../components/product";
+
+export default function Home() {
+  const { lang } = useLang();
+  const { products, productsError, productsLoading, reloadProducts, categories } = useShop();
+  const best = products.filter((p) => p.bestseller).slice(0, 8);
+  const feat = products.filter((p) => p.featured).slice(0, 4);
+  const offers = products.filter((p) => p.compareAt).slice(0, 4);
+
+  return (
+    <main>
+      {/* HERO */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#fff0f5] via-[#ffe0ec] to-[#fff9f5]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-16 grid md:grid-cols-2 gap-8 items-center">
+          <div className="animate-fadeUp">
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.15]">{t("heroTitle", lang)}</h1>
+            <p className="text-gray-600 mt-4 text-base sm:text-lg max-w-md">{t("heroSub", lang)}</p>
+            <div className="flex flex-wrap gap-3 mt-6">
+              <Link to="/shop" className="rounded-2xl bg-[#e84393] hover:bg-[#c2185b] text-white font-bold px-8 py-3.5 btn-press shadow-lg shadow-pink-300">{t("shopNow", lang)}</Link>
+              <Link to="/offers" className="rounded-2xl bg-white border-2 border-pink-200 text-[#c2185b] font-bold px-8 py-3.5 btn-press">{t("exploreOffers", lang)}</Link>
+            </div>
+            <div className="flex gap-6 mt-8 text-sm">
+              {[[lang === "ar" ? "توصيل سريع" : "Fast Delivery"], [lang === "ar" ? "الدفع عند الاستلام" : "Cash on Delivery"]].map(([e, l]) => (
+                <div key={l} className="flex items-center gap-1.5"><span className="text-xl">{e}</span><span className="font-semibold text-gray-700">{l}</span></div>
+              ))}
+            </div>
+          </div>
+          <div className="relative">
+            <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=80" onError={onImgError} alt="hero" className="rounded-[2rem] card-shadow w-full aspect-[4/5] sm:aspect-square object-cover animate-floaty" />
+            <div className="absolute -bottom-4 start-4 end-4 sm:end-auto bg-white rounded-2xl card-shadow px-5 py-3 flex items-center gap-3">
+              <span className="text-3xl">💄</span>
+              <div><div className="font-bold text-sm">{lang === "ar" ? "خصم حتى 30%" : "Up to 30% OFF"}</div><div className="text-xs text-gray-500">{lang === "ar" ? "على المجموعات المختارة" : "On selected bundles"}</div></div>
+              <Link to="/offers" className="ms-auto bg-[#2b2b30] text-white text-xs font-bold px-4 py-2 rounded-full">→</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {productsError && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-8">
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3 text-sm font-bold text-amber-800 flex flex-wrap items-center gap-3">
+            <span>⚠️ {t("cachedList", lang)}</span>
+            <button onClick={reloadProducts} disabled={productsLoading} className="underline disabled:opacity-60">
+              🔁 {productsLoading ? "…" : t("retryLoad", lang)}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CATEGORIES */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 mt-12">
+        <SectionTitle title={t("categories", lang)} link="/categories" linkLabel={lang === "ar" ? "عرض الكل" : "View all"} />
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+          {categories.map((c) => (
+            <Link key={c.id} to={`/shop?cat=${c.slug}`} className="group text-center">
+              <div className="rounded-3xl overflow-hidden aspect-square border border-pink-100 group-hover:border-[#e84393] transition">
+                {(() => { const tile = firstProductImage([c.image]); return tile ? <img src={tile} onError={onImgError} alt={c.nameEn} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition duration-500" /> : <span className="w-full h-full grid place-items-center text-4xl bg-pink-50">🗂</span>; })()}
+              </div>
+              <div className="text-sm font-bold mt-2">{lang === "ar" ? c.nameAr : c.nameEn}</div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* BEST SELLERS */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 mt-14">
+        <SectionTitle title={t("bestSellers", lang)} sub={lang === "ar" ? "الأكثر طلباً من عميلاتنا" : "Loved by our customers"} link="/shop" linkLabel={lang === "ar" ? "تسوقي الكل" : "Shop all"} />
+        {best.length === 0 && !productsLoading ? (
+          <div className="text-center py-14 bg-pink-50 rounded-3xl">
+            <div className="text-4xl">💄</div>
+            <div className="font-bold mt-2 text-sm">{lang === "ar" ? "لا توجد منتجات حالياً" : "No products right now"}</div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+            {best.map((p) => <ProductCard key={p.id} p={p} />)}
+          </div>
+        )}
+      </section>
+
+      {/* DELIVERY BANNER */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 mt-14">
+        <div className="rounded-[2rem] overflow-hidden bg-gradient-to-l from-[#2b2b30] to-[#4a2b3d] text-white grid md:grid-cols-2">
+          <div className="p-8 sm:p-12">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold">{t("beautyDoor", lang)}</h2>
+            <p className="text-white/70 mt-3">{t("beautyDoorSub", lang)}</p>
+            <Link to="/shop" className="inline-block mt-6 bg-[#e84393] hover:bg-[#ff5ba6] font-bold px-8 py-3 rounded-2xl btn-press">{t("shopNow", lang)}</Link>
+          </div>
+          <img src="https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=900&q=80" alt="delivery" className="h-64 md:h-auto object-cover" loading="lazy" />
+        </div>
+      </section>
+
+      {/* FEATURED + OFFERS */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 mt-14">
+        <SectionTitle title={lang === "ar" ? "عروض مميزة" : "Special Offers"} link="/offers" linkLabel={lang === "ar" ? "كل العروض" : "All offers"} />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+          {offers.map((p) => <ProductCard key={p.id} p={p} />)}
+        </div>
+      </section>
+
+      {feat.length > 0 && (
+        <section className="bg-[#fff5f8] mt-14 py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <SectionTitle title={lang === "ar" ? "مختارات لوميير" : "LUMIÈRE Picks"} />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
+              {feat.map((p) => <ProductCard key={p.id} p={p} />)}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* WHY US */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 mt-14">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          {[
+            [lang === "ar" ? "توصيل سريع" : "Fast Delivery", lang === "ar" ? "لجميع المحافظات" : "All governorates"],
+            [lang === "ar" ? "الدفع عند الاستلام" : "Cash on Delivery", lang === "ar" ? "ادفعي عند وصول طلبك" : "Pay when it arrives"],
+            [lang === "ar" ? "دفع آمن" : "Secure Payment", lang === "ar" ? "خيارات دفع موثوقة" : "Trusted options"],
+            [lang === "ar" ? "منتجات أصلية" : "Original Products", lang === "ar" ? "جودة مضمونة 100%" : "100% guaranteed"],
+            [lang === "ar" ? "خدمة عملاء" : "Support", lang === "ar" ? "عبر واتساب يومياً" : "Via WhatsApp daily"],
+          ].map(([e, title, sub]) => (
+            <div key={title} className="bg-white border border-pink-100 rounded-3xl p-5 text-center card-shadow">
+              <div className="text-xl">{e}</div>
+              <div className="font-bold text-sm mt-2">{title}</div>
+              <div className="text-xs text-gray-500">{sub}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}
