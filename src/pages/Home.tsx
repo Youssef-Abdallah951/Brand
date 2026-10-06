@@ -122,7 +122,7 @@ export default function Home() {
             [lang === "ar" ? "منتجات أصلية" : "Original Products", lang === "ar" ? "جودة مضمونة 100%" : "100% guaranteed"],
             [lang === "ar" ? "خدمة عملاء" : "Support", lang === "ar" ? "عبر واتساب يومياً" : "Via WhatsApp daily"],
           ].map(([e, title, sub]) => (
-            <div key={title} className="bg-white border border-pink-100 rounded-3xl p-5 text-center card-shadow">
+            <div key={title} className="bg-white border border-pink-100 rounded-3xl p-5 text-center card-shadow hover:transition-all hover:scale-105">
               <div className="text-xl">{e}</div>
               <div className="font-bold text-sm mt-2">{title}</div>
               <div className="text-xs text-gray-500">{sub}</div>

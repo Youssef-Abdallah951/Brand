@@ -19,7 +19,9 @@ body {
   background: #fff;
   color: var(--color-charcoal);
   -webkit-tap-highlight-color: transparent;
+  
 }
+
 .font-display { font-family: var(--font-display); }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }

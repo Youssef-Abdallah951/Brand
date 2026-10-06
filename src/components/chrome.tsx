@@ -41,12 +41,11 @@ export function Navbar() {
     { to: "/", label: t("home", lang) },
     { to: "/shop", label: t("shop", lang) },
     { to: "/categories", label: t("categories", lang) },
-    { to: "/offers", label: t("offers", lang) },
     { to: "/about", label: t("about", lang) },
     { to: "/contact", label: t("contact", lang) },
   ];
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-pink-100">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-pink-100 d-flex flex-wrap">
       <div className="bg-gradient-to-l from-[#e84393] to-[#ff7bac] text-white text-center text-xs sm:text-sm py-1.5 px-3">
         {t("announcement", lang)}
       </div>
@@ -59,7 +58,7 @@ export function Navbar() {
             <span className="hidden min-[380px]:block text-[11px] font-body font-normal text-pink-500 truncate">{lang === "ar" ? SITE_CONFIG.brand.taglineAr : SITE_CONFIG.brand.taglineEn}</span>
           </span>
         </Link>
-        <nav className="hidden md:flex items-center gap-5 mx-auto text-[15px] font-medium">
+        <nav className="hidden md:flex flex-wrap items-center gap-5 mx-auto text-[15px] font-medium">
           {links.map((l) => (
             <NavLink key={l.to} to={l.to} className={({ isActive }) => (isActive ? "text-[#c2185b] font-bold" : "text-gray-600 hover:text-[#c2185b]")}>{l.label}</NavLink>
           ))}
@@ -74,15 +73,15 @@ export function Navbar() {
           <Link to="/shop?wish=1" className="relative p-2 rounded-xl hover:bg-pink-50 text-xl" title="wishlist">
             ♡{wishlist.length > 0 && <span className="absolute -top-0.5 -end-0.5 bg-[#e84393] text-white text-[10px] w-5 h-5 grid place-items-center rounded-full">{wishlist.length}</span>}
           </Link>
-          <Link to="/cart" className="relative p-2 rounded-xl hover:bg-pink-50 text-xl" title={t("cart", lang)}>
-            🛒{cartCount > 0 && <span className="absolute -top-0.5 -end-0.5 bg-[#c2185b] text-white text-[10px] w-5 h-5 grid place-items-center rounded-full">{cartCount}</span>}
-          </Link>
         </div>
       </div>
-      <div className="md:hidden px-3 pb-2">
+      <div className="px-3 pb-2">
         <form onSubmit={(e) => { e.preventDefault(); nav(`/shop?q=${encodeURIComponent(q)}`); }} className="flex gap-2">
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("search", lang)} className="flex-1 rounded-2xl border border-pink-200 bg-pink-50/50 px-4 py-2.5 outline-none focus:border-[#e84393]" />
           <button className="rounded-2xl bg-[#e84393] text-white px-4 btn-press">🔍</button>
+          <Link to="/cart" className="relative p-2 rounded-xl hover:bg-pink-50 text-xl" title={t("cart", lang)}>
+            🛒{cartCount > 0 && <span className="absolute -top-0.5 -end-0.5 bg-[#c2185b] text-white text-[10px] w-5 h-5 grid place-items-center rounded-full">{cartCount}</span>}
+          </Link>
         </form>
       </div>
       {open && (
@@ -113,7 +112,6 @@ export function Footer() {
           <div className="font-bold mb-3">{lang === "ar" ? "روابط سريعة" : "Quick Links"}</div>
           <div className="grid gap-2 text-sm text-white/80">
             <Link to="/shop">{t("shop", lang)}</Link>
-            <Link to="/offers">{t("offers", lang)}</Link>
             <Link to="/contact">{t("contact", lang)}</Link>
           </div>
         </div>
@@ -129,7 +127,6 @@ export function Footer() {
           <div className="font-bold mb-3">{t("contact", lang)}</div>
           <div className="text-sm text-white/80 grid gap-1">
             <span dir="ltr">{SITE_CONFIG.admin.phoneLocal}</span>
-            <span>{lang === "ar" ? "يومياً من 10 صباحاً حتى 10 مساءً" : "Daily 10am – 10pm"}</span>
           </div>
         </div>
       </div>

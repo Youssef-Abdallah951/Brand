@@ -39,7 +39,6 @@ export default function Contact() {
             <a href={SITE_CONFIG.admin.telLink} className="rounded-2xl bg-[#2b2b30] text-white font-bold py-3 text-center text-sm">📞 {t("callUs", lang)}</a>
             <a href={generalWhatsAppLink(lang)} target="_blank" rel="noreferrer" className="rounded-2xl bg-[#25D366] text-white font-bold py-3 text-center text-sm">💬 {t("whatsappUs", lang)}</a>
           </div>
-          <p className="text-xs text-gray-400 mt-2">{lang === "ar" ? "يومياً من 10 صباحاً حتى 10 مساءً" : "Daily 10am – 10pm"} • {lang === "ar" ? "القاهرة، مصر" : "Cairo, Egypt"}</p>
         </div>
         <form onSubmit={send} className="bg-white border border-pink-100 rounded-3xl p-6 card-shadow grid gap-3">
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder={lang === "ar" ? "الاسم" : "Name"} className={cls} />
