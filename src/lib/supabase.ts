@@ -77,7 +77,9 @@ export async function withRetry<T>(
 export interface CreateOrderInput {
   firstName: string;
   lastName: string;
-  whatsapp: string; // raw input; normalized before insert
+  // Customer contact is no longer collected at checkout — always "" for new
+  // orders. Columns stay (nullable/optional, legacy rows + admin display).
+  whatsapp: string;
   phone: string;
   governorate: string;
   area: string;
@@ -100,9 +102,11 @@ function generateOrderNumber(): string {
 }
 
 /**
- * Create customer (upsert by normalized whatsapp) → order (COD) → order_items.
- * Returns the unique order number. Throws on failure — callers must NOT
- * fall back to any local store.
+ * Create order (COD) → order_items. Customer contact is optional since
+ * checkout no longer collects it: empty whatsapp/phone are sent as "" and
+ * the `create_cod_order()` RPC (see migration-optional-customer-contact.sql)
+ * stores NULL and skips the customer upsert. Returns the order number.
+ * Throws on failure — callers must NOT fall back to any local store.
  *
  * Primary path: atomic `create_cod_order()` RPC (SECURITY DEFINER). This is
  * REQUIRED because anon has INSERT-only RLS on orders/order_items (no SELECT),
@@ -273,20 +277,23 @@ export interface TrackedOrder extends Order {}
  * Secure order lookup via the `track-order` Edge Function.
  * The browser NEVER runs SELECT on orders — the service-role key lives
  * only inside the Edge Function environment.
+ * Lookup is by order number only (no customer phone data is collected).
  */
 export async function trackOrderViaFunction(
   rawOrderNumber: string,
-  rawWhatsapp: string,
+  rawWhatsapp?: string,
 ): Promise<TrackedOrder> {
   const sb = getSupabase();
   if (!sb) throw new Error("not-configured");
 
   const order_number = normalizeOrderNumber(rawOrderNumber);
-  const whatsapp = normalizeWhatsApp(rawWhatsapp);
+  // Optional legacy second factor: old orders still carry a WhatsApp number
+  // and the Edge Function verifies it when the stored row has one.
+  const whatsapp = rawWhatsapp ? normalizeWhatsApp(rawWhatsapp) : "";
 
   const { data, error } = await withRetry(() =>
     sb.functions.invoke("track-order", {
-      body: { order_number, whatsapp },
+      body: whatsapp ? { order_number, whatsapp } : { order_number },
     }),
   {
     attempts: 2,
@@ -323,7 +330,7 @@ export async function trackOrderViaFunction(
     orderNumber: String(o.order_number ?? order_number),
     firstName: String(o.first_name ?? ""),
     lastName: String(o.last_name ?? ""),
-    whatsapp: String(o.whatsapp ?? rawWhatsapp.trim()),
+    whatsapp: String(o.whatsapp ?? ""),
     phone: String(o.phone ?? ""),
     governorate: String(o.governorate ?? ""),
     area: String(o.area ?? ""),

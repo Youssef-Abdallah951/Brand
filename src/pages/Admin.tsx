@@ -6,6 +6,7 @@ import { useShop } from "../store/ShopContext";
 import { firstProductImage, onImgError } from "../components/product";
 import { SITE_CONFIG } from "../lib/siteConfig";
 import { STATUS_LABEL } from "../i18n/translations";
+import { CalendarIcon, CashIcon, ChartIcon, CheckIcon, ClockIcon, FlameIcon, GridIcon, ImageIcon, LockIcon, MapPinIcon, PackageIcon, PencilIcon, PlusIcon, ReceiptIcon, RetryIcon, StarIcon, TrashIcon, TruckIcon, UsersIcon, XIcon } from "../components/icons";
 import type { Category, DeliveryZone, Order, OrderStatus, Product } from "../lib/types";
 
 function useAdminGuard() {
@@ -62,7 +63,7 @@ export function AdminLogin() {
   return (
     <main className="min-h-[70vh] grid place-items-center px-4 py-10 bg-[#fff5f8]">
       <form onSubmit={login} className="w-full max-w-md bg-white rounded-3xl border border-pink-100 p-7 card-shadow">
-        <h1 className="font-display text-2xl font-bold">🔐 Admin Login</h1>
+        <h1 className="font-display text-2xl font-bold inline-flex items-center gap-2"><LockIcon className="w-6 h-6" /> Admin Login</h1>
         <p className="text-xs text-gray-500 mt-1">Supabase Auth — administrators only. Customers never log in.</p>
         <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin email" dir="ltr" className="mt-4 w-full rounded-2xl border border-pink-200 px-4 py-3 outline-none" />
         <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="password" dir="ltr" className="mt-2 w-full rounded-2xl border border-pink-200 px-4 py-3 outline-none" />
@@ -392,23 +393,25 @@ export function AdminDashboard() {
   const revenue = orders.filter((o) => o.status !== "cancelled").reduce((s, o) => s + o.total, 0);
   const count = (st: OrderStatus) => orders.filter((o) => o.status === st).length;
   const customers = Object.values(
-    orders.reduce((acc: Record<string, { whatsapp: string; name: string; orders: number; spend: number }>, o) => {
-      const k = o.whatsapp;
-      if (!acc[k]) acc[k] = { whatsapp: k, name: `${o.firstName} ${o.lastName}`, orders: 0, spend: 0 };
+    orders.reduce((acc: Record<string, { key: string; whatsapp: string; name: string; orders: number; spend: number }>, o) => {
+      // Legacy orders are keyed by WhatsApp; newer orders (no number
+      // collected) each get their own row keyed by order number.
+      const k = o.whatsapp || `order-${o.orderNumber}`;
+      if (!acc[k]) acc[k] = { key: k, whatsapp: o.whatsapp, name: `${o.firstName} ${o.lastName}`, orders: 0, spend: 0 };
       acc[k].orders += 1;
       acc[k].spend += o.total;
       return acc;
     }, {}),
   );
 
-  const tabs: { id: Tab; label: string }[] = [
-    { id: "dash", label: "📊 Dashboard" },
-    { id: "orders", label: "🧾 Orders" },
-    { id: "products", label: "💄 Products" },
-    { id: "cats", label: "🗂 Categories" },
-    { id: "customers", label: "👥 Customers" },
-    { id: "delivery", label: "🚚 Delivery" },
-    { id: "reviews", label: "⭐ Reviews" },
+  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    { id: "dash", label: "Dashboard", icon: <ChartIcon className="w-4 h-4" /> },
+    { id: "orders", label: "Orders", icon: <ReceiptIcon className="w-4 h-4" /> },
+    { id: "products", label: "Products", icon: <PackageIcon className="w-4 h-4" /> },
+    { id: "cats", label: "Categories", icon: <GridIcon className="w-4 h-4" /> },
+    { id: "customers", label: "Customers", icon: <UsersIcon className="w-4 h-4" /> },
+    { id: "delivery", label: "Delivery", icon: <TruckIcon className="w-4 h-4" /> },
+    { id: "reviews", label: "Reviews", icon: <StarIcon className="w-4 h-4" /> },
   ];
 
   const shownOrders = orders.filter((o) =>
@@ -431,8 +434,8 @@ export function AdminDashboard() {
 
       <div className="flex gap-2 mt-4 overflow-x-auto no-scrollbar pb-1">
         {tabs.map((x) => (
-          <button key={x.id} onClick={() => setTab(x.id)} className={`whitespace-nowrap px-4 py-2.5 rounded-2xl text-sm font-bold ${tab === x.id ? "bg-[#2b2b30] text-white" : "bg-white border border-pink-200"}`}>
-            {x.label}
+          <button key={x.id} onClick={() => setTab(x.id)} className={`whitespace-nowrap px-4 py-2.5 rounded-2xl text-sm font-bold inline-flex items-center gap-1.5 ${tab === x.id ? "bg-[#2b2b30] text-white" : "bg-white border border-pink-200"}`}>
+            {x.icon}{x.label}
           </button>
         ))}
       </div>
@@ -440,18 +443,18 @@ export function AdminDashboard() {
       {tab === "dash" && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
           {[
-            ["🧾 Total Orders", orders.length],
-            ["⏳ Pending", count("pending")],
-            ["🚚 Out for Delivery", count("out_for_delivery")],
-            ["✅ Delivered", count("delivered")],
-            ["💰 Revenue (EGP)", revenue],
-            ["💄 Products", products.length],
-            ["👥 Customers", customers.length],
-            ["✔ Confirmed", count("confirmed")],
-          ].map(([l, v]) => (
-            <div key={l as string} className="bg-white border border-pink-100 rounded-3xl p-5 card-shadow">
-              <div className="text-xs text-gray-500">{l}</div>
-              <div className="text-2xl font-bold mt-1">{v}</div>
+            { icon: <ReceiptIcon className="w-4 h-4 text-[#e84393]" />, label: "Total Orders", value: orders.length },
+            { icon: <ClockIcon className="w-4 h-4 text-amber-500" />, label: "Pending", value: count("pending") },
+            { icon: <TruckIcon className="w-4 h-4 text-[#2b7de9]" />, label: "Out for Delivery", value: count("out_for_delivery") },
+            { icon: <CheckIcon className="w-4 h-4 text-green-600" />, label: "Delivered", value: count("delivered") },
+            { icon: <CashIcon className="w-4 h-4 text-green-600" />, label: "Revenue (EGP)", value: revenue },
+            { icon: <PackageIcon className="w-4 h-4 text-[#e84393]" />, label: "Products", value: products.length },
+            { icon: <UsersIcon className="w-4 h-4 text-[#e84393]" />, label: "Customers", value: customers.length },
+            { icon: <CheckIcon className="w-4 h-4 text-green-600" />, label: "Confirmed", value: count("confirmed") },
+          ].map(({ icon, label, value }) => (
+            <div key={label} className="bg-white border border-pink-100 rounded-3xl p-5 card-shadow">
+              <div className="text-xs text-gray-500 inline-flex items-center gap-1.5">{icon}{label}</div>
+              <div className="text-2xl font-bold mt-1">{value}</div>
             </div>
           ))}
         </div>
@@ -464,7 +467,7 @@ export function AdminDashboard() {
           {live && ordersError && (
             <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 text-sm font-bold text-red-700 flex flex-wrap gap-3 items-center">
               <span>Unable to load orders. Please try again.</span>
-              <button onClick={loadOrders} disabled={ordersLoading} className="underline disabled:opacity-60">🔁 {ordersLoading ? "Loading…" : "Retry"}</button>
+              <button onClick={loadOrders} disabled={ordersLoading} className="underline disabled:opacity-60 inline-flex items-center gap-1"><RetryIcon className="w-3.5 h-3.5" /> {ordersLoading ? "Loading…" : "Retry"}</button>
             </div>
           )}
           {live && !ordersError && ordersLoading && shownOrders.length === 0 && <p className="text-gray-400 text-sm">Loading orders…</p>}
@@ -479,9 +482,9 @@ export function AdminDashboard() {
                 <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">{STATUS_LABEL[o.status]?.en}</span>
               </summary>
               <div className="text-sm mt-3 grid gap-1.5 text-gray-600">
-                <div>📍 {o.address}, {o.area}, {o.city}, {o.governorate} {o.building && `Bldg ${o.building}`} {o.apartment && `Apt ${o.apartment}`}</div>
-                <div>🚚 {o.deliveryMethod} • 💵 COD ({o.paymentStatus}) • 📅 {o.createdAt ? new Date(o.createdAt).toLocaleString() : ""}</div>
-                {o.notes && <div>📝 {o.notes}</div>}
+                <div className="inline-flex items-start gap-1.5"><MapPinIcon className="w-4 h-4 mt-0.5 shrink-0 text-[#e84393]" /> <span>{o.address}, {o.area}, {o.city}, {o.governorate} {o.building && `Bldg ${o.building}`} {o.apartment && `Apt ${o.apartment}`}</span></div>
+                <div className="inline-flex items-center gap-1.5"><TruckIcon className="w-4 h-4 shrink-0 text-[#e84393]" /> <span>{o.deliveryMethod} • COD ({o.paymentStatus}) •</span> <CalendarIcon className="w-4 h-4 shrink-0" /> <span>{o.createdAt ? new Date(o.createdAt).toLocaleString() : ""}</span></div>
+                {o.notes && <div className="inline-flex items-start gap-1.5"><PencilIcon className="w-4 h-4 mt-0.5 shrink-0" /> <span>{o.notes}</span></div>}
                 {o.items.map((i, idx) => { const thumb = firstProductImage([i.image]); return <div key={`${i.productId}-${idx}`} className="flex gap-2 items-center">{thumb && <img src={thumb} onError={onImgError} className="w-8 h-10 rounded object-cover" alt="" />}<span>{i.nameEn} × {i.qty} — EGP {i.price * i.qty}</span></div>; })}
                 <div className="flex flex-wrap gap-2 mt-2">
                   {(["pending", "confirmed", "preparing", "out_for_delivery", "delivered", "cancelled"] as OrderStatus[]).map((s) => (
@@ -503,24 +506,24 @@ export function AdminDashboard() {
         <div className="mt-5 grid gap-3">
           {!live && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 font-bold">Demo mode — edits are in-memory only. Connect Supabase to persist.</p>}
           <div>
-            <button onClick={() => setShowAdd((s) => !s)} className="rounded-2xl bg-[#e84393] text-white text-sm font-bold px-5 py-2.5">
-              {showAdd ? "✕ Close" : "＋ Add Product"}
+            <button onClick={() => setShowAdd((s) => !s)} className="rounded-2xl bg-[#e84393] text-white text-sm font-bold px-5 py-2.5 inline-flex items-center gap-1.5">
+              {showAdd ? <><XIcon className="w-4 h-4" /> Close</> : <><PlusIcon className="w-4 h-4" /> Add Product</>}
             </button>
           </div>
           {showAdd && <AddProductForm cats={cats} onAdd={addProduct} />}
           {products.map((p) => (
             <div key={p.id} className="bg-white border border-pink-100 rounded-3xl p-3 overflow-hidden">
               <div className="flex flex-wrap gap-2 sm:gap-3 items-center">
-                {(() => { const thumb = firstProductImage(p.images); return thumb ? <img src={thumb} onError={onImgError} alt="" className="w-14 h-16 rounded-2xl object-cover" /> : <span className="w-14 h-16 rounded-2xl bg-pink-100 grid place-items-center shrink-0">💄</span>; })()}
+                {(() => { const thumb = firstProductImage(p.images); return thumb ? <img src={thumb} onError={onImgError} alt="" className="w-14 h-16 rounded-2xl object-cover" /> : <span className="w-14 h-16 rounded-2xl bg-pink-100 grid place-items-center shrink-0 text-pink-300"><ImageIcon className="w-6 h-6" /></span>; })()}
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-sm truncate">{p.nameEn}</div>
-                  <div className="text-xs text-gray-500">EGP {p.price} • stock {p.stock} {p.compareAt && `• sale ${p.compareAt}`} {p.featured && "• ⭐"} {p.bestseller && "• 🔥"}</div>
+                  <div className="text-xs text-gray-500 inline-flex items-center gap-1 flex-wrap">EGP {p.price} • stock {p.stock} {p.compareAt && `• sale ${p.compareAt}`} {p.featured && (<span className="inline-flex items-center gap-0.5">• <StarIcon filled className="w-3 h-3 text-amber-400" /></span>)} {p.bestseller && (<span className="inline-flex items-center gap-0.5">• <FlameIcon className="w-3 h-3 text-orange-500" /></span>)}</div>
                 </div>
                 <input type="number" value={p.price} onChange={(e) => saveProduct(p, { price: Number(e.target.value) })} className="w-[4.5rem] sm:w-20 max-w-full rounded-xl border px-2 py-1.5 text-sm" title="price" />
                 <input type="number" value={p.stock} onChange={(e) => saveProduct(p, { stock: Number(e.target.value) })} className="w-14 sm:w-16 max-w-full rounded-xl border px-2 py-1.5 text-sm" title="stock" />
                 <button onClick={() => saveProduct(p, { active: !p.active })} className={`text-xs font-bold px-3 py-1.5 rounded-full ${p.active ? "bg-green-100 text-green-700" : "bg-gray-100"}`}>{p.active ? "Active" : "Hidden"}</button>
-                <button onClick={() => setEditing(editing?.id === p.id ? null : p)} className="text-xs font-bold px-3 py-1.5 rounded-full border">✏️ Edit</button>
-                <button onClick={() => deleteProduct(p)} className="text-red-500 font-bold">✕</button>
+                <button onClick={() => setEditing(editing?.id === p.id ? null : p)} className="text-xs font-bold px-3 py-1.5 rounded-full border inline-flex items-center gap-1"><PencilIcon className="w-3.5 h-3.5" /> Edit</button>
+                <button onClick={() => deleteProduct(p)} aria-label="delete product" className="text-red-500 font-bold p-1.5"><XIcon className="w-4 h-4" /></button>
               </div>
               {editing?.id === p.id && (
                 <ProductEditor p={editing} cats={cats} onSave={(patch) => saveProduct(p, patch)} />
@@ -537,7 +540,7 @@ export function AdminDashboard() {
           <div className="grid sm:grid-cols-2 gap-3">
             {cats.map((c) => (
               <div key={c.id} className="bg-white border rounded-3xl p-4 flex gap-3 items-center">
-                {c.image ? <img src={c.image} alt="" className="w-14 h-14 rounded-2xl object-cover" /> : <span className="w-14 h-14 rounded-2xl bg-pink-100 grid place-items-center">🗂</span>}
+                {c.image ? <img src={c.image} alt="" className="w-14 h-14 rounded-2xl object-cover" /> : <span className="w-14 h-14 rounded-2xl bg-pink-100 grid place-items-center text-pink-300"><ImageIcon className="w-6 h-6" /></span>}
                 <div className="flex-1 min-w-0">
                   <input value={c.nameEn} onChange={(e) => saveCategory(c, { nameEn: e.target.value })} className="font-bold w-full rounded-lg border border-transparent hover:border-pink-200 px-1" title="name en" />
                   <input value={c.nameAr} onChange={(e) => saveCategory(c, { nameAr: e.target.value })} className="text-sm text-gray-500 w-full rounded-lg border border-transparent hover:border-pink-200 px-1" title="name ar" dir="rtl" />
@@ -557,8 +560,8 @@ export function AdminDashboard() {
       {tab === "customers" && (
         <div className="mt-5 grid gap-2">
           {customers.map((c) => (
-            <div key={c.whatsapp} className="bg-white border rounded-3xl p-4 flex justify-between text-sm">
-              <div><div className="font-bold">{c.name}</div><div dir="ltr" className="text-gray-500">{c.whatsapp}</div></div>
+            <div key={c.key} className="bg-white border rounded-3xl p-4 flex justify-between text-sm">
+              <div><div className="font-bold">{c.name}</div><div dir="ltr" className="text-gray-500">{c.whatsapp || "—"}</div></div>
               <div className="text-end"><div className="font-bold">{c.orders} orders</div><div className="text-[#c2185b] font-bold">EGP {c.spend}</div></div>
             </div>
           ))}
@@ -592,11 +595,13 @@ export function AdminDashboard() {
           {reviews.map((r) => (
             <div key={r.id} className="bg-white border rounded-3xl p-4 text-sm flex gap-3 items-start">
               <div className="flex-1">
-                <div className="font-bold">{"★".repeat(Math.max(0, Math.min(5, r.rating)))}<span className="text-gray-300">{"☆".repeat(Math.max(0, 5 - Math.min(5, r.rating)))}</span> <span className="font-normal text-gray-500">— {r.name}</span></div>
+                <div className="font-bold inline-flex items-center gap-0.5">{Array.from({ length: 5 }).map((_, i) => (
+                  <StarIcon key={i} filled={i < Math.max(0, Math.min(5, r.rating))} className={`w-4 h-4 ${i < Math.max(0, Math.min(5, r.rating)) ? "text-amber-400" : "text-gray-300"}`} />
+                ))} <span className="font-normal text-gray-500 ms-1">— {r.name}</span></div>
                 <div className="text-gray-600 mt-1">{r.comment}</div>
                 <div className="text-[11px] text-gray-400 mt-1">{r.createdAt ? new Date(r.createdAt).toLocaleString() : ""}</div>
               </div>
-              <button onClick={() => deleteReview(r.id)} className="text-red-500 font-bold shrink-0">✕</button>
+              <button onClick={() => deleteReview(r.id)} aria-label="delete review" className="text-red-500 font-bold shrink-0 p-1"><TrashIcon className="w-4 h-4" /></button>
             </div>
           ))}
         </div>
@@ -633,8 +638,8 @@ function AddProductForm({ cats, onAdd }: {
         {cats.map((c) => <option key={c.id} value={c.id}>{c.nameEn} • {c.nameAr}</option>)}
       </select>
       <input value={images} onChange={(e) => setImages(e.target.value)} placeholder="Image URLs (comma separated)" className={`${cls} sm:col-span-2`} dir="ltr" />
-      <label className="flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="accent-[#e84393] w-4 h-4" /> ⭐ Featured</label>
-      <label className="flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={bestseller} onChange={(e) => setBestseller(e.target.checked)} className="accent-[#e84393] w-4 h-4" /> 🔥 Bestseller</label>
+      <label className="flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="accent-[#e84393] w-4 h-4" /> <StarIcon className="w-4 h-4 text-amber-400" /> Featured</label>
+      <label className="flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={bestseller} onChange={(e) => setBestseller(e.target.checked)} className="accent-[#e84393] w-4 h-4" /> <FlameIcon className="w-4 h-4 text-orange-500" /> Bestseller</label>
       <button
         onClick={() => {
           if (!nameEn.trim() || !nameAr.trim() || !(price > 0)) return;
@@ -677,8 +682,8 @@ function ProductEditor({ p, cats, onSave }: { p: Product; cats: Category[]; onSa
         {cats.map((c) => <option key={c.id} value={c.id}>{c.nameEn} • {c.nameAr}</option>)}
       </select>
       <input value={images} onChange={(e) => setImages(e.target.value)} placeholder="Image URLs (comma separated)" className={`${cls} sm:col-span-2`} title="images" dir="ltr" />
-      <label className="flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="accent-[#e84393] w-4 h-4" /> ⭐ Featured</label>
-      <label className="flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={bestseller} onChange={(e) => setBestseller(e.target.checked)} className="accent-[#e84393] w-4 h-4" /> 🔥 Bestseller</label>
+      <label className="flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="accent-[#e84393] w-4 h-4" /> <StarIcon className="w-4 h-4 text-amber-400" /> Featured</label>
+      <label className="flex items-center gap-2 text-sm font-bold"><input type="checkbox" checked={bestseller} onChange={(e) => setBestseller(e.target.checked)} className="accent-[#e84393] w-4 h-4" /> <FlameIcon className="w-4 h-4 text-orange-500" /> Bestseller</label>
       <button
         onClick={() => onSave({
           nameEn: nameEn.trim() || p.nameEn, nameAr: nameAr.trim() || p.nameAr,

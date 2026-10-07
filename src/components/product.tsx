@@ -4,9 +4,10 @@ import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
 import { Price, Stars } from "./chrome";
+import { ArrowLeftIcon, HeartIcon, ImageIcon } from "./icons";
 import { firstProductImage } from "../lib/productImage";
 
-export { firstProductImage, isDirectImageUrl } from "../lib/productImage";
+export { firstProductImage, isDirectImageUrl, categoryFallbackUrl, categoryImageUrl, onCategoryImgError } from "../lib/productImage";
 
 export function productImage(p: Product, idx = 0): string {
   return firstProductImage(p.images, undefined, idx);
@@ -30,7 +31,7 @@ export function ProductCard({ p }: { p: Product }) {
         {cardImg ? (
           <img src={cardImg} onError={onImgError} alt={name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
         ) : (
-          <span className="w-full h-full grid place-items-center text-5xl bg-pink-50">💄</span>
+          <span className="w-full h-full grid place-items-center bg-pink-50 text-pink-300"><ImageIcon className="w-12 h-12" /></span>
         )}
         {p.compareAt && (
           <span className="absolute top-3 start-3 bg-[#e84393] text-white text-xs font-bold px-2.5 py-1 rounded-full">
@@ -42,7 +43,7 @@ export function ProductCard({ p }: { p: Product }) {
           aria-label="wishlist"
           className={`absolute top-3 end-3 w-9 h-9 grid place-items-center rounded-full shadow ${wished ? "bg-[#e84393] text-white" : "bg-white text-gray-500"}`}
         >
-          {wished ? "♥" : "♡"}
+          <HeartIcon filled={wished} className="w-4 h-4" />
         </button>
         {p.stock <= 0 && (
           <span className="absolute inset-x-0 bottom-0 bg-black/60 text-white text-center text-sm py-1.5">{t("outOfStock", lang)}</span>
@@ -74,7 +75,7 @@ export function SectionTitle({ title, sub, link, linkLabel }: { title: string; s
         <h2 className="font-display text-2xl sm:text-3xl font-bold">{title}</h2>
         {sub && <p className="text-gray-500 text-sm mt-1">{sub}</p>}
       </div>
-      {link && <Link to={link} className="text-sm font-bold text-[#c2185b] hover:underline shrink-0">{linkLabel} ←</Link>}
+      {link && <Link to={link} className="text-sm font-bold text-[#c2185b] hover:underline shrink-0 inline-flex items-center gap-1">{linkLabel} <ArrowLeftIcon className="w-4 h-4" /></Link>}
     </div>
   );
 }

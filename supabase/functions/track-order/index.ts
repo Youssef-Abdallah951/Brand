@@ -9,10 +9,12 @@
 //   # Optional: extra exact origins (comma-separated) besides localhost + *.vercel.app:
 //   supabase secrets set ALLOWED_ORIGINS=https://www.example.com
 //
-// Request:  POST { "order_number": "LM-123456", "whatsapp": "01018340567" }
+// Request:  POST { "order_number": "LM-123456" }                    → new orders (no contact collected)
+//           POST { "order_number": "LM-123456", "whatsapp": "010..." } → legacy orders: verified only
+//              when the stored row still carries a WhatsApp number.
 // Success:  200 { "order": { ...safe fields..., "items": [...] } }
-// Not found: 404 { "error": "Order not found" }  (same for wrong number OR wrong whatsapp)
-// Bad input: 400 { "error": "order_number and whatsapp are required" }
+// Not found: 404 { "error": "Order not found" }  (same for unknown number OR mismatched whatsapp)
+// Bad input: 400 { "error": "order_number is required" }
 //
 // CORS: the browser (supabase-js functions.invoke) sends apikey + Authorization
 // headers, so Access-Control-Allow-Origin must echo the exact origin — never "*".
@@ -106,17 +108,16 @@ serve(async (req: Request) => {
     return json(req, 400, { error: "Invalid JSON body" });
   }
 
-  // 1. Validate both fields present
-  if (typeof body.order_number !== "string" || typeof body.whatsapp !== "string" ||
-      !body.order_number.trim() || !body.whatsapp.trim()) {
-    return json(req, 400, { error: "order_number and whatsapp are required" });
+  // 1. Validate the order number; WhatsApp is an optional legacy factor.
+  if (typeof body.order_number !== "string" || !body.order_number.trim()) {
+    return json(req, 400, { error: "order_number is required" });
   }
 
   // 2-3. Normalize (length-capped to block abuse with huge payloads)
   const orderNumber = normalizeOrderNumber(body.order_number).slice(0, 32);
-  const whatsappNorm = normalizeWhatsApp(body.whatsapp).slice(0, 32);
-  if (!orderNumber || !/^201[0125]\d{8}$/.test(whatsappNorm)) {
-    // Same generic 404 — never reveal which field was wrong.
+  const rawCaller = typeof body.whatsapp === "string" ? body.whatsapp : "";
+  const callerNorm = rawCaller.trim() ? normalizeWhatsApp(rawCaller).slice(0, 32) : "";
+  if (!orderNumber) {
     return json(req, 404, { error: "Order not found" });
   }
 
@@ -130,44 +131,38 @@ serve(async (req: Request) => {
     auth: { persistSession: false },
   });
 
-  // 4-5. Match BOTH order_number (case-insensitive) AND normalized whatsapp.
-  // Prefer the normalized column; fall back to raw compare for legacy rows.
+  // 4-5. Find by order number (case-insensitive). Second factor:
+  // rows that still carry a WhatsApp number (legacy orders) only match
+  // when the caller provides the same number; rows without one (new
+  // checkout collects no contact data) match on the number alone.
   // Every DB call is guarded: transport/DB outages → 502 JSON (never a crash,
   // never a stack trace, never another customer's data).
   let order: Record<string, unknown> | null = null;
   try {
-    const byNorm = await admin
+    const byNum = await admin
       .from("orders")
       .select("*")
       .ilike("order_number", orderNumber)
-      .eq("whatsapp_normalized", whatsappNorm)
       .maybeSingle();
-    if (byNorm.error) throw byNorm.error;
-
-    if (byNorm.data) {
-      order = byNorm.data as Record<string, unknown>;
-    } else {
-      // Legacy fallback: fetch by order number, compare normalized whatsapp in code.
-      const byNum = await admin
-        .from("orders")
-        .select("*")
-        .ilike("order_number", orderNumber)
-        .maybeSingle();
-      if (byNum.error) throw byNum.error;
-      if (byNum.data) {
-        const row = byNum.data as Record<string, unknown>;
-        const candidates = [
-          typeof row.whatsapp_normalized === "string" ? (row.whatsapp_normalized as string) : "",
-          normalizeWhatsApp(String(row.whatsapp ?? "")),
-        ];
-        if (candidates.includes(whatsappNorm)) order = row;
+    if (byNum.error) throw byNum.error;
+    if (byNum.data) {
+      const row = byNum.data as Record<string, unknown>;
+      const storedCandidates = [
+        typeof row.whatsapp_normalized === "string" ? (row.whatsapp_normalized as string) : "",
+        normalizeWhatsApp(String(row.whatsapp ?? "")),
+      ].filter((s) => s.length > 0);
+      if (storedCandidates.length === 0) {
+        order = row; // no contact on file — order number alone suffices
+      } else if (callerNorm && storedCandidates.includes(callerNorm)) {
+        order = row; // legacy row — caller proved the stored number
       }
     }
   } catch {
     return json(req, 502, { error: "Tracking service unavailable" });
   }
 
-  // 10. Generic 404 — same whether the number or the whatsapp was wrong.
+  // 10. Generic 404 — same whether the number is unknown or (for legacy
+  // rows) the caller omitted/mismatched the stored WhatsApp number.
   if (!order) {
     return json(req, 404, { error: "Order not found" });
   }

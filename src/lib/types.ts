@@ -53,8 +53,8 @@ export interface CartItem {
 export interface CheckoutForm {
   firstName: string;
   lastName: string;
-  whatsapp: string;
-  phone: string;
+  // NOTE: customer phone/WhatsApp are no longer collected at checkout.
+  // Order.whatsapp/phone below stay for legacy rows + admin display.
   governorate: string;
   area: string;
   city: string;

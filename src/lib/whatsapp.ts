@@ -8,9 +8,12 @@ export function buildOrderWhatsAppMessage(order: Order): string {
   lines.push("Customer:");
   lines.push(`${order.firstName} ${order.lastName}`.trim());
   lines.push("");
-  lines.push("WhatsApp:");
-  lines.push(order.whatsapp);
-  lines.push("");
+  // Customer contact is no longer collected — legacy orders still print it.
+  if (order.whatsapp) {
+    lines.push("WhatsApp:");
+    lines.push(order.whatsapp);
+    lines.push("");
+  }
   lines.push("Products:");
   for (const it of order.items) {
     const nm = it.nameEn || it.nameAr;

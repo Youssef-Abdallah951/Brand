@@ -4,12 +4,13 @@ import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
 import { SITE_CONFIG } from "../lib/siteConfig";
+import { CartIcon, HeartIcon, MenuIcon, PhoneIcon, SearchIcon, StarIcon } from "./icons";
 
 export function Stars({ value = 4.5 }: { value?: number }) {
   return (
-    <div className="flex items-center gap-0.5 text-amber-400 text-sm" aria-label={`${value}`}>
+    <div className="flex items-center gap-0.5 text-amber-400" aria-label={`${value}`}>
       {[1, 2, 3, 4, 5].map((i) => (
-        <span key={i}>{i <= Math.round(value) ? "★" : "☆"}</span>
+        <StarIcon key={i} filled={i <= Math.round(value)} className={`w-3.5 h-3.5 ${i <= Math.round(value) ? "" : "text-gray-300"}`} />
       ))}
     </div>
   );
@@ -50,7 +51,7 @@ export function Navbar() {
         {t("announcement", lang)}
       </div>
       <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center gap-2 sm:gap-4 h-16">
-        <button className="md:hidden p-2 rounded-xl hover:bg-pink-50 text-2xl" onClick={() => setOpen(!open)} aria-label="menu">☰</button>
+        <button className="md:hidden p-2 rounded-xl hover:bg-pink-50 text-gray-700" onClick={() => setOpen(!open)} aria-label="menu"><MenuIcon className="w-6 h-6" /></button>
         <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0">
           <span className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#e84393] to-[#ffb3cd] grid place-items-center text-white font-display text-xl shadow shrink-0">L</span>
           <span className="font-display font-bold text-lg leading-tight min-w-0 truncate">
@@ -70,17 +71,17 @@ export function Navbar() {
           >
             {lang === "ar" ? "English" : "العربية"}
           </button>
-          <Link to="/shop?wish=1" className="relative p-2 rounded-xl hover:bg-pink-50 text-xl" title="wishlist">
-            ♡{wishlist.length > 0 && <span className="absolute -top-0.5 -end-0.5 bg-[#e84393] text-white text-[10px] w-5 h-5 grid place-items-center rounded-full">{wishlist.length}</span>}
+          <Link to="/shop?wish=1" className="relative p-2 rounded-xl hover:bg-pink-50 text-gray-700" title="wishlist">
+            <HeartIcon className="w-5 h-5" />{wishlist.length > 0 && <span className="absolute -top-0.5 -end-0.5 bg-[#e84393] text-white text-[10px] w-5 h-5 grid place-items-center rounded-full">{wishlist.length}</span>}
           </Link>
         </div>
       </div>
       <div className="px-3 pb-2">
         <form onSubmit={(e) => { e.preventDefault(); nav(`/shop?q=${encodeURIComponent(q)}`); }} className="flex gap-2">
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("search", lang)} className="flex-1 rounded-2xl border border-pink-200 bg-pink-50/50 px-4 py-2.5 outline-none focus:border-[#e84393]" />
-          <button className="rounded-2xl bg-[#e84393] text-white px-4 btn-press">🔍</button>
-          <Link to="/cart" className="relative p-2 rounded-xl hover:bg-pink-50 text-xl" title={t("cart", lang)}>
-            🛒{cartCount > 0 && <span className="absolute -top-0.5 -end-0.5 bg-[#c2185b] text-white text-[10px] w-5 h-5 grid place-items-center rounded-full">{cartCount}</span>}
+          <button className="rounded-2xl bg-[#e84393] text-white px-4 btn-press grid place-items-center" aria-label="search"><SearchIcon className="w-5 h-5" /></button>
+          <Link to="/cart" className="relative p-2 rounded-xl hover:bg-pink-50 text-gray-700" title={t("cart", lang)}>
+            <CartIcon className="w-5 h-5" />{cartCount > 0 && <span className="absolute -top-0.5 -end-0.5 bg-[#c2185b] text-white text-[10px] w-5 h-5 grid place-items-center rounded-full">{cartCount}</span>}
           </Link>
         </form>
       </div>
@@ -105,7 +106,7 @@ export function Footer() {
           <p className="text-sm text-white/70 mt-2">{lang === "ar" ? "جمالك يبدأ من هنا — منتجات أصلية 100% وتوصيل سريع." : "Beauty starts here — 100% original products, fast delivery."}</p>
           <div className="flex gap-2 mt-4">
             <a href={SITE_CONFIG.admin.whatsappLink} target="_blank" rel="noreferrer" className="bg-[#25D366] text-white rounded-full px-4 py-2 text-sm font-bold">WhatsApp</a>
-            <a href={SITE_CONFIG.admin.telLink} className="bg-white/10 rounded-full px-4 py-2 text-sm font-bold">📞 {SITE_CONFIG.admin.phoneLocal}</a>
+            <a href={SITE_CONFIG.admin.telLink} className="bg-white/10 rounded-full px-4 py-2 text-sm font-bold inline-flex items-center gap-1.5"><PhoneIcon className="w-4 h-4" /> <span dir="ltr">{SITE_CONFIG.admin.phoneLocal}</span></a>
           </div>
         </div>
         <div>

@@ -3,6 +3,7 @@ import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
 import { firstProductImage, onImgError } from "../components/product";
+import { CartIcon, ImageIcon, TrashIcon } from "../components/icons";
 
 export default function Cart() {
   const { lang } = useLang();
@@ -22,7 +23,7 @@ export default function Cart() {
   if (rows.length === 0) {
     return (
       <main className="max-w-xl mx-auto px-4 py-20 text-center">
-        <div className="text-7xl">🛒</div>
+        <div className="flex justify-center text-pink-300"><CartIcon className="w-20 h-20" /></div>
         <h1 className="font-display text-2xl font-bold mt-4">{t("emptyCart", lang)}</h1>
         <Link to="/shop" className="inline-block mt-6 bg-[#e84393] text-white font-bold px-8 py-3.5 rounded-2xl">{t("continueShopping", lang)}</Link>
       </main>
@@ -41,7 +42,7 @@ export default function Cart() {
                 {thumb ? (
                   <img src={thumb} onError={onImgError} alt={name} className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl object-cover shrink-0" />
                 ) : (
-                  <span className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl bg-pink-100 grid place-items-center shrink-0">💄</span>
+                  <span className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl bg-pink-100 grid place-items-center shrink-0 text-pink-300"><ImageIcon className="w-8 h-8" /></span>
                 )}
                 <div className="flex-1 min-w-0">
                   <Link to={`/product/${r.p.slug}`} className="font-bold text-sm sm:text-[15px] line-clamp-2 break-words">{name}</Link>
@@ -52,7 +53,7 @@ export default function Cart() {
                       <span className="w-7 sm:w-8 text-center font-bold text-sm">{r.qty}</span>
                       <button onClick={() => inc(r.productId, r.qty, r.p.stock, name)} className="px-2.5 sm:px-3 py-1.5 hover:bg-pink-50">+</button>
                     </div>
-                    <button onClick={() => removeFromCart(r.productId)} className="text-xs text-red-500 font-bold hover:underline">🗑 {lang === "ar" ? "حذف" : "Remove"}</button>
+                    <button onClick={() => removeFromCart(r.productId)} className="text-xs text-red-500 font-bold hover:underline inline-flex items-center gap-1"><TrashIcon className="w-3.5 h-3.5" /> {lang === "ar" ? "حذف" : "Remove"}</button>
                   </div>
                 </div>
                 <div className="font-bold text-xs sm:text-sm shrink-0">EGP {r.p.price * r.qty}</div>

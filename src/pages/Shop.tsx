@@ -4,6 +4,7 @@ import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
 import { ProductCard } from "../components/product";
+import { AlertIcon, ChevronDownIcon, ChevronUpIcon, FilterIcon, HeartIcon, ImageIcon, RetryIcon } from "../components/icons";
 
 export default function Shop() {
   const { lang } = useLang();
@@ -54,14 +55,14 @@ export default function Shop() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-      <h1 className="font-display text-3xl font-bold">
-        {wishOnly ? `♡ ${t("wishlist", lang)}` : t("shop", lang)}
+      <h1 className="font-display text-3xl font-bold inline-flex items-center gap-2">
+        {wishOnly && <HeartIcon className="w-7 h-7 text-[#e84393]" />} {wishOnly ? t("wishlist", lang) : t("shop", lang)}
       </h1>
       {productsError && (
         <div className="mt-4 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-amber-800 flex flex-wrap items-center gap-3">
-          <span>⚠️ {t("cachedList", lang)}</span>
-          <button onClick={reloadProducts} disabled={productsLoading} className="underline disabled:opacity-60">
-            🔁 {productsLoading ? "…" : t("retryLoad", lang)}
+          <span className="inline-flex items-center gap-1.5"><AlertIcon className="w-4 h-4" /> {t("cachedList", lang)}</span>
+          <button onClick={reloadProducts} disabled={productsLoading} className="underline disabled:opacity-60 inline-flex items-center gap-1">
+            <RetryIcon className="w-4 h-4" /> {productsLoading ? "…" : t("retryLoad", lang)}
           </button>
         </div>
       )}
@@ -71,8 +72,8 @@ export default function Shop() {
         onClick={() => setShowFilters((s) => !s)}
         className="lg:hidden mt-4 flex items-center gap-2 rounded-2xl border-2 border-pink-200 px-4 py-2.5 text-sm font-bold text-[#c2185b] bg-white"
       >
-        🎛 {lang === "ar" ? "الفلاتر" : "Filters"}
-        {showFilters ? " ▲" : " ▼"}
+        <FilterIcon className="w-4 h-4" /> {lang === "ar" ? "الفلاتر" : "Filters"}
+        {showFilters ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
       </button>
 
       <div className="mt-4 flex flex-col lg:flex-row gap-5">
@@ -113,7 +114,7 @@ export default function Shop() {
             </div>
           ) : list.length === 0 ? (
             <div className="text-center py-20 bg-pink-50 rounded-3xl">
-              <div className="text-5xl">{wishOnly ? "♡" : "💄"}</div>
+              <div className="flex justify-center text-pink-300">{wishOnly ? <HeartIcon className="w-12 h-12" /> : <ImageIcon className="w-12 h-12" />}</div>
               <div className="font-bold mt-3">
                 {wishOnly
                   ? (lang === "ar" ? "قائمة المفضلة فارغة" : "Your wishlist is empty")

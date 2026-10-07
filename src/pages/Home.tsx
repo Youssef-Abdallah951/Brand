@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
-import { ProductCard, SectionTitle, firstProductImage, onImgError } from "../components/product";
+import { ProductCard, SectionTitle, categoryFallbackUrl, categoryImageUrl, onCategoryImgError, onImgError } from "../components/product";
+import { AlertIcon, ArrowRightIcon, CashIcon, ChatIcon, ImageIcon, LockIcon, RetryIcon, SparklesIcon, TruckIcon } from "../components/icons";
 
 export default function Home() {
   const { lang } = useLang();
@@ -24,17 +25,20 @@ export default function Home() {
               <Link to="/offers" className="rounded-2xl bg-white border-2 border-pink-200 text-[#c2185b] font-bold px-8 py-3.5 btn-press">{t("exploreOffers", lang)}</Link>
             </div>
             <div className="flex gap-6 mt-8 text-sm">
-              {[[lang === "ar" ? "توصيل سريع" : "Fast Delivery"], [lang === "ar" ? "الدفع عند الاستلام" : "Cash on Delivery"]].map(([e, l]) => (
-                <div key={l} className="flex items-center gap-1.5"><span className="text-xl">{e}</span><span className="font-semibold text-gray-700">{l}</span></div>
+              {[
+                { icon: <TruckIcon className="w-5 h-5 text-[#e84393]" />, label: lang === "ar" ? "توصيل سريع" : "Fast Delivery" },
+                { icon: <CashIcon className="w-5 h-5 text-[#e84393]" />, label: lang === "ar" ? "الدفع عند الاستلام" : "Cash on Delivery" },
+              ].map(({ icon, label }) => (
+                <div key={label} className="flex items-center gap-1.5">{icon}<span className="font-semibold text-gray-700">{label}</span></div>
               ))}
             </div>
           </div>
           <div className="relative">
             <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=80" onError={onImgError} alt="hero" className="rounded-[2rem] card-shadow w-full aspect-[4/5] sm:aspect-square object-cover animate-floaty" />
             <div className="absolute -bottom-4 start-4 end-4 sm:end-auto bg-white rounded-2xl card-shadow px-5 py-3 flex items-center gap-3">
-              <span className="text-3xl">💄</span>
+              <span className="text-[#e84393]"><SparklesIcon className="w-8 h-8" /></span>
               <div><div className="font-bold text-sm">{lang === "ar" ? "خصم حتى 30%" : "Up to 30% OFF"}</div><div className="text-xs text-gray-500">{lang === "ar" ? "على المجموعات المختارة" : "On selected bundles"}</div></div>
-              <Link to="/offers" className="ms-auto bg-[#2b2b30] text-white text-xs font-bold px-4 py-2 rounded-full">→</Link>
+              <Link to="/offers" aria-label="offers" className="ms-auto bg-[#2b2b30] text-white text-xs font-bold p-2.5 rounded-full grid place-items-center"><ArrowRightIcon className="w-4 h-4" /></Link>
             </div>
           </div>
         </div>
@@ -43,9 +47,9 @@ export default function Home() {
       {productsError && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-8">
           <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3 text-sm font-bold text-amber-800 flex flex-wrap items-center gap-3">
-            <span>⚠️ {t("cachedList", lang)}</span>
-            <button onClick={reloadProducts} disabled={productsLoading} className="underline disabled:opacity-60">
-              🔁 {productsLoading ? "…" : t("retryLoad", lang)}
+            <span className="inline-flex items-center gap-1.5"><AlertIcon className="w-4 h-4" /> {t("cachedList", lang)}</span>
+            <button onClick={reloadProducts} disabled={productsLoading} className="underline disabled:opacity-60 inline-flex items-center gap-1">
+              <RetryIcon className="w-4 h-4" /> {productsLoading ? "…" : t("retryLoad", lang)}
             </button>
           </div>
         </div>
@@ -57,8 +61,13 @@ export default function Home() {
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
           {categories.map((c) => (
             <Link key={c.id} to={`/shop?cat=${c.slug}`} className="group text-center">
-              <div className="rounded-3xl overflow-hidden aspect-square border border-pink-100 group-hover:border-[#e84393] transition">
-                {(() => { const tile = firstProductImage([c.image]); return tile ? <img src={tile} onError={onImgError} alt={c.nameEn} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition duration-500" /> : <span className="w-full h-full grid place-items-center text-4xl bg-pink-50">🗂</span>; })()}
+              <div className="rounded-3xl overflow-hidden aspect-square border border-pink-100 bg-pink-50 group-hover:border-[#e84393] transition">
+                {(() => {
+                  const tile = categoryImageUrl(c.image, c.slug);
+                  const fallback = categoryFallbackUrl(c.slug);
+                  const alt = lang === "ar" ? c.nameAr : c.nameEn;
+                  return tile ? <img src={tile} onError={(e) => onCategoryImgError(e, tile === fallback ? undefined : fallback)} alt={alt} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition duration-500" /> : <span className="w-full h-full grid place-items-center bg-pink-50 text-pink-300"><ImageIcon className="w-10 h-10" /></span>;
+                })()}
               </div>
               <div className="text-sm font-bold mt-2">{lang === "ar" ? c.nameAr : c.nameEn}</div>
             </Link>
@@ -71,7 +80,7 @@ export default function Home() {
         <SectionTitle title={t("bestSellers", lang)} sub={lang === "ar" ? "الأكثر طلباً من عميلاتنا" : "Loved by our customers"} link="/shop" linkLabel={lang === "ar" ? "تسوقي الكل" : "Shop all"} />
         {best.length === 0 && !productsLoading ? (
           <div className="text-center py-14 bg-pink-50 rounded-3xl">
-            <div className="text-4xl">💄</div>
+            <div className="flex justify-center text-pink-300"><ImageIcon className="w-12 h-12" /></div>
             <div className="font-bold mt-2 text-sm">{lang === "ar" ? "لا توجد منتجات حالياً" : "No products right now"}</div>
           </div>
         ) : (
@@ -116,14 +125,14 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 mt-14">
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           {[
-            [lang === "ar" ? "توصيل سريع" : "Fast Delivery", lang === "ar" ? "لجميع المحافظات" : "All governorates"],
-            [lang === "ar" ? "الدفع عند الاستلام" : "Cash on Delivery", lang === "ar" ? "ادفعي عند وصول طلبك" : "Pay when it arrives"],
-            [lang === "ar" ? "دفع آمن" : "Secure Payment", lang === "ar" ? "خيارات دفع موثوقة" : "Trusted options"],
-            [lang === "ar" ? "منتجات أصلية" : "Original Products", lang === "ar" ? "جودة مضمونة 100%" : "100% guaranteed"],
-            [lang === "ar" ? "خدمة عملاء" : "Support", lang === "ar" ? "عبر واتساب يومياً" : "Via WhatsApp daily"],
-          ].map(([e, title, sub]) => (
+            { icon: <TruckIcon className="w-6 h-6 text-[#e84393]" />, title: lang === "ar" ? "توصيل سريع" : "Fast Delivery", sub: lang === "ar" ? "لجميع المحافظات" : "All governorates" },
+            { icon: <CashIcon className="w-6 h-6 text-[#e84393]" />, title: lang === "ar" ? "الدفع عند الاستلام" : "Cash on Delivery", sub: lang === "ar" ? "ادفعي عند وصول طلبك" : "Pay when it arrives" },
+            { icon: <LockIcon className="w-6 h-6 text-[#e84393]" />, title: lang === "ar" ? "دفع آمن" : "Secure Payment", sub: lang === "ar" ? "خيارات دفع موثوقة" : "Trusted options" },
+            { icon: <SparklesIcon className="w-6 h-6 text-[#e84393]" />, title: lang === "ar" ? "منتجات أصلية" : "Original Products", sub: lang === "ar" ? "جودة مضمونة 100%" : "100% guaranteed" },
+            { icon: <ChatIcon className="w-6 h-6 text-[#e84393]" />, title: lang === "ar" ? "خدمة عملاء" : "Support", sub: lang === "ar" ? "عبر واتساب يومياً" : "Via WhatsApp daily" },
+          ].map(({ icon, title, sub }) => (
             <div key={title} className="bg-white border border-pink-100 rounded-3xl p-5 text-center card-shadow hover:transition-all hover:scale-105">
-              <div className="text-xl">{e}</div>
+              <div className="flex justify-center">{icon}</div>
               <div className="font-bold text-sm mt-2">{title}</div>
               <div className="text-xs text-gray-500">{sub}</div>
             </div>
