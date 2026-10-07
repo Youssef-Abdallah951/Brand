@@ -3,14 +3,13 @@ import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
 import { ProductCard, SectionTitle, categoryFallbackUrl, categoryImageUrl, onCategoryImgError, onImgError } from "../components/product";
-import { AlertIcon, ArrowRightIcon, CashIcon, ChatIcon, ImageIcon, LockIcon, RetryIcon, SparklesIcon, TruckIcon } from "../components/icons";
+import { AlertIcon, CashIcon, ChatIcon, ImageIcon, LockIcon, RetryIcon, SparklesIcon, TruckIcon } from "../components/icons";
 
 export default function Home() {
   const { lang } = useLang();
   const { products, productsError, productsLoading, reloadProducts, categories } = useShop();
   const best = products.filter((p) => p.bestseller).slice(0, 8);
   const feat = products.filter((p) => p.featured).slice(0, 4);
-  const offers = products.filter((p) => p.compareAt).slice(0, 4);
 
   return (
     <main>
@@ -22,7 +21,6 @@ export default function Home() {
             <p className="text-gray-600 mt-4 text-base sm:text-lg max-w-md">{t("heroSub", lang)}</p>
             <div className="flex flex-wrap gap-3 mt-6">
               <Link to="/shop" className="rounded-2xl bg-[#e84393] hover:bg-[#c2185b] text-white font-bold px-8 py-3.5 btn-press shadow-lg shadow-pink-300">{t("shopNow", lang)}</Link>
-              <Link to="/offers" className="rounded-2xl bg-white border-2 border-pink-200 text-[#c2185b] font-bold px-8 py-3.5 btn-press">{t("exploreOffers", lang)}</Link>
             </div>
             <div className="flex gap-6 mt-8 text-sm">
               {[
@@ -35,11 +33,6 @@ export default function Home() {
           </div>
           <div className="relative">
             <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=80" onError={onImgError} alt="hero" className="rounded-[2rem] card-shadow w-full aspect-[4/5] sm:aspect-square object-cover animate-floaty" />
-            <div className="absolute -bottom-4 start-4 end-4 sm:end-auto bg-white rounded-2xl card-shadow px-5 py-3 flex items-center gap-3">
-              <span className="text-[#e84393]"><SparklesIcon className="w-8 h-8" /></span>
-              <div><div className="font-bold text-sm">{lang === "ar" ? "خصم حتى 30%" : "Up to 30% OFF"}</div><div className="text-xs text-gray-500">{lang === "ar" ? "على المجموعات المختارة" : "On selected bundles"}</div></div>
-              <Link to="/offers" aria-label="offers" className="ms-auto bg-[#2b2b30] text-white text-xs font-bold p-2.5 rounded-full grid place-items-center"><ArrowRightIcon className="w-4 h-4" /></Link>
-            </div>
           </div>
         </div>
       </section>
@@ -99,14 +92,6 @@ export default function Home() {
             <Link to="/shop" className="inline-block mt-6 bg-[#e84393] hover:bg-[#ff5ba6] font-bold px-8 py-3 rounded-2xl btn-press">{t("shopNow", lang)}</Link>
           </div>
           <img src="https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=900&q=80" alt="delivery" className="h-64 md:h-auto object-cover" loading="lazy" />
-        </div>
-      </section>
-
-      {/* FEATURED + OFFERS */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 mt-14">
-        <SectionTitle title={lang === "ar" ? "عروض مميزة" : "Special Offers"} link="/offers" linkLabel={lang === "ar" ? "كل العروض" : "All offers"} />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-          {offers.map((p) => <ProductCard key={p.id} p={p} />)}
         </div>
       </section>
 

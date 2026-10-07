@@ -9,8 +9,7 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 import TrackOrder from "./pages/TrackOrder";
-import Contact, { About, CategoriesPage } from "./pages/Contact";
-import Offers from "./pages/Offers";
+import Contact, { CategoriesPage } from "./pages/Contact";
 import { AdminDashboard, AdminLogin } from "./pages/Admin";
 
 function Layout() {
@@ -45,7 +44,6 @@ export default function App() {
             <Route element={<Layout />}>
               <Route path="/" element={<Home />} />
               <Route path="/shop" element={<Shop />} />
-              <Route path="/offers" element={<Offers />} />
               <Route path="/categories" element={<CategoriesPage />} />
               <Route path="/category/:slug" element={<Shop />} />
               <Route path="/product/:id" element={<ProductDetails />} />
@@ -54,7 +52,6 @@ export default function App() {
               <Route path="/order-success" element={<OrderSuccess />} />
               <Route path="/track-order" element={<TrackOrder />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/about" element={<About />} />
             </Route>
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboard />} />

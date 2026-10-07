@@ -141,7 +141,6 @@ export default function TrackOrder() {
           <div className="border-t border-dashed border-pink-200 mt-3 pt-3 grid gap-1.5 text-sm">
             <div className="flex justify-between"><span className="text-gray-500">{t("subtotal", lang)}</span><span className="font-bold">EGP {order.subtotal}</span></div>
             <div className="flex justify-between"><span className="text-gray-500">{t("delivery", lang)}</span><span className="font-bold">EGP {order.deliveryFee}</span></div>
-            {order.discount > 0 && <div className="flex justify-between"><span className="text-gray-500">{t("discount", lang)}</span><span className="font-bold">EGP {order.discount}</span></div>}
             <div className="flex justify-between text-lg"><span className="font-bold">{t("total", lang)}</span><span className="font-bold text-[#c2185b]">EGP {order.total}</span></div>
           </div>
         </div>

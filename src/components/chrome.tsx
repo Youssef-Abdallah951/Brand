@@ -16,17 +16,10 @@ export function Stars({ value = 4.5 }: { value?: number }) {
   );
 }
 
-export function Price({ price, compareAt, lang }: { price: number; compareAt?: number; lang: "ar" | "en" }) {
-  const off = compareAt ? Math.round((1 - price / compareAt) * 100) : 0;
+export function Price({ price, lang }: { price: number; lang: "ar" | "en" }) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <span className="font-bold text-lg text-[#c2185b]">EGP {price}</span>
-      {compareAt && (
-        <>
-          <span className="text-sm line-through text-gray-400">EGP {compareAt}</span>
-          <span className="text-xs font-bold bg-[#e84393] text-white px-2 py-0.5 rounded-full">-{off}%</span>
-        </>
-      )}
       <span className="sr-only">{lang === "ar" ? "جنيه" : "EGP"}</span>
     </div>
   );
@@ -42,7 +35,6 @@ export function Navbar() {
     { to: "/", label: t("home", lang) },
     { to: "/shop", label: t("shop", lang) },
     { to: "/categories", label: t("categories", lang) },
-    { to: "/about", label: t("about", lang) },
     { to: "/contact", label: t("contact", lang) },
   ];
   return (
@@ -121,7 +113,6 @@ export function Footer() {
           <div className="grid gap-2 text-sm text-white/80">
             <span>{lang === "ar" ? "الدفع عند الاستلام متاح" : "Cash on Delivery Available"}</span>
             <span>{lang === "ar" ? "توصيل لجميع المحافظات" : "Delivery to all governorates"}</span>
-            <Link to="/about">{lang === "ar" ? "سياسة الخصوصية والشروط" : "Privacy & Terms"}</Link>
           </div>
         </div>
         <div>

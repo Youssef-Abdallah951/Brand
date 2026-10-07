@@ -14,7 +14,6 @@ export default function Shop() {
   const [cat, setCat] = useState(params.get("cat") || "all");
   const [sort, setSort] = useState("new");
   const [maxPrice, setMaxPrice] = useState(1500);
-  const [onlySale, setOnlySale] = useState(false);
   const [inStock, setInStock] = useState(false);
   const [visible, setVisible] = useState(12);
   const [showFilters, setShowFilters] = useState(false);
@@ -31,8 +30,7 @@ export default function Shop() {
     let l = [...products];
     if (wishOnly) l = l.filter((p) => wishlist.includes(p.id));
     if (cat !== "all") {
-      if (cat === "offers") l = l.filter((p) => p.compareAt);
-      else {
+      {
         // Remote categories use uuid ids; seed products use "c-*" ids.
         // Match the selected slug against the live category list, then match
         // products by category id OR legacy seed id OR slug.
@@ -45,13 +43,12 @@ export default function Shop() {
       l = l.filter((p) => (p.nameEn + p.nameAr + p.descEn + p.descAr).toLowerCase().includes(s));
     }
     l = l.filter((p) => p.price <= maxPrice);
-    if (onlySale) l = l.filter((p) => p.compareAt);
     if (inStock) l = l.filter((p) => p.stock > 0);
     if (sort === "low") l.sort((a, b) => a.price - b.price);
     if (sort === "high") l.sort((a, b) => b.price - a.price);
     if (sort === "rating") l.sort((a, b) => b.rating - a.rating);
     return l;
-  }, [products, cat, q, sort, maxPrice, onlySale, inStock, wishOnly, wishlist, categories]);
+  }, [products, cat, q, sort, maxPrice, inStock, wishOnly, wishlist, categories]);
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
@@ -90,7 +87,6 @@ export default function Shop() {
           </div>
           <label className="font-bold text-sm">{lang === "ar" ? `السعر حتى ${maxPrice} ج` : `Up to EGP ${maxPrice}`}</label>
           <input type="range" min={150} max={1500} step={50} value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} className="w-full accent-[#e84393] my-2" />
-          <label className="flex items-center gap-2 text-sm mt-2"><input type="checkbox" checked={onlySale} onChange={(e) => setOnlySale(e.target.checked)} className="accent-[#e84393] w-4 h-4" /> {lang === "ar" ? "العروض فقط" : "On sale only"}</label>
           <label className="flex items-center gap-2 text-sm mt-2"><input type="checkbox" checked={inStock} onChange={(e) => setInStock(e.target.checked)} className="accent-[#e84393] w-4 h-4" /> {lang === "ar" ? "متوفر فقط" : "In stock only"}</label>
           <div className="font-bold text-sm mt-4 mb-2">{lang === "ar" ? "ترتيب" : "Sort"}</div>
           <select value={sort} onChange={(e) => setSort(e.target.value)} className="w-full rounded-2xl border border-pink-200 px-3 py-2.5 text-sm">

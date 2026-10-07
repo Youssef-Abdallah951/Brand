@@ -78,7 +78,7 @@ export default function ProductDetails() {
         <div>
           <div className="flex items-center gap-2"><Stars value={p.rating} /><span className="text-sm text-gray-400">({p.reviewsCount})</span></div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold mt-2">{name}</h1>
-          <div className="mt-3"><Price price={p.price} compareAt={p.compareAt} lang={lang} /></div>
+          <div className="mt-3"><Price price={p.price} lang={lang} /></div>
           <p className="text-gray-600 mt-4 leading-relaxed">{desc}</p>
           {p.ingredients && <p className="text-xs text-gray-400 mt-2 inline-flex items-center gap-1"><FlaskIcon className="w-3.5 h-3.5" /> {p.ingredients}</p>}
           <div className={`mt-4 text-sm font-bold inline-flex items-center gap-1.5 ${p.stock > 0 ? "text-green-600" : "text-red-500"}`}>

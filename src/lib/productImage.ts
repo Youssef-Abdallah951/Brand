@@ -42,7 +42,6 @@ const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
   perfumes: catImg("photo-1541643600914-78b084683601"),
   "body-care": catImg("photo-1570172619644-dfd03ed5d881"),
   accessories: catImg("photo-1596462502278-27bfdc403348"),
-  offers: catImg("photo-1487412947147-5cebf100ffc2"),
 };
 
 const GENERIC_CATEGORY_IMAGE = catImg("photo-1487412947147-5cebf100ffc2");

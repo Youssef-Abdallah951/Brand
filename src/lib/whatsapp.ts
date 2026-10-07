@@ -22,7 +22,6 @@ export function buildOrderWhatsAppMessage(order: Order): string {
   lines.push("");
   lines.push(`Subtotal: EGP ${order.subtotal}`);
   lines.push(`Delivery: EGP ${order.deliveryFee}`);
-  if (order.discount > 0) lines.push(`Discount: EGP ${order.discount}`);
   lines.push(`Total: EGP ${order.total}`);
   lines.push("");
   lines.push("Delivery Address:");

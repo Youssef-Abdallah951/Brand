@@ -33,11 +33,6 @@ export function ProductCard({ p }: { p: Product }) {
         ) : (
           <span className="w-full h-full grid place-items-center bg-pink-50 text-pink-300"><ImageIcon className="w-12 h-12" /></span>
         )}
-        {p.compareAt && (
-          <span className="absolute top-3 start-3 bg-[#e84393] text-white text-xs font-bold px-2.5 py-1 rounded-full">
-            -{Math.round((1 - p.price / p.compareAt) * 100)}%
-          </span>
-        )}
         <button
           onClick={(e) => { e.preventDefault(); toggleWish(p.id); }}
           aria-label="wishlist"
@@ -55,7 +50,7 @@ export function ProductCard({ p }: { p: Product }) {
           <span className="text-xs text-gray-400">({p.reviewsCount})</span>
         </div>
         <Link to={`/product/${p.slug}`} className="font-semibold text-[15px] leading-snug line-clamp-2 min-h-[42px]">{name}</Link>
-        <Price price={p.price} compareAt={p.compareAt} lang={lang} />
+        <Price price={p.price} lang={lang} />
         <button
           disabled={out}
           onClick={() => { addToCart(p.id); pushToast(lang === "ar" ? "تمت إضافة المنتج إلى السلة" : "Product added to cart"); }}

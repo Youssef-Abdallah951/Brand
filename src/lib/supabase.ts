@@ -385,7 +385,6 @@ export async function fetchProductsRemote(): Promise<Product[] | null> {
         descEn: String(rec.desc_en ?? ""),
         descAr: String(rec.desc_ar ?? ""),
         price: Number(rec.price),
-        compareAt: rec.compare_at ? Number(rec.compare_at) : undefined,
         stock: Number(rec.stock ?? 0),
         categoryId: String(rec.category_id ?? ""),
         images: imgs,

@@ -237,7 +237,6 @@ export function AdminDashboard() {
     if (rest.nameAr !== undefined) dbPatch.name_ar = rest.nameAr;
     if (rest.descEn !== undefined) dbPatch.desc_en = rest.descEn;
     if (rest.descAr !== undefined) dbPatch.desc_ar = rest.descAr;
-    if (rest.compareAt !== undefined) dbPatch.compare_at = rest.compareAt;
     if (rest.categoryId !== undefined) dbPatch.category_id = rest.categoryId || null;
     if (rest.featured !== undefined) dbPatch.featured = rest.featured;
     if (rest.bestseller !== undefined) dbPatch.bestseller = rest.bestseller;
@@ -255,7 +254,7 @@ export function AdminDashboard() {
   };
 
   const addProduct = async (draft: {
-    nameEn: string; nameAr: string; price: number; compareAt?: number;
+    nameEn: string; nameAr: string; price: number;
     stock: number; categoryId: string; images: string[];
     featured: boolean; bestseller: boolean;
   }) => {
@@ -268,7 +267,7 @@ export function AdminDashboard() {
         id: `local-${Date.now()}`, slug,
         nameEn: draft.nameEn, nameAr: draft.nameAr,
         descEn: "", descAr: "",
-        price: draft.price, compareAt: draft.compareAt, stock: draft.stock,
+        price: draft.price, stock: draft.stock,
         categoryId: draft.categoryId, images: draft.images,
         rating: 4.5, reviewsCount: 0,
         featured: draft.featured, bestseller: draft.bestseller,
@@ -283,7 +282,7 @@ export function AdminDashboard() {
       slug,
       category_id: catId,
       name_en: draft.nameEn, name_ar: draft.nameAr,
-      price: draft.price, compare_at: draft.compareAt ?? null,
+      price: draft.price,
       stock: draft.stock, featured: draft.featured, bestseller: draft.bestseller,
       active: true, rating: 4.5, reviews_count: 0,
     }).select("id").single();
@@ -296,7 +295,7 @@ export function AdminDashboard() {
     }
     const created: Product = {
       id, slug, nameEn: draft.nameEn, nameAr: draft.nameAr,
-      descEn: "", descAr: "", price: draft.price, compareAt: draft.compareAt,
+      descEn: "", descAr: "", price: draft.price,
       stock: draft.stock, categoryId: catId ?? "", images: draft.images,
       rating: 4.5, reviewsCount: 0, featured: draft.featured,
       bestseller: draft.bestseller, active: true, createdAt: new Date().toISOString(),
@@ -517,7 +516,7 @@ export function AdminDashboard() {
                 {(() => { const thumb = firstProductImage(p.images); return thumb ? <img src={thumb} onError={onImgError} alt="" className="w-14 h-16 rounded-2xl object-cover" /> : <span className="w-14 h-16 rounded-2xl bg-pink-100 grid place-items-center shrink-0 text-pink-300"><ImageIcon className="w-6 h-6" /></span>; })()}
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-sm truncate">{p.nameEn}</div>
-                  <div className="text-xs text-gray-500 inline-flex items-center gap-1 flex-wrap">EGP {p.price} • stock {p.stock} {p.compareAt && `• sale ${p.compareAt}`} {p.featured && (<span className="inline-flex items-center gap-0.5">• <StarIcon filled className="w-3 h-3 text-amber-400" /></span>)} {p.bestseller && (<span className="inline-flex items-center gap-0.5">• <FlameIcon className="w-3 h-3 text-orange-500" /></span>)}</div>
+                  <div className="text-xs text-gray-500 inline-flex items-center gap-1 flex-wrap">EGP {p.price} • stock {p.stock} {p.featured && (<span className="inline-flex items-center gap-0.5">• <StarIcon filled className="w-3 h-3 text-amber-400" /></span>)} {p.bestseller && (<span className="inline-flex items-center gap-0.5">• <FlameIcon className="w-3 h-3 text-orange-500" /></span>)}</div>
                 </div>
                 <input type="number" value={p.price} onChange={(e) => saveProduct(p, { price: Number(e.target.value) })} className="w-[4.5rem] sm:w-20 max-w-full rounded-xl border px-2 py-1.5 text-sm" title="price" />
                 <input type="number" value={p.stock} onChange={(e) => saveProduct(p, { stock: Number(e.target.value) })} className="w-14 sm:w-16 max-w-full rounded-xl border px-2 py-1.5 text-sm" title="stock" />
@@ -614,12 +613,11 @@ export function AdminDashboard() {
 
 function AddProductForm({ cats, onAdd }: {
   cats: Category[];
-  onAdd: (d: { nameEn: string; nameAr: string; price: number; compareAt?: number; stock: number; categoryId: string; images: string[]; featured: boolean; bestseller: boolean }) => void;
+  onAdd: (d: { nameEn: string; nameAr: string; price: number; stock: number; categoryId: string; images: string[]; featured: boolean; bestseller: boolean }) => void;
 }) {
   const [nameEn, setNameEn] = useState("");
   const [nameAr, setNameAr] = useState("");
   const [price, setPrice] = useState(0);
-  const [compareAt, setCompareAt] = useState("");
   const [stock, setStock] = useState(10);
   const [categoryId, setCategoryId] = useState(cats[0]?.id ?? "");
   const [images, setImages] = useState("");
@@ -631,7 +629,6 @@ function AddProductForm({ cats, onAdd }: {
       <input value={nameEn} onChange={(e) => setNameEn(e.target.value)} placeholder="Name (EN) *" className={cls} dir="ltr" />
       <input value={nameAr} onChange={(e) => setNameAr(e.target.value)} placeholder="الاسم (AR) *" className={cls} dir="rtl" />
       <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} placeholder="Price *" className={cls} title="price" />
-      <input type="number" value={compareAt} onChange={(e) => setCompareAt(e.target.value)} placeholder="Compare-at (sale, optional)" className={cls} title="compare at" />
       <input type="number" value={stock} onChange={(e) => setStock(Number(e.target.value))} placeholder="Stock" className={cls} title="stock" />
       <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={cls} title="category">
         <option value="">— No category —</option>
@@ -645,7 +642,6 @@ function AddProductForm({ cats, onAdd }: {
           if (!nameEn.trim() || !nameAr.trim() || !(price > 0)) return;
           onAdd({
             nameEn: nameEn.trim(), nameAr: nameAr.trim(), price,
-            compareAt: compareAt ? Number(compareAt) : undefined,
             stock: Math.max(0, stock), categoryId,
             images: images.split(",").map((s) => s.trim()).filter(Boolean),
             featured, bestseller,
@@ -663,7 +659,6 @@ function ProductEditor({ p, cats, onSave }: { p: Product; cats: Category[]; onSa
   const [nameEn, setNameEn] = useState(p.nameEn);
   const [nameAr, setNameAr] = useState(p.nameAr);
   const [price, setPrice] = useState(p.price);
-  const [compareAt, setCompareAt] = useState(p.compareAt ? String(p.compareAt) : "");
   const [stock, setStock] = useState(p.stock);
   const [categoryId, setCategoryId] = useState(p.categoryId);
   const [images, setImages] = useState(p.images.join(", "));
@@ -675,7 +670,6 @@ function ProductEditor({ p, cats, onSave }: { p: Product; cats: Category[]; onSa
       <input value={nameEn} onChange={(e) => setNameEn(e.target.value)} className={cls} title="name en" dir="ltr" />
       <input value={nameAr} onChange={(e) => setNameAr(e.target.value)} className={cls} title="name ar" dir="rtl" />
       <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className={cls} title="price" />
-      <input value={compareAt} onChange={(e) => setCompareAt(e.target.value)} placeholder="Compare-at (empty = no sale)" className={cls} title="compare at" />
       <input type="number" value={stock} onChange={(e) => setStock(Number(e.target.value))} className={cls} title="stock" />
       <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={cls} title="category">
         <option value="">— No category —</option>
@@ -687,7 +681,7 @@ function ProductEditor({ p, cats, onSave }: { p: Product; cats: Category[]; onSa
       <button
         onClick={() => onSave({
           nameEn: nameEn.trim() || p.nameEn, nameAr: nameAr.trim() || p.nameAr,
-          price: Math.max(0, price), compareAt: compareAt ? Number(compareAt) : undefined,
+          price: Math.max(0, price),
           stock: Math.max(0, stock), categoryId, featured, bestseller,
           images: images.split(",").map((s) => s.trim()).filter(Boolean),
         })}

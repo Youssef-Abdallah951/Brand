@@ -17,7 +17,6 @@ export interface Product {
   descEn: string;
   descAr: string;
   price: number;
-  compareAt?: number;
   stock: number;
   categoryId: string;
   images: string[];
