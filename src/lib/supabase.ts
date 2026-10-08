@@ -17,7 +17,7 @@ const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 // ---------------------------------------------------------------------------
 if (!anon) {
   console.error(
-    "[LUMIÈRE] VITE_SUPABASE_ANON_KEY is missing — checkout, catalog sync " +
+    "[JiA] VITE_SUPABASE_ANON_KEY is missing — checkout, catalog sync " +
     "and order tracking are disabled. Set it in .env (or your host's env " +
     "vars) and restart/rebuild.",
   );

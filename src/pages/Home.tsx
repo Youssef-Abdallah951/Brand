@@ -98,7 +98,7 @@ export default function Home() {
       {feat.length > 0 && (
         <section className="bg-[#fff5f8] mt-14 py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <SectionTitle title={lang === "ar" ? "مختارات لوميير" : "LUMIÈRE Picks"} />
+            <SectionTitle title={lang === "ar" ? "مختارات JiA" : "JiA Picks"} />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
               {feat.map((p) => <ProductCard key={p.id} p={p} />)}
             </div>

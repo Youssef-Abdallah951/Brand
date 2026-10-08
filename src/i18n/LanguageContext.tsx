@@ -27,8 +27,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
     document.title =
       lang === "ar"
-        ? "لوميير بيوتي | مستحضرات تجميل مصرية فاخرة"
-        : "LUMIÈRE Beauty | Premium Egyptian Cosmetics";
+        ? "JiA | Silk & Essentials"
+        : "JiA | Silk & Essentials";
   }, [lang]);
   return (
     <LanguageContext.Provider value={{ lang, setLang, dir: lang === "ar" ? "rtl" : "ltr" }}>

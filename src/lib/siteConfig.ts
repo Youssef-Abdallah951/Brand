@@ -2,10 +2,10 @@
 // Change the admin number HERE ONLY — everything else imports from this file.
 export const SITE_CONFIG = {
   brand: {
-    nameEn: "LUMIÈRE Beauty",
-    nameAr: "لوميير بيوتي",
-    taglineEn: "Premium Egyptian Cosmetics",
-    taglineAr: "مستحضرات تجميل مصرية فاخرة",
+    nameEn: "JiA",
+    nameAr: "JiA",
+    taglineEn: "Silk & Essentials",
+    taglineAr: "Silk & Essentials",
   },
   admin: {
     // Local format
@@ -19,8 +19,8 @@ export const SITE_CONFIG = {
       return `tel:+${SITE_CONFIG.admin.phoneIntl}`;
     },
     // Default chat message
-    defaultChatMessageEn: "Hello LUMIÈRE Beauty! I need help with my order.",
-    defaultChatMessageAr: "أهلاً لوميير بيوتي! محتاجة مساعدة في الطلب بتاعي.",
+    defaultChatMessageEn: "Hello JiA! I need help with my order.",
+    defaultChatMessageAr: "أهلاً JiA! محتاجة مساعدة في الطلب بتاعي.",
   },
   delivery: {
     standardFee: 60,

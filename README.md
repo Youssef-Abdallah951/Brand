@@ -1,4 +1,4 @@
-# LUMIÈRE Beauty — Premium Egyptian Cosmetics E-commerce
+# JiA — Silk & Essentials E-commerce
 
 Mobile-first, bilingual (AR RTL / EN LTR), WhatsApp-order-flow cosmetics store.
 

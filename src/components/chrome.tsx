@@ -45,7 +45,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center gap-2 sm:gap-4 h-16">
         <button className="md:hidden p-2 rounded-xl hover:bg-pink-50 text-gray-700" onClick={() => setOpen(!open)} aria-label="menu"><MenuIcon className="w-6 h-6" /></button>
         <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0">
-          <span className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#e84393] to-[#ffb3cd] grid place-items-center text-white font-display text-xl shadow shrink-0">L</span>
+          <img src="./logo.png" alt="JiA Silk & Essentials" className="w-9 h-9 rounded-2xl object-cover shrink-0"/>
           <span className="font-display font-bold text-lg leading-tight min-w-0 truncate">
             {lang === "ar" ? SITE_CONFIG.brand.nameAr : SITE_CONFIG.brand.nameEn}
             <span className="hidden min-[380px]:block text-[11px] font-body font-normal text-pink-500 truncate">{lang === "ar" ? SITE_CONFIG.brand.taglineAr : SITE_CONFIG.brand.taglineEn}</span>
