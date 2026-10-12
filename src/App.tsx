@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { LanguageProvider } from "./i18n/LanguageContext";
 import { ShopProvider } from "./store/ShopContext";
+import { ThemeProvider } from "./store/ThemeContext";
 import { Navbar, Footer, FloatingWhatsApp, Toasts } from "./components/chrome";
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
@@ -14,7 +15,7 @@ import { AdminDashboard, AdminLogin } from "./pages/Admin";
 
 function Layout() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#FFFFFF] dark:bg-black text-[#171717] dark:text-white">
       <Navbar />
       <div className="flex-1">
         <Outlet />
@@ -28,7 +29,7 @@ function Layout() {
 
 function AdminLayout() {
   return (
-    <div className="min-h-screen bg-[#fff9fb]">
+    <div className="min-h-screen bg-[#FFFFFF] dark:bg-black text-[#171717] dark:text-white">
       <Outlet />
       <Toasts />
     </div>
@@ -37,6 +38,7 @@ function AdminLayout() {
 
 export default function App() {
   return (
+    <ThemeProvider>
     <LanguageProvider>
       <ShopProvider>
         <BrowserRouter>
@@ -62,5 +64,6 @@ export default function App() {
         </BrowserRouter>
       </ShopProvider>
     </LanguageProvider>
+    </ThemeProvider>
   );
 }

@@ -61,15 +61,15 @@ export function AdminLogin() {
   };
 
   return (
-    <main className="min-h-[70vh] grid place-items-center px-4 py-10 bg-[#fff5f8]">
-      <form onSubmit={login} className="w-full max-w-md bg-white rounded-3xl border border-pink-100 p-7 card-shadow">
-        <h1 className="font-display text-2xl font-bold inline-flex items-center gap-2"><LockIcon className="w-6 h-6" /> Admin Login</h1>
-        <p className="text-xs text-gray-500 mt-1">Supabase Auth — administrators only. Customers never log in.</p>
-        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin email" dir="ltr" className="mt-4 w-full rounded-2xl border border-pink-200 px-4 py-3 outline-none" />
-        <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="password" dir="ltr" className="mt-2 w-full rounded-2xl border border-pink-200 px-4 py-3 outline-none" />
-        {err && <p className="text-red-500 text-xs font-bold mt-2">{err}</p>}
-        <button className="mt-4 w-full rounded-2xl bg-[#2b2b30] text-white font-bold py-3.5">Login</button>
-        <p className="text-[11px] text-gray-400 mt-2">Demo without Supabase: admin@lumiere.eg / admin123</p>
+    <main className="min-h-[70vh] grid place-items-center px-4 py-10 bg-[#FFFFFF] dark:bg-black">
+      <form onSubmit={login} className="w-full max-w-md bg-white dark:bg-[#0A0A0A] rounded-3xl border border-[#E5E5E5] dark:border-[#333333] p-7 card-shadow">
+        <h1 className="font-display text-[1.4rem] font-bold inline-flex items-center gap-2 text-[#171717] dark:text-white"><LockIcon className="w-6 h-6" /> Admin Login</h1>
+        <p className="text-xs text-gray-500 dark:text-[#A3A3A3] mt-1">Supabase Auth — administrators only. Customers never log in.</p>
+        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin email" dir="ltr" className="mt-4 w-full rounded-2xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#0A0A0A] text-[#171717] dark:text-white px-4 py-3 outline-none focus:border-[#e84393] placeholder:text-gray-400 dark:placeholder:text-neutral-500" />
+        <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="password" dir="ltr" className="mt-2 w-full rounded-2xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#0A0A0A] text-[#171717] dark:text-white px-4 py-3 outline-none focus:border-[#e84393] placeholder:text-gray-400 dark:placeholder:text-neutral-500" />
+        {err && <p className="text-red-500 dark:text-red-400 text-xs font-bold mt-2">{err}</p>}
+        <button className="mt-4 w-full rounded-2xl bg-[#2b2b30] dark:bg-[#1a1a1a] dark:border dark:border-[#333333] text-white font-bold py-3.5">Login</button>
+        <p className="text-[11px] text-gray-400 dark:text-[#A3A3A3] mt-2">Demo without Supabase: admin@lumiere.eg / admin123</p>
       </form>
     </main>
   );
@@ -420,12 +420,12 @@ export function AdminDashboard() {
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="font-display text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
-        <span className="text-xs bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full">COD only • {SITE_CONFIG.admin.phoneLocal}</span>
-        {!live && <span className="text-xs bg-amber-100 text-amber-700 font-bold px-3 py-1 rounded-full">Demo mode — connect Supabase for live data</span>}
+        <h1 className="font-display text-[1.4rem] sm:text-[1.7rem] font-bold text-[#171717] dark:text-white">Admin Dashboard</h1>
+        <span className="text-xs bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-300 font-bold px-3 py-1 rounded-full">COD only • {SITE_CONFIG.admin.phoneLocal}</span>
+        {!live && <span className="text-xs bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-200 font-bold px-3 py-1 rounded-full">Demo mode — connect Supabase for live data</span>}
         <button
           onClick={() => { localStorage.removeItem("lumiere_admin_demo"); getSupabase()?.auth.signOut(); location.href = "/"; }}
-          className="ms-auto text-xs font-bold border rounded-full px-4 py-2"
+          className="ms-auto text-xs font-bold border border-[#E5E5E5] dark:border-[#333333] rounded-full px-4 py-2"
         >
           Logout
         </button>
@@ -433,7 +433,7 @@ export function AdminDashboard() {
 
       <div className="flex gap-2 mt-4 overflow-x-auto no-scrollbar pb-1">
         {tabs.map((x) => (
-          <button key={x.id} onClick={() => setTab(x.id)} className={`whitespace-nowrap px-4 py-2.5 rounded-2xl text-sm font-bold inline-flex items-center gap-1.5 ${tab === x.id ? "bg-[#2b2b30] text-white" : "bg-white border border-pink-200"}`}>
+          <button key={x.id} onClick={() => setTab(x.id)} className={`whitespace-nowrap px-4 py-2.5 rounded-2xl text-sm font-bold inline-flex items-center gap-1.5 ${tab === x.id ? "bg-[#2b2b30] dark:bg-[#1a1a1a] dark:border dark:border-[#333333] text-white" : "bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] text-[#171717] dark:text-white"}`}>
             {x.icon}{x.label}
           </button>
         ))}
@@ -451,9 +451,9 @@ export function AdminDashboard() {
             { icon: <UsersIcon className="w-4 h-4 text-[#e84393]" />, label: "Customers", value: customers.length },
             { icon: <CheckIcon className="w-4 h-4 text-green-600" />, label: "Confirmed", value: count("confirmed") },
           ].map(({ icon, label, value }) => (
-            <div key={label} className="bg-white border border-pink-100 rounded-3xl p-5 card-shadow">
-              <div className="text-xs text-gray-500 inline-flex items-center gap-1.5">{icon}{label}</div>
-              <div className="text-2xl font-bold mt-1">{value}</div>
+            <div key={label} className="bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-3xl p-5 card-shadow">
+              <div className="text-xs text-gray-500 dark:text-[#A3A3A3] inline-flex items-center gap-1.5">{icon}{label}</div>
+              <div className="text-[1.4rem] font-bold mt-1 text-[#171717] dark:text-white">{value}</div>
             </div>
           ))}
         </div>
@@ -461,39 +461,39 @@ export function AdminDashboard() {
 
       {tab === "orders" && (
         <div className="mt-5 grid gap-3">
-          <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Search order / whatsapp / name…" className="rounded-2xl border border-pink-200 px-4 py-3 outline-none max-w-md" />
-          {!live && <p className="text-amber-700 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-sm font-bold">Connect Supabase keys to view live orders.</p>}
+          <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Search order / whatsapp / name…" className="rounded-2xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#0A0A0A] text-[#171717] dark:text-white px-4 py-3 outline-none focus:border-[#e84393] placeholder:text-gray-400 dark:placeholder:text-neutral-500 max-w-md" />
+          {!live && <p className="text-amber-700 dark:text-amber-200 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl px-4 py-3 text-sm font-bold">Connect Supabase keys to view live orders.</p>}
           {live && ordersError && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3 text-sm font-bold text-red-700 flex flex-wrap gap-3 items-center">
+            <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-2xl px-4 py-3 text-sm font-bold text-red-700 dark:text-red-300 flex flex-wrap gap-3 items-center">
               <span>Unable to load orders. Please try again.</span>
               <button onClick={loadOrders} disabled={ordersLoading} className="underline disabled:opacity-60 inline-flex items-center gap-1"><RetryIcon className="w-3.5 h-3.5" /> {ordersLoading ? "Loading…" : "Retry"}</button>
             </div>
           )}
-          {live && !ordersError && ordersLoading && shownOrders.length === 0 && <p className="text-gray-400 text-sm">Loading orders…</p>}
-          {live && !ordersError && !ordersLoading && shownOrders.length === 0 && <p className="text-gray-400 text-sm">No orders yet. New COD orders from /checkout appear here.</p>}
+          {live && !ordersError && ordersLoading && shownOrders.length === 0 && <p className="text-gray-400 dark:text-[#A3A3A3] text-sm">Loading orders…</p>}
+          {live && !ordersError && !ordersLoading && shownOrders.length === 0 && <p className="text-gray-400 dark:text-[#A3A3A3] text-sm">No orders yet. New COD orders from /checkout appear here.</p>}
           {shownOrders.map((o) => (
-            <details key={o.id} className="bg-white border border-pink-100 rounded-3xl p-4 card-shadow">
+            <details key={o.id} className="bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-3xl p-4 card-shadow">
               <summary className="flex flex-wrap items-center gap-2 cursor-pointer font-bold text-sm">
                 <span dir="ltr">#{o.orderNumber}</span>
                 <span>{o.firstName} {o.lastName}</span>
-                <span dir="ltr" className="text-gray-500">{o.whatsapp}</span>
-                <span className="ms-auto text-[#c2185b]">EGP {o.total}</span>
-                <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full">{STATUS_LABEL[o.status]?.en}</span>
+                <span dir="ltr" className="text-gray-500 dark:text-[#A3A3A3]">{o.whatsapp}</span>
+                <span className="ms-auto text-[#c2185b] dark:text-[#ff8fb8]">EGP {o.total}</span>
+                <span className="text-xs bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-200 px-2.5 py-1 rounded-full">{STATUS_LABEL[o.status]?.en}</span>
               </summary>
-              <div className="text-sm mt-3 grid gap-1.5 text-gray-600">
+              <div className="text-sm mt-3 grid gap-1.5 text-gray-600 dark:text-[#D4D4D4]">
                 <div className="inline-flex items-start gap-1.5"><MapPinIcon className="w-4 h-4 mt-0.5 shrink-0 text-[#e84393]" /> <span>{o.address}, {o.area}, {o.city}, {o.governorate} {o.building && `Bldg ${o.building}`} {o.apartment && `Apt ${o.apartment}`}</span></div>
                 <div className="inline-flex items-center gap-1.5"><TruckIcon className="w-4 h-4 shrink-0 text-[#e84393]" /> <span>{o.deliveryMethod} • COD ({o.paymentStatus}) •</span> <CalendarIcon className="w-4 h-4 shrink-0" /> <span>{o.createdAt ? new Date(o.createdAt).toLocaleString() : ""}</span></div>
                 {o.notes && <div className="inline-flex items-start gap-1.5"><PencilIcon className="w-4 h-4 mt-0.5 shrink-0" /> <span>{o.notes}</span></div>}
-                {o.items.map((i, idx) => { const thumb = firstProductImage([i.image]); return <div key={`${i.productId}-${idx}`} className="flex gap-2 items-center">{thumb && <img src={thumb} onError={onImgError} className="w-8 h-10 rounded object-cover" alt="" />}<span>{i.nameEn} × {i.qty} — EGP {i.price * i.qty}</span></div>; })}
+                {o.items.map((i, idx) => { const thumb = firstProductImage([i.image]); return <div key={`${i.productId}-${idx}`} className="flex gap-2 items-center">{thumb && <img src={thumb} onError={onImgError} className="product-photo w-8 h-10 rounded object-cover" alt="" />}<span>{i.nameEn} × {i.qty} — EGP {i.price * i.qty}</span></div>; })}
                 <div className="flex flex-wrap gap-2 mt-2">
                   {(["pending", "confirmed", "preparing", "out_for_delivery", "delivered", "cancelled"] as OrderStatus[]).map((s) => (
-                    <button key={s} disabled={saving === o.orderNumber} onClick={() => changeStatus(o, s)} className={`text-xs font-bold px-3 py-1.5 rounded-full border ${o.status === s ? "bg-[#2b2b30] text-white" : "hover:bg-pink-50"}`}>{s}</button>
+                    <button key={s} disabled={saving === o.orderNumber} onClick={() => changeStatus(o, s)} className={`text-xs font-bold px-3 py-1.5 rounded-full border border-[#E5E5E5] dark:border-[#333333] ${o.status === s ? "bg-[#2b2b30] dark:bg-[#1a1a1a] text-white" : "hover:bg-black/5 dark:hover:bg-white/10"}`}>{s}</button>
                   ))}
                 </div>
                 <div className="flex gap-2 mt-1 items-center">
-                  <span className="text-xs text-gray-400">COD payment:</span>
-                  <button onClick={() => setPay(o, "paid")} className={`text-xs font-bold px-3 py-1.5 rounded-full ${o.paymentStatus === "paid" ? "bg-green-600 text-white" : "bg-green-100 text-green-700"}`}>Mark paid</button>
-                  <button onClick={() => setPay(o, "pending")} className="text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-full">Mark pending</button>
+                  <span className="text-xs text-gray-400 dark:text-[#A3A3A3]">COD payment:</span>
+                  <button onClick={() => setPay(o, "paid")} className={`text-xs font-bold px-3 py-1.5 rounded-full ${o.paymentStatus === "paid" ? "bg-green-600 text-white" : "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-300"}`}>Mark paid</button>
+                  <button onClick={() => setPay(o, "pending")} className="text-xs font-bold bg-gray-100 dark:bg-[#1f1f1f] dark:text-[#D4D4D4] px-3 py-1.5 rounded-full">Mark pending</button>
                 </div>
               </div>
             </details>
@@ -503,7 +503,7 @@ export function AdminDashboard() {
 
       {tab === "products" && (
         <div className="mt-5 grid gap-3">
-          {!live && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 font-bold">Demo mode — edits are in-memory only. Connect Supabase to persist.</p>}
+          {!live && <p className="text-xs text-amber-700 dark:text-amber-200 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl px-4 py-3 font-bold">Demo mode — edits are in-memory only. Connect Supabase to persist.</p>}
           <div>
             <button onClick={() => setShowAdd((s) => !s)} className="rounded-2xl bg-[#e84393] text-white text-sm font-bold px-5 py-2.5 inline-flex items-center gap-1.5">
               {showAdd ? <><XIcon className="w-4 h-4" /> Close</> : <><PlusIcon className="w-4 h-4" /> Add Product</>}
@@ -511,18 +511,18 @@ export function AdminDashboard() {
           </div>
           {showAdd && <AddProductForm cats={cats} onAdd={addProduct} />}
           {products.map((p) => (
-            <div key={p.id} className="bg-white border border-pink-100 rounded-3xl p-3 overflow-hidden">
+            <div key={p.id} className="bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-3xl p-3 overflow-hidden">
               <div className="flex flex-wrap gap-2 sm:gap-3 items-center">
-                {(() => { const thumb = firstProductImage(p.images); return thumb ? <img src={thumb} onError={onImgError} alt="" className="w-14 h-16 rounded-2xl object-cover" /> : <span className="w-14 h-16 rounded-2xl bg-pink-100 grid place-items-center shrink-0 text-pink-300"><ImageIcon className="w-6 h-6" /></span>; })()}
+                {(() => { const thumb = firstProductImage(p.images); return thumb ? <img src={thumb} onError={onImgError} alt="" className="product-photo w-14 h-16 rounded-2xl object-cover" /> : <span className="w-14 h-16 rounded-2xl bg-pink-100 dark:bg-[#161616] grid place-items-center shrink-0 text-pink-300 dark:text-neutral-600"><ImageIcon className="w-6 h-6" /></span>; })()}
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-sm truncate">{p.nameEn}</div>
-                  <div className="text-xs text-gray-500 inline-flex items-center gap-1 flex-wrap">EGP {p.price} • stock {p.stock} {p.featured && (<span className="inline-flex items-center gap-0.5">• <StarIcon filled className="w-3 h-3 text-amber-400" /></span>)} {p.bestseller && (<span className="inline-flex items-center gap-0.5">• <FlameIcon className="w-3 h-3 text-orange-500" /></span>)}</div>
+                  <div className="text-xs text-gray-500 dark:text-[#A3A3A3] inline-flex items-center gap-1 flex-wrap">EGP {p.price} • stock {p.stock} {p.featured && (<span className="inline-flex items-center gap-0.5">• <StarIcon filled className="w-3 h-3 text-amber-400" /></span>)} {p.bestseller && (<span className="inline-flex items-center gap-0.5">• <FlameIcon className="w-3 h-3 text-orange-500" /></span>)}</div>
                 </div>
-                <input type="number" value={p.price} onChange={(e) => saveProduct(p, { price: Number(e.target.value) })} className="w-[4.5rem] sm:w-20 max-w-full rounded-xl border px-2 py-1.5 text-sm" title="price" />
-                <input type="number" value={p.stock} onChange={(e) => saveProduct(p, { stock: Number(e.target.value) })} className="w-14 sm:w-16 max-w-full rounded-xl border px-2 py-1.5 text-sm" title="stock" />
-                <button onClick={() => saveProduct(p, { active: !p.active })} className={`text-xs font-bold px-3 py-1.5 rounded-full ${p.active ? "bg-green-100 text-green-700" : "bg-gray-100"}`}>{p.active ? "Active" : "Hidden"}</button>
-                <button onClick={() => setEditing(editing?.id === p.id ? null : p)} className="text-xs font-bold px-3 py-1.5 rounded-full border inline-flex items-center gap-1"><PencilIcon className="w-3.5 h-3.5" /> Edit</button>
-                <button onClick={() => deleteProduct(p)} aria-label="delete product" className="text-red-500 font-bold p-1.5"><XIcon className="w-4 h-4" /></button>
+                <input type="number" value={p.price} onChange={(e) => saveProduct(p, { price: Number(e.target.value) })} className="w-[4.5rem] sm:w-20 max-w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#0A0A0A] text-[#171717] dark:text-white px-2 py-1.5 text-sm" title="price" />
+                <input type="number" value={p.stock} onChange={(e) => saveProduct(p, { stock: Number(e.target.value) })} className="w-14 sm:w-16 max-w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#0A0A0A] text-[#171717] dark:text-white px-2 py-1.5 text-sm" title="stock" />
+                <button onClick={() => saveProduct(p, { active: !p.active })} className={`text-xs font-bold px-3 py-1.5 rounded-full ${p.active ? "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-300" : "bg-gray-100 dark:bg-[#1f1f1f] dark:text-[#D4D4D4]"}`}>{p.active ? "Active" : "Hidden"}</button>
+                <button onClick={() => setEditing(editing?.id === p.id ? null : p)} className="text-xs font-bold px-3 py-1.5 rounded-full border border-[#E5E5E5] dark:border-[#333333] inline-flex items-center gap-1"><PencilIcon className="w-3.5 h-3.5" /> Edit</button>
+                <button onClick={() => deleteProduct(p)} aria-label="delete product" className="text-red-500 dark:text-red-400 font-bold p-1.5"><XIcon className="w-4 h-4" /></button>
               </div>
               {editing?.id === p.id && (
                 <ProductEditor p={editing} cats={cats} onSave={(patch) => saveProduct(p, patch)} />
@@ -534,37 +534,37 @@ export function AdminDashboard() {
 
       {tab === "cats" && (
         <div className="mt-5 grid gap-3">
-          {!live && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 font-bold">Demo mode — categories are in-memory only.</p>}
+          {!live && <p className="text-xs text-amber-700 dark:text-amber-200 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl px-4 py-3 font-bold">Demo mode — categories are in-memory only.</p>}
           <AddCategoryForm onAdd={addCategory} />
           <div className="grid sm:grid-cols-2 gap-3">
             {cats.map((c) => (
-              <div key={c.id} className="bg-white border rounded-3xl p-4 flex gap-3 items-center">
-                {c.image ? <img src={c.image} alt="" className="w-14 h-14 rounded-2xl object-cover" /> : <span className="w-14 h-14 rounded-2xl bg-pink-100 grid place-items-center text-pink-300"><ImageIcon className="w-6 h-6" /></span>}
+              <div key={c.id} className="bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-3xl p-4 flex gap-3 items-center">
+                {c.image ? <img src={c.image} alt="" className="w-14 h-14 rounded-2xl object-cover" /> : <span className="w-14 h-14 rounded-2xl bg-pink-100 dark:bg-[#161616] grid place-items-center text-pink-300 dark:text-neutral-600"><ImageIcon className="w-6 h-6" /></span>}
                 <div className="flex-1 min-w-0">
-                  <input value={c.nameEn} onChange={(e) => saveCategory(c, { nameEn: e.target.value })} className="font-bold w-full rounded-lg border border-transparent hover:border-pink-200 px-1" title="name en" />
-                  <input value={c.nameAr} onChange={(e) => saveCategory(c, { nameAr: e.target.value })} className="text-sm text-gray-500 w-full rounded-lg border border-transparent hover:border-pink-200 px-1" title="name ar" dir="rtl" />
-                  <div className="text-xs text-gray-400">/{c.slug} • {products.filter((p) => p.categoryId === c.id || p.categoryId === c.slug).length} products</div>
+                  <input value={c.nameEn} onChange={(e) => saveCategory(c, { nameEn: e.target.value })} className="font-bold w-full rounded-lg border border-transparent hover:border-[#E5E5E5] dark:hover:border-[#333333] px-1" title="name en" />
+                  <input value={c.nameAr} onChange={(e) => saveCategory(c, { nameAr: e.target.value })} className="text-sm text-gray-500 dark:text-[#A3A3A3] w-full rounded-lg border border-transparent hover:border-[#E5E5E5] dark:hover:border-[#333333] px-1" title="name ar" dir="rtl" />
+                  <div className="text-xs text-gray-400 dark:text-[#A3A3A3]">/{c.slug} • {products.filter((p) => p.categoryId === c.id || p.categoryId === c.slug).length} products</div>
                 </div>
                 <div className="grid gap-1.5">
-                  <button onClick={() => saveCategory(c, { active: !c.active })} className={`text-xs font-bold px-3 py-1 rounded-full ${c.active ? "bg-green-100 text-green-700" : "bg-gray-100"}`}>{c.active ? "Active" : "Hidden"}</button>
-                  <button onClick={() => deleteCategory(c)} className="text-xs text-red-500 font-bold">Delete</button>
+                  <button onClick={() => saveCategory(c, { active: !c.active })} className={`text-xs font-bold px-3 py-1 rounded-full ${c.active ? "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-300" : "bg-gray-100 dark:bg-[#1f1f1f] dark:text-[#D4D4D4]"}`}>{c.active ? "Active" : "Hidden"}</button>
+                  <button onClick={() => deleteCategory(c)} className="text-xs text-red-500 dark:text-red-400 font-bold">Delete</button>
                 </div>
               </div>
             ))}
           </div>
-          {cats.length === 0 && <p className="text-sm text-gray-400">No categories yet — add your first one above.</p>}
+          {cats.length === 0 && <p className="text-sm text-gray-400 dark:text-[#A3A3A3]">No categories yet — add your first one above.</p>}
         </div>
       )}
 
       {tab === "customers" && (
         <div className="mt-5 grid gap-2">
           {customers.map((c) => (
-            <div key={c.key} className="bg-white border rounded-3xl p-4 flex justify-between text-sm">
-              <div><div className="font-bold">{c.name}</div><div dir="ltr" className="text-gray-500">{c.whatsapp || "—"}</div></div>
-              <div className="text-end"><div className="font-bold">{c.orders} orders</div><div className="text-[#c2185b] font-bold">EGP {c.spend}</div></div>
+            <div key={c.key} className="bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-3xl p-4 flex justify-between text-sm">
+              <div><div className="font-bold">{c.name}</div><div dir="ltr" className="text-gray-500 dark:text-[#A3A3A3]">{c.whatsapp || "—"}</div></div>
+              <div className="text-end"><div className="font-bold">{c.orders} orders</div><div className="text-[#c2185b] dark:text-[#ff8fb8] font-bold">EGP {c.spend}</div></div>
             </div>
           ))}
-          {customers.length === 0 && <p className="text-sm text-gray-400">No customers yet.</p>}
+          {customers.length === 0 && <p className="text-sm text-gray-400 dark:text-[#A3A3A3]">No customers yet.</p>}
         </div>
       )}
 
@@ -572,35 +572,35 @@ export function AdminDashboard() {
         <div className="mt-5 grid gap-2">
           <AddZoneForm onAdd={addZone} />
           {zones.map((z) => (
-            <div key={z.id} className="bg-white border rounded-3xl p-4 text-sm flex flex-wrap gap-2 items-center">
+            <div key={z.id} className="bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-3xl p-4 text-sm flex flex-wrap gap-2 items-center">
               <span className="font-bold">{z.governorateEn} • {z.governorateAr}</span>
-              <label className="flex items-center gap-1 text-xs">Std <input type="number" value={z.standardFee} onChange={(e) => saveZone(z, { standardFee: Number(e.target.value) })} className="w-16 rounded-lg border px-1.5 py-1" title="standard fee" /></label>
-              <label className="flex items-center gap-1 text-xs">Exp <input type="number" value={z.expressFee} onChange={(e) => saveZone(z, { expressFee: Number(e.target.value) })} className="w-16 rounded-lg border px-1.5 py-1" title="express fee" /></label>
-              <span className="text-xs text-gray-400">{z.etaEn}</span>
+              <label className="flex items-center gap-1 text-xs">Std <input type="number" value={z.standardFee} onChange={(e) => saveZone(z, { standardFee: Number(e.target.value) })} className="w-16 rounded-lg border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#0A0A0A] text-[#171717] dark:text-white px-1.5 py-1" title="standard fee" /></label>
+              <label className="flex items-center gap-1 text-xs">Exp <input type="number" value={z.expressFee} onChange={(e) => saveZone(z, { expressFee: Number(e.target.value) })} className="w-16 rounded-lg border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#0A0A0A] text-[#171717] dark:text-white px-1.5 py-1" title="express fee" /></label>
+              <span className="text-xs text-gray-400 dark:text-[#A3A3A3]">{z.etaEn}</span>
               <span className="ms-auto flex gap-1.5">
-                <button onClick={() => saveZone(z, { active: !z.active })} className={`text-xs font-bold px-3 py-1 rounded-full ${z.active ? "bg-green-100 text-green-700" : "bg-gray-100"}`}>{z.active ? "Active" : "Hidden"}</button>
-                <button onClick={() => deleteZone(z)} className="text-xs text-red-500 font-bold">Delete</button>
+                <button onClick={() => saveZone(z, { active: !z.active })} className={`text-xs font-bold px-3 py-1 rounded-full ${z.active ? "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-300" : "bg-gray-100 dark:bg-[#1f1f1f] dark:text-[#D4D4D4]"}`}>{z.active ? "Active" : "Hidden"}</button>
+                <button onClick={() => deleteZone(z)} className="text-xs text-red-500 dark:text-red-400 font-bold">Delete</button>
               </span>
             </div>
           ))}
-          <p className="text-xs text-gray-400">Fallback defaults live in <code>src/lib/siteConfig.ts</code>. Free standard shipping over EGP {SITE_CONFIG.delivery.freeThreshold}.</p>
+          <p className="text-xs text-gray-400 dark:text-[#A3A3A3]">Fallback defaults live in <code>src/lib/siteConfig.ts</code>. Free standard shipping over EGP {SITE_CONFIG.delivery.freeThreshold}.</p>
         </div>
       )}
 
       {tab === "reviews" && (
         <div className="mt-5 grid gap-2">
-          {!live && <p className="text-amber-700 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-sm font-bold">Connect Supabase keys to manage reviews.</p>}
-          {live && reviews.length === 0 && <p className="text-sm text-gray-400">No reviews yet.</p>}
+          {!live && <p className="text-amber-700 dark:text-amber-200 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl px-4 py-3 text-sm font-bold">Connect Supabase keys to manage reviews.</p>}
+          {live && reviews.length === 0 && <p className="text-sm text-gray-400 dark:text-[#A3A3A3]">No reviews yet.</p>}
           {reviews.map((r) => (
-            <div key={r.id} className="bg-white border rounded-3xl p-4 text-sm flex gap-3 items-start">
+            <div key={r.id} className="bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-3xl p-4 text-sm flex gap-3 items-start">
               <div className="flex-1">
                 <div className="font-bold inline-flex items-center gap-0.5">{Array.from({ length: 5 }).map((_, i) => (
-                  <StarIcon key={i} filled={i < Math.max(0, Math.min(5, r.rating))} className={`w-4 h-4 ${i < Math.max(0, Math.min(5, r.rating)) ? "text-amber-400" : "text-gray-300"}`} />
-                ))} <span className="font-normal text-gray-500 ms-1">— {r.name}</span></div>
-                <div className="text-gray-600 mt-1">{r.comment}</div>
-                <div className="text-[11px] text-gray-400 mt-1">{r.createdAt ? new Date(r.createdAt).toLocaleString() : ""}</div>
+                  <StarIcon key={i} filled={i < Math.max(0, Math.min(5, r.rating))} className={`w-4 h-4 ${i < Math.max(0, Math.min(5, r.rating)) ? "text-amber-400" : "text-gray-300 dark:text-neutral-600"}`} />
+                ))} <span className="font-normal text-gray-500 dark:text-[#A3A3A3] ms-1">— {r.name}</span></div>
+                <div className="text-gray-600 dark:text-[#D4D4D4] mt-1">{r.comment}</div>
+                <div className="text-[11px] text-gray-400 dark:text-[#A3A3A3] mt-1">{r.createdAt ? new Date(r.createdAt).toLocaleString() : ""}</div>
               </div>
-              <button onClick={() => deleteReview(r.id)} aria-label="delete review" className="text-red-500 font-bold shrink-0 p-1"><TrashIcon className="w-4 h-4" /></button>
+              <button onClick={() => deleteReview(r.id)} aria-label="delete review" className="text-red-500 dark:text-red-400 font-bold shrink-0 p-1"><TrashIcon className="w-4 h-4" /></button>
             </div>
           ))}
         </div>
@@ -623,9 +623,9 @@ function AddProductForm({ cats, onAdd }: {
   const [images, setImages] = useState("");
   const [featured, setFeatured] = useState(false);
   const [bestseller, setBestseller] = useState(false);
-  const cls = "w-full rounded-xl border border-pink-200 px-3 py-2 text-sm outline-none focus:border-[#e84393]";
+  const cls = "w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#0A0A0A] text-[#171717] dark:text-white px-3 py-2 text-sm outline-none focus:border-[#e84393]";
   return (
-    <div className="bg-pink-50/60 border border-pink-200 rounded-3xl p-4 grid sm:grid-cols-2 gap-2.5">
+    <div className="bg-pink-50/60 dark:bg-white/5 border border-[#E5E5E5] dark:border-[#333333] rounded-3xl p-4 grid sm:grid-cols-2 gap-2.5">
       <input value={nameEn} onChange={(e) => setNameEn(e.target.value)} placeholder="Name (EN) *" className={cls} dir="ltr" />
       <input value={nameAr} onChange={(e) => setNameAr(e.target.value)} placeholder="الاسم (AR) *" className={cls} dir="rtl" />
       <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} placeholder="Price *" className={cls} title="price" />
@@ -647,7 +647,7 @@ function AddProductForm({ cats, onAdd }: {
             featured, bestseller,
           });
         }}
-        className="sm:col-span-2 rounded-2xl bg-[#2b2b30] text-white text-sm font-bold py-2.5"
+        className="sm:col-span-2 rounded-2xl bg-[#2b2b30] dark:bg-[#1a1a1a] dark:border dark:border-[#333333] text-white text-sm font-bold py-2.5"
       >
         Save product
       </button>
@@ -664,9 +664,9 @@ function ProductEditor({ p, cats, onSave }: { p: Product; cats: Category[]; onSa
   const [images, setImages] = useState(p.images.join(", "));
   const [featured, setFeatured] = useState(!!p.featured);
   const [bestseller, setBestseller] = useState(!!p.bestseller);
-  const cls = "w-full rounded-xl border border-pink-200 px-3 py-2 text-sm outline-none focus:border-[#e84393]";
+  const cls = "w-full rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#0A0A0A] text-[#171717] dark:text-white px-3 py-2 text-sm outline-none focus:border-[#e84393]";
   return (
-    <div className="mt-3 bg-pink-50/60 border border-pink-200 rounded-2xl p-4 grid sm:grid-cols-2 gap-2.5">
+    <div className="mt-3 bg-pink-50/60 dark:bg-white/5 border border-[#E5E5E5] dark:border-[#333333] rounded-2xl p-4 grid sm:grid-cols-2 gap-2.5">
       <input value={nameEn} onChange={(e) => setNameEn(e.target.value)} className={cls} title="name en" dir="ltr" />
       <input value={nameAr} onChange={(e) => setNameAr(e.target.value)} className={cls} title="name ar" dir="rtl" />
       <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className={cls} title="price" />
@@ -685,7 +685,7 @@ function ProductEditor({ p, cats, onSave }: { p: Product; cats: Category[]; onSa
           stock: Math.max(0, stock), categoryId, featured, bestseller,
           images: images.split(",").map((s) => s.trim()).filter(Boolean),
         })}
-        className="sm:col-span-2 rounded-2xl bg-[#2b2b30] text-white text-sm font-bold py-2.5"
+        className="sm:col-span-2 rounded-2xl bg-[#2b2b30] dark:bg-[#1a1a1a] dark:border dark:border-[#333333] text-white text-sm font-bold py-2.5"
       >
         Save changes
       </button>
@@ -697,13 +697,13 @@ function AddCategoryForm({ onAdd }: { onAdd: (slug: string, en: string, ar: stri
   const [slug, setSlug] = useState("");
   const [en, setEn] = useState("");
   const [ar, setAr] = useState("");
-  const cls = "rounded-xl border border-pink-200 px-3 py-2 text-sm outline-none focus:border-[#e84393]";
+  const cls = "rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#0A0A0A] text-[#171717] dark:text-white px-3 py-2 text-sm outline-none focus:border-[#e84393]";
   return (
-    <div className="bg-white border border-pink-200 rounded-3xl p-4 flex flex-wrap gap-2">
+    <div className="bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-3xl p-4 flex flex-wrap gap-2">
       <input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, "-"))} placeholder="slug (e.g. skincare)" className={`${cls} flex-1 min-w-36`} dir="ltr" />
       <input value={en} onChange={(e) => setEn(e.target.value)} placeholder="Name EN" className={`${cls} flex-1 min-w-36`} dir="ltr" />
       <input value={ar} onChange={(e) => setAr(e.target.value)} placeholder="الاسم AR" className={`${cls} flex-1 min-w-36`} dir="rtl" />
-      <button onClick={() => { if (slug.trim() && en.trim() && ar.trim()) { onAdd(slug.trim(), en.trim(), ar.trim()); setSlug(""); setEn(""); setAr(""); } }} className="rounded-xl bg-[#2b2b30] text-white text-sm font-bold px-5 py-2">Add</button>
+      <button onClick={() => { if (slug.trim() && en.trim() && ar.trim()) { onAdd(slug.trim(), en.trim(), ar.trim()); setSlug(""); setEn(""); setAr(""); } }} className="rounded-xl bg-[#2b2b30] dark:bg-[#1a1a1a] dark:border dark:border-[#333333] text-white text-sm font-bold px-5 py-2">Add</button>
     </div>
   );
 }
@@ -713,14 +713,14 @@ function AddZoneForm({ onAdd }: { onAdd: (en: string, ar: string, std: number, e
   const [ar, setAr] = useState("");
   const [std, setStd] = useState(60);
   const [exp, setExp] = useState(120);
-  const cls = "rounded-xl border border-pink-200 px-3 py-2 text-sm outline-none focus:border-[#e84393]";
+  const cls = "rounded-xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#0A0A0A] text-[#171717] dark:text-white px-3 py-2 text-sm outline-none focus:border-[#e84393]";
   return (
-    <div className="bg-white border border-pink-200 rounded-3xl p-4 flex flex-wrap gap-2 items-center">
+    <div className="bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-3xl p-4 flex flex-wrap gap-2 items-center">
       <input value={en} onChange={(e) => setEn(e.target.value)} placeholder="Governorate EN" className={`${cls} flex-1 min-w-32`} dir="ltr" />
       <input value={ar} onChange={(e) => setAr(e.target.value)} placeholder="المحافظة AR" className={`${cls} flex-1 min-w-32`} dir="rtl" />
       <input type="number" value={std} onChange={(e) => setStd(Number(e.target.value))} className={`${cls} w-24`} title="standard fee" />
       <input type="number" value={exp} onChange={(e) => setExp(Number(e.target.value))} className={`${cls} w-24`} title="express fee" />
-      <button onClick={() => { if (en.trim() && ar.trim()) { onAdd(en.trim(), ar.trim(), std, exp); setEn(""); setAr(""); } }} className="rounded-xl bg-[#2b2b30] text-white text-sm font-bold px-5 py-2">Add zone</button>
+      <button onClick={() => { if (en.trim() && ar.trim()) { onAdd(en.trim(), ar.trim(), std, exp); setEn(""); setAr(""); } }} className="rounded-xl bg-[#2b2b30] dark:bg-[#1a1a1a] dark:border dark:border-[#333333] text-white text-sm font-bold px-5 py-2">Add zone</button>
     </div>
   );
 }

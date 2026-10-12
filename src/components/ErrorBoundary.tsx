@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { crashed:
       return (
         <main
           dir={rtl ? "rtl" : "ltr"}
-          style={{ maxWidth: 560, margin: "0 auto", padding: "80px 20px", textAlign: "center", fontFamily: "system-ui" }}
+          style={{ maxWidth: 560, margin: "0 auto", padding: "80px 20px", textAlign: "center", fontFamily: "system-ui", background: "var(--bg)", color: "var(--text)", minHeight: "100vh" }}
         >
           <div style={{ fontSize: 64, display: "flex", justifyContent: "center", color: "#e84393" }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -30,8 +30,8 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { crashed:
               <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
           </div>
-          <h1 style={{ fontSize: 24, fontWeight: 800 }}>Something went wrong. / حدث خطأ غير متوقع.</h1>
-          <p style={{ color: "#666", marginTop: 8 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800 }}>Something went wrong. / حدث خطأ غير متوقع.</h1>
+          <p style={{ color: "var(--text-2)", marginTop: 8 }}>
             Please try again. / يرجى المحاولة مرة أخرى.
           </p>
           <button

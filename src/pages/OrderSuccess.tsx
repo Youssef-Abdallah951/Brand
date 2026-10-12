@@ -60,8 +60,8 @@ export default function OrderSuccess() {
   if (!orderNumber) {
     return (
       <main className="max-w-xl mx-auto px-4 py-20 text-center">
-        <h1 className="font-bold text-xl">{t("trackNotFound", lang)}</h1>
-        <Link to="/shop" className="inline-block mt-5 bg-[#e84393] text-white font-bold px-8 py-3 rounded-2xl">{t("continueShopping", lang)}</Link>
+        <h1 className="font-bold text-[1.17rem] text-[#171717] dark:text-white">{t("trackNotFound", lang)}</h1>
+        <Link to="/shop" className="inline-block mt-5 bg-[#e84393] hover:bg-[#c2185b] text-white font-bold px-8 py-3 rounded-2xl">{t("continueShopping", lang)}</Link>
       </main>
     );
   }
@@ -69,24 +69,24 @@ export default function OrderSuccess() {
   return (
     <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
       <div className="text-center">
-        <div className="w-20 h-20 mx-auto rounded-full bg-green-100 grid place-items-center text-green-600"><CheckIcon className="w-10 h-10" /></div>
-        <h1 className="font-display text-3xl font-bold mt-4">{t("orderSuccess", lang)}</h1>
-        <p className="text-gray-500 mt-2">{t("orderThanks", lang)}</p>
-        <div className="inline-block mt-4 bg-pink-50 border border-pink-200 rounded-2xl px-6 py-3">
-          <span className="text-xs text-gray-500 block">{t("orderNumber", lang)}</span>
-          <span className="font-bold text-xl text-[#c2185b]" dir="ltr">#{orderNumber}</span>
+        <div className="w-20 h-20 mx-auto rounded-full bg-green-100 dark:bg-green-500/15 grid place-items-center text-green-600 dark:text-green-400"><CheckIcon className="w-10 h-10" /></div>
+        <h1 className="font-display text-[1.7rem] font-bold mt-4 text-[#171717] dark:text-white">{t("orderSuccess", lang)}</h1>
+        <p className="text-[#525252] dark:text-[#D4D4D4] mt-2">{t("orderThanks", lang)}</p>
+        <div className="inline-block mt-4 bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-2xl px-6 py-3">
+          <span className="text-xs text-[#525252] dark:text-[#A3A3A3] block">{t("orderNumber", lang)}</span>
+          <span className="font-bold text-[1.17rem] text-[#c2185b] dark:text-[#ff8fb8]" dir="ltr">#{orderNumber}</span>
         </div>
-        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-2.5 mt-3 font-bold inline-flex items-center gap-1.5">
+        <p className="text-xs text-amber-700 dark:text-amber-200 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl px-4 py-2.5 mt-3 font-bold inline-flex items-center gap-1.5">
           <AlertIcon className="w-4 h-4 shrink-0" /> {t("saveOrderNo", lang)}
         </p>
       </div>
 
       {s && (
-        <div className="bg-white border border-pink-100 rounded-3xl p-5 mt-6 card-shadow grid gap-3 text-sm">
-          <div className="flex justify-between"><span className="text-gray-500">{lang === "ar" ? "الاسم" : "Name"}</span><span className="font-bold">{s.firstName} {s.lastName}</span></div>
-          <div className="flex justify-between"><span className="text-gray-500">{t("payment", lang)}</span><span className="font-bold">{t("cod", lang)}</span></div>
-          <div className="flex justify-between"><span className="text-gray-500">{lang === "ar" ? "الحالة" : "Status"}</span><span className="bg-amber-100 text-amber-700 font-bold px-3 py-0.5 rounded-full text-xs">{STATUS_LABEL.pending?.[lang]}</span></div>
-          <div className="flex justify-between font-bold text-lg border-t border-dashed border-pink-200 pt-3"><span>{t("total", lang)}</span><span className="text-[#c2185b]">EGP {s.total}</span></div>
+        <div className="bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-3xl p-5 mt-6 card-shadow grid gap-3 text-sm">
+          <div className="flex justify-between"><span className="text-[#525252] dark:text-[#A3A3A3]">{lang === "ar" ? "الاسم" : "Name"}</span><span className="font-bold text-[#171717] dark:text-white">{s.firstName} {s.lastName}</span></div>
+          <div className="flex justify-between"><span className="text-[#525252] dark:text-[#A3A3A3]">{t("payment", lang)}</span><span className="font-bold text-[#171717] dark:text-white">{t("cod", lang)}</span></div>
+          <div className="flex justify-between"><span className="text-[#525252] dark:text-[#A3A3A3]">{lang === "ar" ? "الحالة" : "Status"}</span><span className="bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-200 font-bold px-3 py-0.5 rounded-full text-xs">{STATUS_LABEL.pending?.[lang]}</span></div>
+          <div className="flex justify-between font-bold text-lg border-t border-dashed border-[#E5E5E5] dark:border-[#333333] pt-3"><span className="text-[#171717] dark:text-white">{t("total", lang)}</span><span className="text-[#c2185b] dark:text-[#ff8fb8]">EGP {s.total}</span></div>
         </div>
       )}
 
@@ -102,10 +102,10 @@ export default function OrderSuccess() {
           </a>
         )}
         <div className="grid gap-2.5">
-          <Link to="/shop" className="rounded-2xl border-2 border-pink-200 text-[#c2185b] font-bold py-3.5 text-center btn-press">{t("continueShopping", lang)}</Link>
+          <Link to="/shop" className="rounded-2xl border-2 border-[#E5E5E5] dark:border-[#333333] text-[#c2185b] dark:text-[#ff8fb8] font-bold py-3.5 text-center btn-press">{t("continueShopping", lang)}</Link>
         </div>
-        <div className="text-center text-sm text-gray-500 mt-2">
-          {lang === "ar" ? "تحتاجي مساعدة؟" : "Need help?"} <a className="font-bold text-[#c2185b]" href={SITE_CONFIG.admin.telLink} dir="ltr">{SITE_CONFIG.admin.phoneLocal}</a>
+        <div className="text-center text-sm text-[#525252] dark:text-[#A3A3A3] mt-2">
+          {lang === "ar" ? "تحتاجي مساعدة؟" : "Need help?"} <a className="font-bold text-[#c2185b] dark:text-[#ff8fb8]" href={SITE_CONFIG.admin.telLink} dir="ltr">{SITE_CONFIG.admin.phoneLocal}</a>
         </div>
       </div>
     </main>

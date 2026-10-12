@@ -2,15 +2,16 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
+import { useTheme } from "../store/ThemeContext";
 import { t } from "../i18n/translations";
 import { SITE_CONFIG } from "../lib/siteConfig";
-import { CartIcon, HeartIcon, MenuIcon, PhoneIcon, SearchIcon, StarIcon } from "./icons";
+import { CartIcon, HeartIcon, MenuIcon, MoonIcon, PhoneIcon, SearchIcon, StarIcon, SunIcon } from "./icons";
 
 export function Stars({ value = 4.5 }: { value?: number }) {
   return (
     <div className="flex items-center gap-0.5 text-amber-400" aria-label={`${value}`}>
       {[1, 2, 3, 4, 5].map((i) => (
-        <StarIcon key={i} filled={i <= Math.round(value)} className={`w-3.5 h-3.5 ${i <= Math.round(value) ? "" : "text-gray-300"}`} />
+        <StarIcon key={i} filled={i <= Math.round(value)} className={`w-3.5 h-3.5 ${i <= Math.round(value) ? "" : "text-gray-300 dark:text-neutral-600"}`} />
       ))}
     </div>
   );
@@ -19,9 +20,29 @@ export function Stars({ value = 4.5 }: { value?: number }) {
 export function Price({ price, lang }: { price: number; lang: "ar" | "en" }) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <span className="font-bold text-lg text-[#c2185b]">EGP {price}</span>
+      <span className="font-bold text-[1.05rem] text-[#c2185b] dark:text-[#ff8fb8]">EGP {price}</span>
       <span className="sr-only">{lang === "ar" ? "جنيه" : "EGP"}</span>
     </div>
+  );
+}
+
+export function ThemeToggle() {
+  const { lang } = useLang();
+  const { theme, toggleTheme } = useTheme();
+  const dark = theme === "dark";
+  const label = dark
+    ? (lang === "ar" ? "التبديل إلى الوضع الفاتح" : "Switch to light mode")
+    : (lang === "ar" ? "التبديل إلى الوضع الداكن" : "Switch to dark mode");
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={label}
+      title={label}
+      className="p-2 rounded-full border border-[#E5E5E5] dark:border-[#333333] text-[#525252] dark:text-[#D4D4D4] hover:bg-black/5 dark:hover:bg-white/10 transition shrink-0"
+    >
+      {dark ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
+    </button>
   );
 }
 
@@ -38,49 +59,50 @@ export function Navbar() {
     { to: "/contact", label: t("contact", lang) },
   ];
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-pink-100 d-flex flex-wrap">
+    <header className="sticky top-0 z-40 bg-[#FFFFFF]/95 dark:bg-black/95 backdrop-blur border-b border-[#E5E5E5] dark:border-[#333333] d-flex flex-wrap">
       <div className="bg-gradient-to-l from-[#e84393] to-[#ff7bac] text-white text-center text-xs sm:text-sm py-1.5 px-3">
         {t("announcement", lang)}
       </div>
       <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center gap-2 sm:gap-4 h-16">
-        <button className="md:hidden p-2 rounded-xl hover:bg-pink-50 text-gray-700" onClick={() => setOpen(!open)} aria-label="menu"><MenuIcon className="w-6 h-6" /></button>
+        <button className="md:hidden p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-[#525252] dark:text-[#D4D4D4]" onClick={() => setOpen(!open)} aria-label="menu"><MenuIcon className="w-6 h-6" /></button>
         <Link to="/" className="flex items-center gap-2 shrink-0 min-w-0">
           <img src="/logo.png" alt="JiA Silk & Essentials" className="w-9 h-9 rounded-2xl object-cover shrink-0"/>
-          <span className="font-display font-bold text-lg leading-tight min-w-0 truncate">
+          <span className="font-display font-bold text-[1.05rem] leading-tight min-w-0 truncate">
             {lang === "ar" ? SITE_CONFIG.brand.nameAr : SITE_CONFIG.brand.nameEn}
-            <span className="hidden min-[380px]:block text-[11px] font-body font-normal text-pink-500 truncate">{lang === "ar" ? SITE_CONFIG.brand.taglineAr : SITE_CONFIG.brand.taglineEn}</span>
+            <span className="hidden min-[380px]:block text-[11px] font-body font-normal text-[#c2185b] dark:text-[#ff8fb8] truncate">{lang === "ar" ? SITE_CONFIG.brand.taglineAr : SITE_CONFIG.brand.taglineEn}</span>
           </span>
         </Link>
-        <nav className="hidden md:flex flex-wrap items-center gap-5 mx-auto text-[15px] font-medium">
+        <nav className="hidden md:flex flex-wrap items-center gap-5 mx-auto text-sm font-medium">
           {links.map((l) => (
-            <NavLink key={l.to} to={l.to} className={({ isActive }) => (isActive ? "text-[#c2185b] font-bold" : "text-gray-600 hover:text-[#c2185b]")}>{l.label}</NavLink>
+            <NavLink key={l.to} to={l.to} className={({ isActive }) => (isActive ? "text-[#c2185b] dark:text-[#ff8fb8] font-bold" : "text-[#525252] dark:text-[#D4D4D4] hover:text-[#c2185b] dark:hover:text-[#ff8fb8]")}>{l.label}</NavLink>
           ))}
         </nav>
         <div className="flex items-center gap-1 ms-auto">
           <button
             onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-            className="text-xs sm:text-sm font-bold border border-pink-200 rounded-full px-3 py-1.5 hover:bg-pink-50"
+            className="text-xs sm:text-sm font-bold border border-[#E5E5E5] dark:border-[#333333] rounded-full px-3 py-1.5 hover:bg-black/5 dark:hover:bg-white/10"
           >
             {lang === "ar" ? "English" : "العربية"}
           </button>
-          <Link to="/shop?wish=1" className="relative p-2 rounded-xl hover:bg-pink-50 text-gray-700" title="wishlist">
+          <ThemeToggle />
+          <Link to="/shop?wish=1" className="relative p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-[#525252] dark:text-[#D4D4D4]" title="wishlist">
             <HeartIcon className="w-5 h-5" />{wishlist.length > 0 && <span className="absolute -top-0.5 -end-0.5 bg-[#e84393] text-white text-[10px] w-5 h-5 grid place-items-center rounded-full">{wishlist.length}</span>}
           </Link>
         </div>
       </div>
       <div className="px-3 pb-2">
         <form onSubmit={(e) => { e.preventDefault(); nav(`/shop?q=${encodeURIComponent(q)}`); }} className="flex gap-2">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("search", lang)} className="flex-1 rounded-2xl border border-pink-200 bg-pink-50/50 px-4 py-2.5 outline-none focus:border-[#e84393]" />
-          <button className="rounded-2xl bg-[#e84393] text-white px-4 btn-press grid place-items-center" aria-label="search"><SearchIcon className="w-5 h-5" /></button>
-          <Link to="/cart" className="relative p-2 rounded-xl hover:bg-pink-50 text-gray-700" title={t("cart", lang)}>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("search", lang)} className="flex-1 rounded-2xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#0A0A0A] text-[#171717] dark:text-white px-4 py-2.5 outline-none focus:border-[#e84393] placeholder:text-gray-400 dark:placeholder:text-neutral-500" />
+          <button className="rounded-2xl bg-[#e84393] hover:bg-[#c2185b] text-white px-4 btn-press grid place-items-center" aria-label="search"><SearchIcon className="w-5 h-5" /></button>
+          <Link to="/cart" className="relative p-2 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-[#525252] dark:text-[#D4D4D4]" title={t("cart", lang)}>
             <CartIcon className="w-5 h-5" />{cartCount > 0 && <span className="absolute -top-0.5 -end-0.5 bg-[#c2185b] text-white text-[10px] w-5 h-5 grid place-items-center rounded-full">{cartCount}</span>}
           </Link>
         </form>
       </div>
       {open && (
-        <nav className="md:hidden border-t border-pink-100 bg-white px-4 py-2 grid gap-1 animate-fadeUp">
+        <nav className="md:hidden border-t border-[#E5E5E5] dark:border-[#333333] bg-[#FFFFFF] dark:bg-black px-4 py-2 grid gap-1 animate-fadeUp">
           {links.map((l) => (
-            <NavLink key={l.to} to={l.to} onClick={() => setOpen(false)} className={({ isActive }) => `py-2.5 px-2 rounded-xl ${isActive ? "bg-pink-100 text-[#c2185b] font-bold" : "text-gray-700"}`}>{l.label}</NavLink>
+            <NavLink key={l.to} to={l.to} onClick={() => setOpen(false)} className={({ isActive }) => `py-2.5 px-2 rounded-xl ${isActive ? "bg-pink-100 dark:bg-white/10 text-[#c2185b] dark:text-[#ff8fb8] font-bold" : "text-[#525252] dark:text-[#D4D4D4]"}`}>{l.label}</NavLink>
           ))}
         </nav>
       )}
@@ -91,38 +113,38 @@ export function Navbar() {
 export function Footer() {
   const { lang } = useLang();
   return (
-    <footer className="mt-16 bg-[#2b2b30] text-pink-50">
+    <footer className="mt-16 bg-[#2b2b30] dark:bg-[#0A0A0A] dark:border-t dark:border-[#333333] text-pink-50 dark:text-[#EDEDED]">
       <div className="max-w-7xl mx-auto px-4 py-10 grid gap-8 md:grid-cols-4">
         <div>
-          <div className="font-display font-bold text-xl">{lang === "ar" ? SITE_CONFIG.brand.nameAr : SITE_CONFIG.brand.nameEn}</div>
-          <p className="text-sm text-white/70 mt-2">{lang === "ar" ? "جمالك يبدأ من هنا — منتجات أصلية 100% وتوصيل سريع." : "Beauty starts here — 100% original products, fast delivery."}</p>
+          <div className="font-display font-bold text-[1.17rem]">{lang === "ar" ? SITE_CONFIG.brand.nameAr : SITE_CONFIG.brand.nameEn}</div>
+          <p className="text-sm text-white/70 dark:text-[#D4D4D4] mt-2">{lang === "ar" ? "جمالك يبدأ من هنا — منتجات أصلية 100% وتوصيل سريع." : "Beauty starts here — 100% original products, fast delivery."}</p>
           <div className="flex gap-2 mt-4">
             <a href={SITE_CONFIG.admin.whatsappLink} target="_blank" rel="noreferrer" className="bg-[#25D366] text-white rounded-full px-4 py-2 text-sm font-bold">WhatsApp</a>
-            <a href={SITE_CONFIG.admin.telLink} className="bg-white/10 rounded-full px-4 py-2 text-sm font-bold inline-flex items-center gap-1.5"><PhoneIcon className="w-4 h-4" /> <span dir="ltr">{SITE_CONFIG.admin.phoneLocal}</span></a>
+            <a href={SITE_CONFIG.admin.telLink} className="bg-white/10 dark:bg-white/10 dark:border dark:border-[#333333] rounded-full px-4 py-2 text-sm font-bold inline-flex items-center gap-1.5"><PhoneIcon className="w-4 h-4" /> <span dir="ltr">{SITE_CONFIG.admin.phoneLocal}</span></a>
           </div>
         </div>
         <div>
           <div className="font-bold mb-3">{lang === "ar" ? "روابط سريعة" : "Quick Links"}</div>
-          <div className="grid gap-2 text-sm text-white/80">
+          <div className="grid gap-2 text-sm text-white/80 dark:text-[#D4D4D4]">
             <Link to="/shop">{t("shop", lang)}</Link>
             <Link to="/contact">{t("contact", lang)}</Link>
           </div>
         </div>
         <div>
           <div className="font-bold mb-3">{lang === "ar" ? "خدمة العملاء" : "Customer Service"}</div>
-          <div className="grid gap-2 text-sm text-white/80">
+          <div className="grid gap-2 text-sm text-white/80 dark:text-[#D4D4D4]">
             <span>{lang === "ar" ? "الدفع عند الاستلام متاح" : "Cash on Delivery Available"}</span>
             <span>{lang === "ar" ? "توصيل لجميع المحافظات" : "Delivery to all governorates"}</span>
           </div>
         </div>
         <div>
           <div className="font-bold mb-3">{t("contact", lang)}</div>
-          <div className="text-sm text-white/80 grid gap-1">
+          <div className="text-sm text-white/80 dark:text-[#D4D4D4] grid gap-1">
             <span dir="ltr">{SITE_CONFIG.admin.phoneLocal}</span>
           </div>
         </div>
       </div>
-      <div className="border-t border-white/10 text-center text-xs py-4 text-white/60">© 2026 {SITE_CONFIG.brand.nameEn} • {lang === "ar" ? "صنع بحب في مصر" : "Made with love in Egypt"}</div>
+      <div className="border-t border-white/10 dark:border-[#333333] text-center text-xs py-4 text-white/60 dark:text-[#A3A3A3]">© 2026 {SITE_CONFIG.brand.nameEn} • {lang === "ar" ? "صنع بحب في مصر" : "Made with love in Egypt"}</div>
     </footer>
   );
 }
@@ -147,7 +169,7 @@ export function Toasts() {
   return (
     <div className="fixed bottom-20 inset-x-0 z-50 flex flex-col items-center gap-2 pointer-events-none px-4">
       {toasts.map((toast) => (
-        <div key={toast.id} className="bg-[#2b2b30] text-white text-sm px-5 py-2.5 rounded-full shadow-xl animate-fadeUp">{toast.msg}</div>
+        <div key={toast.id} className="bg-[#2b2b30] dark:bg-[#161616] dark:border dark:border-[#333333] text-white text-sm px-5 py-2.5 rounded-full shadow-xl animate-fadeUp">{toast.msg}</div>
       ))}
     </div>
   );

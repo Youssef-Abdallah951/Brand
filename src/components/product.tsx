@@ -26,17 +26,17 @@ export function ProductCard({ p }: { p: Product }) {
   const out = p.stock <= 0;
   const cardImg = productImage(p);
   return (
-    <article className="group bg-white rounded-3xl border border-pink-100 overflow-hidden card-shadow hover:-translate-y-1 transition-all flex flex-col">
-      <Link to={`/product/${p.slug}`} className="relative block aspect-[4/5] overflow-hidden bg-blush-100">
+    <article className="group bg-[#FFFFFF] dark:bg-[#0A0A0A] rounded-3xl border border-[#E5E5E5] dark:border-[#333333] overflow-hidden card-shadow hover:-translate-y-1 transition-all flex flex-col">
+      <Link to={`/product/${p.slug}`} className="relative block aspect-[4/5] overflow-hidden bg-blush-100 dark:bg-[#161616]">
         {cardImg ? (
-          <img src={cardImg} onError={onImgError} alt={name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+          <img src={cardImg} onError={onImgError} alt={name} loading="lazy" className="product-photo w-full h-full object-cover group-hover:scale-105 transition duration-500" />
         ) : (
-          <span className="w-full h-full grid place-items-center bg-pink-50 text-pink-300"><ImageIcon className="w-12 h-12" /></span>
+          <span className="w-full h-full grid place-items-center bg-pink-50 dark:bg-[#161616] text-pink-300 dark:text-neutral-600"><ImageIcon className="w-12 h-12" /></span>
         )}
         <button
           onClick={(e) => { e.preventDefault(); toggleWish(p.id); }}
           aria-label="wishlist"
-          className={`absolute top-3 end-3 w-9 h-9 grid place-items-center rounded-full shadow ${wished ? "bg-[#e84393] text-white" : "bg-white text-gray-500"}`}
+          className={`absolute top-3 end-3 w-9 h-9 grid place-items-center rounded-full shadow ${wished ? "bg-[#e84393] text-white" : "bg-white dark:bg-[#1a1a1a] dark:border dark:border-[#333333] text-gray-500 dark:text-[#D4D4D4]"}`}
         >
           <HeartIcon filled={wished} className="w-4 h-4" />
         </button>
@@ -47,14 +47,14 @@ export function ProductCard({ p }: { p: Product }) {
       <div className="p-3.5 flex flex-col gap-1.5 flex-1">
         <div className="flex items-center gap-1.5">
           <Stars value={p.rating} />
-          <span className="text-xs text-gray-400">({p.reviewsCount})</span>
+          <span className="text-xs text-gray-400 dark:text-[#A3A3A3]">({p.reviewsCount})</span>
         </div>
-        <Link to={`/product/${p.slug}`} className="font-semibold text-[15px] leading-snug line-clamp-2 min-h-[42px]">{name}</Link>
+        <Link to={`/product/${p.slug}`} className="font-semibold text-sm leading-snug line-clamp-2 min-h-[40px] text-[#171717] dark:text-white">{name}</Link>
         <Price price={p.price} lang={lang} />
         <button
           disabled={out}
           onClick={() => { addToCart(p.id); pushToast(lang === "ar" ? "تمت إضافة المنتج إلى السلة" : "Product added to cart"); }}
-          className="mt-auto w-full rounded-2xl bg-[#2b7de9] hover:bg-[#1f63c4] disabled:bg-gray-300 text-white font-bold py-2.5 text-sm btn-press transition"
+          className="mt-auto w-full rounded-2xl bg-[#2b7de9] hover:bg-[#1f63c4] disabled:bg-gray-300 dark:disabled:bg-neutral-800 dark:disabled:text-neutral-500 text-white font-bold py-2.5 text-sm btn-press transition"
         >
           {t("addToCart", lang)}
         </button>
@@ -67,10 +67,10 @@ export function SectionTitle({ title, sub, link, linkLabel }: { title: string; s
   return (
     <div className="flex items-end justify-between gap-3 mb-5">
       <div>
-        <h2 className="font-display text-2xl sm:text-3xl font-bold">{title}</h2>
-        {sub && <p className="text-gray-500 text-sm mt-1">{sub}</p>}
+        <h2 className="font-display text-[1.4rem] sm:text-[1.72rem] font-bold text-[#171717] dark:text-white">{title}</h2>
+        {sub && <p className="text-[#525252] dark:text-[#D4D4D4] text-sm mt-1">{sub}</p>}
       </div>
-      {link && <Link to={link} className="text-sm font-bold text-[#c2185b] hover:underline shrink-0 inline-flex items-center gap-1">{linkLabel} <ArrowLeftIcon className="w-4 h-4" /></Link>}
+      {link && <Link to={link} className="text-sm font-bold text-[#c2185b] dark:text-[#ff8fb8] hover:underline shrink-0 inline-flex items-center gap-1">{linkLabel} <ArrowLeftIcon className="w-4 h-4" /></Link>}
     </div>
   );
 }
@@ -79,9 +79,9 @@ export function SkeletonGrid({ n = 8 }: { n?: number }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
       {Array.from({ length: n }).map((_, i) => (
-        <div key={i} className="rounded-3xl border border-pink-100 overflow-hidden animate-pulse">
-          <div className="aspect-[4/5] bg-pink-100" />
-          <div className="p-3 space-y-2"><div className="h-4 bg-pink-100 rounded" /><div className="h-4 w-2/3 bg-pink-100 rounded" /></div>
+        <div key={i} className="rounded-3xl border border-[#E5E5E5] dark:border-[#333333] overflow-hidden animate-pulse">
+          <div className="aspect-[4/5] bg-pink-100 dark:bg-[#161616]" />
+          <div className="p-3 space-y-2"><div className="h-4 bg-pink-100 dark:bg-[#1f1f1f] rounded" /><div className="h-4 w-2/3 bg-pink-100 dark:bg-[#1f1f1f] rounded" /></div>
         </div>
       ))}
     </div>
