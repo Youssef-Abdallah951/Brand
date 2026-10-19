@@ -5,11 +5,13 @@ import { t } from "../i18n/translations";
 import { SITE_CONFIG, generalWhatsAppLink } from "../lib/siteConfig";
 import { categoryFallbackUrl, categoryImageUrl, onCategoryImgError } from "../components/product";
 import { useShop } from "../store/ShopContext";
+import { usePageMeta } from "../lib/meta";
 import { ChatIcon, ImageIcon, PhoneIcon } from "../components/icons";
 
 export default function Contact() {
   const { lang } = useLang();
   const { pushToast } = useShop();
+  usePageMeta(`${t("contact", lang)} | JiA`, t("heroSub", lang));
   const [name, setName] = useState("");
   const [msg, setMsg] = useState("");
   const cls = "w-full rounded-2xl border border-line dark:border-[#2e2822] bg-white dark:bg-[#1c1815] text-ink dark:text-[#f3ede3] px-4 py-3.5 text-sm outline-none focus:border-bronze transition placeholder:text-mute/60";

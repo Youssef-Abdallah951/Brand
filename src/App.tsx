@@ -1,5 +1,6 @@
-import { Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Suspense, lazy, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Outlet, useLocation } from "react-router-dom";
+import { trackPage } from "./lib/analytics";
 import { LanguageProvider } from "./i18n/LanguageContext";
 import { ShopProvider } from "./store/ShopContext";
 import { ThemeProvider } from "./store/ThemeContext";
@@ -28,6 +29,19 @@ const AdminDashboard = lazy(() =>
 );
 const AdminLogin = lazy(() =>
   import("./pages/Admin").then((m) => ({ default: m.AdminLogin })),
+);
+const NotFound = lazy(() => import("./pages/NotFound"));
+const ShippingPolicy = lazy(() =>
+  import("./pages/Legal").then((m) => ({ default: m.ShippingPolicy })),
+);
+const PrivacyPolicy = lazy(() =>
+  import("./pages/Legal").then((m) => ({ default: m.PrivacyPolicy })),
+);
+const TermsOfUse = lazy(() =>
+  import("./pages/Legal").then((m) => ({ default: m.TermsOfUse })),
+);
+const FaqPage = lazy(() =>
+  import("./pages/Legal").then((m) => ({ default: m.FaqPage })),
 );
 
 function Shell() {
@@ -60,12 +74,21 @@ function AdminLayout() {
   );
 }
 
+function PageviewProbe() {
+  const location = useLocation();
+  useEffect(() => {
+    trackPage(`${location.pathname}${location.search}`);
+  }, [location.pathname, location.search]);
+  return null;
+}
+
 export default function App() {
   return (
     <ThemeProvider>
       <LanguageProvider>
         <ShopProvider>
           <BrowserRouter>
+            <PageviewProbe />
             <Routes>
               <Route element={<Shell />}>
                 <Route path="/" element={<Home />} />
@@ -79,12 +102,16 @@ export default function App() {
                 <Route path="/track-order" element={<TrackOrder />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/policies/shipping" element={<ShippingPolicy />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfUse />} />
+                <Route path="/faq" element={<FaqPage />} />
+                <Route path="*" element={<NotFound />} />
               </Route>
               <Route element={<AdminLayout />}>
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
               </Route>
-              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
         </ShopProvider>

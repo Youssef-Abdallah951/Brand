@@ -7,6 +7,7 @@ import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
 import { firstProductImage } from "../lib/productImage";
+import { usePageMeta } from "../lib/meta";
 
 export default function Home() {
   const { lang } = useLang();
@@ -20,6 +21,8 @@ export default function Home() {
   );
   const spotImg = spotlight ? firstProductImage(spotlight.images) : "";
   const spotName = spotlight ? (lang === "ar" ? spotlight.nameAr : spotlight.nameEn) : "";
+
+  usePageMeta("JiA — Silk & Essentials", t("heroSub", lang));
 
   if (productsError) {
     return (
@@ -38,6 +41,8 @@ export default function Home() {
 
   return (
     <main>
+      {/* Organization + WebSite structured data for the whole storefront */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "Organization", name: "JiA", url: "https://brand-alpha-sandy.vercel.app", logo: "https://brand-alpha-sandy.vercel.app/logo.png", sameAs: [], contactPoint: { "@type": "ContactPoint", telephone: "+2" + "201018340567", contactType: "customer service", availableLanguage: ["ar", "en"] } }) }} />
       {/* ------------------------------ Hero ------------------------------ */}
       <section className="shell pt-5 pb-8 sm:pt-8 sm:pb-12">
         <div className="relative rounded-3xl overflow-hidden soft-shadow">

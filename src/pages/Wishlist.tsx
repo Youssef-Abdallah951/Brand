@@ -4,10 +4,12 @@ import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
 import { ProductCard, SkeletonGrid } from "../components/product";
 import { HeartIcon } from "../components/icons";
+import { usePageMeta } from "../lib/meta";
 
 export default function Wishlist() {
   const { lang } = useLang();
   const { products, wishlist, productsLoading } = useShop();
+  usePageMeta(`${t("wishlist", lang)} | JiA`);
 
   const items = wishlist
     .map((id) => products.find((p) => p.id === id || p.slug === id))

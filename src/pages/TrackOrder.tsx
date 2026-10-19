@@ -5,6 +5,7 @@ import { t, STATUS_LABEL } from "../i18n/translations";
 import { fmtPrice } from "../lib/format";
 import { isSupabaseConfigured, trackOrderViaFunction, type TrackedOrder } from "../lib/supabase";
 import { firstProductImage, onImgError } from "../components/product";
+import { usePageMeta } from "../lib/meta";
 import { CalendarIcon, CheckIcon, ImageIcon, PackageIcon, RetryIcon } from "../components/icons";
 import type { OrderStatus } from "../lib/types";
 
@@ -15,6 +16,7 @@ const GENERIC_ERROR = (lang: "ar" | "en") => t("trackNotFound", lang);
 
 export default function TrackOrder() {
   const { lang } = useLang();
+  usePageMeta(`${t("trackOrder", lang)} | JiA`, t("heroSub", lang));
   const [params] = useSearchParams();
   const [orderNo, setOrderNo] = useState(params.get("order") || "");
   const [order, setOrder] = useState<TrackedOrder | null>(null);

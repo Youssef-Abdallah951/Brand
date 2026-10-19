@@ -8,6 +8,7 @@ import { GOVERNORATES } from "../lib/egypt";
 import { SITE_CONFIG } from "../lib/siteConfig";
 import { createOrderInSupabase } from "../lib/supabase";
 import { couponDiscount } from "../lib/coupons";
+import { usePageMeta } from "../lib/meta";
 import { firstProductImage, onImgError } from "../components/product";
 import { CardIcon, CashIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, ImageIcon, LockIcon, MapPinIcon, ReceiptIcon, RetryIcon, SparklesIcon, TruckIcon, UserIcon } from "../components/icons";
 import type { CheckoutForm } from "../lib/types";
@@ -31,6 +32,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 export default function Checkout() {
   const { lang } = useLang();
   const { cart, productById, clearCart, pushToast, zones, coupon, applyCoupon, clearCoupon, discountOf } = useShop();
+  usePageMeta(`${t("checkout", lang)} | JiA`);
   const nav = useNavigate();
   const [showSummary, setShowSummary] = useState(false);
   const [placing, setPlacing] = useState(false);

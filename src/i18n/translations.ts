@@ -206,6 +206,9 @@ const dict = {
   menu: { en: "Menu", ar: "القائمة" },
   close: { en: "Close", ar: "إغلاق" },
   myAccount: { en: "My orders", ar: "طلباتي" },
+  notFoundTitle: { en: "Page not found", ar: "الصفحة غير موجودة" },
+  notFoundSub: { en: "The link you followed doesn't exist or has moved", ar: "الرابط الذي فتحتِه غير موجود أو تم نقله" },
+  policyTerms: { en: "Terms of Use", ar: "شروط الاستخدام" },
 } as Record<string, Record<Lang, string>>;
 export function t(key: string, lang: Lang): string {
   return dict[key]?.[lang] ?? key;

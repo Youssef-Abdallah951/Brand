@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /checkout
+Disallow: /order-success
+Disallow: /cart
+
+Sitemap: https://brand-alpha-sandy.vercel.app/sitemap.xml

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Regenerate when the catalog changes: products come from src/lib/data.ts
+     (id + slug pairs). Product URLs resolve by slug. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://brand-alpha-sandy.vercel.app/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/shop</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/categories</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/category/chiffon</loc><priority>0.7</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/category/modal</loc><priority>0.7</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/category/satin</loc><priority>0.7</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/category/accessories</loc><priority>0.7</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/category/gifts</loc><priority>0.7</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/policies/shipping</loc><priority>0.4</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/faq</loc><priority>0.4</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/privacy</loc><priority>0.3</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/terms</loc><priority>0.3</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/contact</loc><priority>0.4</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/track-order</loc><priority>0.4</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/classic-chiffon-hijab</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/printed-chiffon-hijab</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/chiffon-duo-set</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/ombre-chiffon-scarf</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/everyday-modal-hijab</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/stretch-modal-hijab</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/premium-modal-shawl</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/modal-square-scarf</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/silky-satin-hijab</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/occasion-satin-hijab</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/satin-stripe-hijab</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/no-slip-undercap</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/hijab-pin-set</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/scarf-ring-duo</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/signature-gift-box</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://brand-alpha-sandy.vercel.app/product/eid-luxe-box</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+</urlset>

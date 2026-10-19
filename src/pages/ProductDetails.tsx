@@ -5,6 +5,8 @@ import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
 import { fmtPrice } from "../lib/format";
+import { usePageMeta } from "../lib/meta";
+import { firstProductImage } from "../lib/productImage";
 import { Stars } from "../components/chrome";
 import { ProductCard, onImgError, productImage } from "../components/product";
 import { CashIcon, CheckIcon, GiftIcon, HeartIcon, ImageIcon, SearchIcon, SparklesIcon, TruckIcon, UndoIcon, XIcon } from "../components/icons";
@@ -50,6 +52,13 @@ export default function ProductDetails() {
   }, [products, id]);
 
   const p = productById(id || "");
+
+  // SEO: per-product title/description/OG image (hooks before the early return).
+  usePageMeta(
+    `${p ? (lang === "ar" ? p.nameAr : p.nameEn) : t("productNotFound", lang)} | JiA`,
+    p ? (lang === "ar" ? p.descAr : p.descEn) : undefined,
+    p ? firstProductImage(p.images) : undefined,
+  );
 
   if (!p) {
     return (
@@ -245,6 +254,11 @@ export default function ProductDetails() {
           </div>
 
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "Product", name, offers: { "@type": "Offer", price: sale ?? p.price, priceCurrency: "EGP", availability: out ? "OutOfStock" : "InStock" } }) }} />
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+            { "@type": "ListItem", position: 1, name: t("home", lang), item: "https://brand-alpha-sandy.vercel.app/" },
+            { "@type": "ListItem", position: 2, name: t("shopAll", lang), item: "https://brand-alpha-sandy.vercel.app/shop" },
+            { "@type": "ListItem", position: 3, name, item: `https://brand-alpha-sandy.vercel.app/product/${p.id}` },
+          ] }) }} />
         </section>
       </div>
 

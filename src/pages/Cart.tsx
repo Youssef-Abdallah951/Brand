@@ -4,11 +4,13 @@ import { useShop, lineId } from "../store/ShopContext";
 import { t } from "../i18n/translations";
 import { fmtPrice } from "../lib/format";
 import { firstProductImage, onImgError } from "../components/product";
+import { usePageMeta } from "../lib/meta";
 import { CartIcon, ImageIcon, TrashIcon } from "../components/icons";
 
 export default function Cart() {
   const { lang } = useLang();
   const { cart, productById, setQty, removeFromCart, subtotalOf, pushToast } = useShop();
+  usePageMeta(`${t("cart", lang)} | JiA`);
   const rows = cart
     .map((item) => {
       const p = productById(item.productId);

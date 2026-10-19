@@ -5,6 +5,7 @@ import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
 import { ProductCard, SkeletonGrid } from "../components/product";
 import { AlertIcon, ChevronDownIcon, ChevronUpIcon, FilterIcon, HeartIcon, ImageIcon, RetryIcon, XIcon } from "../components/icons";
+import { usePageMeta } from "../lib/meta";
 import type { ProductColor } from "../lib/types";
 
 const sortLabels = { new: "sortNew", low: "sortPriceLow", high: "sortPriceHigh", rating: "sortRating" } as const;
@@ -37,6 +38,8 @@ export default function Shop() {
       return next;
     }, { replace: true });
   };
+
+  usePageMeta(`${t("shopAll", lang)} | JiA`, t("heroSub", lang));
 
   // Local input for snappy typing, pushed to the URL after a short pause.
   const [qInput, setQInput] = useState(urlQ);

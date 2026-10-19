@@ -1,11 +1,12 @@
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
 import { useTheme } from "../store/ThemeContext";
 import { t } from "../i18n/translations";
 import { fmtPrice } from "../lib/format";
 import { SITE_CONFIG } from "../lib/siteConfig";
+import { productImage } from "./product";
 import { CartIcon, HeartIcon, MenuIcon, MoonIcon, PhoneIcon, SearchIcon, StarIcon, SunIcon, UserIcon, XIcon } from "./icons";
 
 export function Stars({ value = 4.5 }: { value?: number }) {
@@ -52,27 +53,64 @@ const iconBtn = "relative w-10 h-10 grid place-items-center rounded-full text-in
 const linkCls = ({ isActive }: { isActive: boolean }) =>
   `text-[13px] font-bold tracking-wide transition-colors hover:text-bronze py-1 ${isActive ? "text-bronze" : "text-ink dark:text-[#f3ede3]"}`;
 
+const MAX_HITS = 6;
+
 export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { lang } = useLang();
+  const { products, categories } = useShop();
   const [q, setQ] = useState("");
+  const [dq, setDq] = useState("");
+  const [active, setActive] = useState(-1);
   const nav = useNavigate();
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (open) setQ("");
+    if (open) { setQ(""); setDq(""); setActive(-1); }
     ref.current?.focus();
   }, [open]);
+  // Debounce so every keystroke does not rescan the catalog.
+  useEffect(() => {
+    const id = window.setTimeout(() => setDq(q.trim().toLowerCase()), 250);
+    return () => window.clearTimeout(id);
+  }, [q]);
+
+  const hits = useMemo(() => {
+    if (!dq) return [];
+    return products.map((p) => {
+      const cat = categories.find((c) => c.id === p.categoryId || c.slug === p.categoryId);
+      const hay = [
+        p.nameEn, p.nameAr, p.descEn, p.descAr, p.fabricEn, p.fabricAr,
+        cat?.nameEn, cat?.nameAr,
+        ...(p.colors ?? []).flatMap((c) => [c.en, c.ar]),
+      ].filter(Boolean).join(" ").toLowerCase();
+      return { p, idx: hay.indexOf(dq) };
+    })
+      .filter((x) => x.idx >= 0)
+      .sort((a, b) => a.idx - b.idx)
+      .slice(0, MAX_HITS)
+      .map((x) => x.p);
+  }, [dq, products, categories]);
+
+  const navTo = (fn: () => void) => { onClose(); fn(); };
+  const onKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") { onClose(); return; }
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive((i) => Math.min(hits.length - 1, i + 1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActive((i) => Math.max(-1, i - 1)); }
+    else if (e.key === "Enter" && hits[active]) { e.preventDefault(); navTo(() => nav(`/product/${hits[active].id}`)); }
+  };
+
   if (!open) return null;
   return (
     <div className="absolute inset-x-0 top-full border-t border-line dark:border-[#2e2822] bg-white dark:bg-[#191512] shadow-lg fade-in z-30" role="dialog" aria-modal="true" aria-label={t("search", lang)}>
       <form
         className="shell py-4 flex items-center gap-3"
-        onSubmit={(e) => { e.preventDefault(); onClose(); nav(`/shop?q=${encodeURIComponent(q)}`); }}
+        onSubmit={(e) => { e.preventDefault(); navTo(() => nav(`/shop?q=${encodeURIComponent(q.trim())}`)); }}
       >
         <SearchIcon className="w-5 h-5 text-mute shrink-0" />
         <input
           ref={ref}
           value={q}
           onChange={(e) => setQ(e.target.value)}
+          onKeyDown={onKeyDown}
           placeholder={t("search", lang)}
           aria-label={t("search", lang)}
           className="flex-1 bg-transparent outline-none text-[15px] font-semibold text-ink dark:text-[#f3ede3] placeholder:text-[#b9b0a2] min-w-0"
@@ -81,6 +119,62 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
           <XIcon className="w-5 h-5" />
         </button>
       </form>
+
+      <div className="shell pb-5 -mt-1">
+        {q.trim() === "" ? (
+          <>
+            <p className="text-[11px] font-bold tracking-wider uppercase text-mute dark:text-[#a89f92] mb-2">{t("popular", lang)}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {categories.slice(0, 5).map((c) => (
+                <button key={c.slug} onClick={() => navTo(() => nav(`/shop?cat=${encodeURIComponent(c.slug)}`))}
+                  className="rounded-full border border-line dark:border-[#2e2822] px-3.5 py-1.5 text-xs font-bold text-ink dark:text-[#f3ede3] hover:border-bronze transition">
+                  {lang === "ar" ? c.nameAr : c.nameEn}
+                </button>
+              ))}
+            </div>
+          </>
+        ) : dq === "" ? (
+          <p className="text-sm text-mute dark:text-[#a89f92] py-2 animate-pulse">{t("suggest", lang)}</p>
+        ) : hits.length === 0 ? (
+          <p className="text-sm text-mute dark:text-[#a89f92] py-2">{t("noResults", lang)}</p>
+        ) : (
+          <>
+            <p className="text-[11px] font-bold tracking-wider uppercase text-mute dark:text-[#a89f92] mb-2">{t("suggest", lang)}</p>
+            <ul role="listbox" aria-label={t("suggest", lang)} className="grid gap-1">
+              {hits.map((p, i) => {
+                const name = lang === "ar" ? p.nameAr : p.nameEn;
+                const cat = categories.find((c) => c.id === p.categoryId || c.slug === p.categoryId);
+                const meta = lang === "ar" ? (p.fabricAr || cat?.nameAr || "") : (p.fabricEn || cat?.nameEn || "");
+                const sale = p.salePrice && p.salePrice < p.price ? p.salePrice : undefined;
+                const img = productImage(p, 0);
+                return (
+                  <li key={p.id}>
+                    <button
+                      onClick={() => navTo(() => nav(`/product/${p.id}`))}
+                      onMouseEnter={() => setActive(i)}
+                      role="option"
+                      aria-selected={active === i}
+                      className={`w-full flex items-center gap-3 rounded-2xl p-2 text-start transition ${active === i ? "bg-sand dark:bg-[#201a15]" : "hover:bg-cream dark:hover:bg-[#201a15]"}`}
+                    >
+                      <span className="w-12 h-12 rounded-xl overflow-hidden bg-sand dark:bg-[#201a15] shrink-0" aria-hidden="true">
+                        {img && <img src={img} loading="lazy" alt="" className="product-photo w-full h-full object-cover" />}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-bold text-ink dark:text-[#f3ede3]">{name}</span>
+                        <span className="block truncate text-xs text-mute dark:text-[#a89f92]" dir="auto">{meta}</span>
+                      </span>
+                      <span dir="auto" className={`text-sm font-extrabold shrink-0 ${sale ? "text-clay" : "text-ink dark:text-[#f3ede3]"}`}>{fmtPrice(sale ?? p.price, lang)}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <button onClick={() => navTo(() => nav(`/shop?q=${encodeURIComponent(q.trim())}`))} className="mt-3 text-xs font-bold text-bronze underline underline-offset-4">
+              {t("shopNow", lang)} →
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -173,7 +267,7 @@ export function Navbar() {
           <Link to="/track-order" aria-label={t("myAccount", lang)} className={`${iconBtn} hidden sm:grid`}>
             <UserIcon className="w-5 h-5" />
           </Link>
-          <Link to="/shop?wish=1" aria-label={t("wishlist", lang)} className={iconBtn}>
+          <Link to="/wishlist" aria-label={t("wishlist", lang)} className={iconBtn}>
             <HeartIcon className="w-5 h-5" />
             {wishlist.length > 0 && (
               <span className="absolute -top-0.5 -end-0.5 bg-bronze text-white text-[10px] min-w-4 h-4 px-1 grid place-items-center rounded-full font-bold">{wishlist.length}</span>
@@ -237,7 +331,7 @@ export function Footer() {
           <div className="grid gap-2.5 text-sm">
             <Link className="hover:text-white transition w-fit" to="/shop">{t("shopAll", lang)}</Link>
             <Link className="hover:text-white transition w-fit" to="/categories">{t("categories", lang)}</Link>
-            <Link className="hover:text-white transition w-fit" to="/shop?wish=1">{t("wishlist", lang)}</Link>
+            <Link className="hover:text-white transition w-fit" to="/wishlist">{t("wishlist", lang)}</Link>
             <Link className="hover:text-white transition w-fit" to="/contact">{t("contact", lang)}</Link>
           </div>
         </div>
@@ -245,6 +339,11 @@ export function Footer() {
           <div className="text-xs font-bold tracking-[0.2em] uppercase text-bronze mb-4">{t("customerService", lang)}</div>
           <div className="grid gap-2.5 text-sm">
             <Link className="hover:text-white transition w-fit" to="/track-order">{t("trackOrder", lang)}</Link>
+            <Link className="hover:text-white transition w-fit" to="/policies/shipping">{t("policyShipping", lang)}</Link>
+            <Link className="hover:text-white transition w-fit" to="/policies/shipping">{t("policyReturns", lang)}</Link>
+            <Link className="hover:text-white transition w-fit" to="/faq">{t("faq", lang)}</Link>
+            <Link className="hover:text-white transition w-fit" to="/privacy">{t("policyPrivacy", lang)}</Link>
+            <Link className="hover:text-white transition w-fit" to="/terms">{t("policyTerms", lang)}</Link>
             <span>{t("codNoteFooter", lang)}</span>
             <span>{t("allGov", lang)}</span>
           </div>
