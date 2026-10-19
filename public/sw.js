@@ -1,10 +1,10 @@
-/* JiA service worker — STATIC assets only.
+﻿/* JiA service worker â€” STATIC assets only.
  * Deliberately NEVER caches: API calls (Supabase), order inserts, tracking
- * lookups, or checkout pages — data integrity beats offline comfort for a
+ * lookups, or checkout pages â€” data integrity beats offline comfort for a
  * COD storefront. Pages are network-first with a cached "/" offline fallback.
  */
-const VERSION = "jia-static-v1";
-const PRECACHE = ["/", "/manifest.webmanifest", "/logo.png", "/hero.jpg"];
+const VERSION = "jia-media-v1";
+const PRECACHE = ["/", "/manifest.webmanifest", "/logo.png", "/images/hero.webp", "/images/hero.jpg", "/images/placeholder.jpg"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(

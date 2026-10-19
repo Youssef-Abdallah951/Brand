@@ -47,14 +47,18 @@ export default function Home() {
       <section className="shell pt-5 pb-8 sm:pt-8 sm:pb-12">
         <div className="relative rounded-3xl overflow-hidden soft-shadow">
           <div className="relative min-h-[430px] sm:min-h-[520px] lg:min-h-[560px]">
-            <img
-              src="/hero.jpg"
-              alt=""
-              aria-hidden="true"
-              fetchPriority="high"
-              className="product-photo absolute inset-0 h-full w-full object-cover"
-              onError={(e) => { e.currentTarget.style.display = "none"; }}
-            />
+            <picture>
+              <source srcSet="/images/hero.webp" type="image/webp" />
+              <img
+                src="/images/hero.jpg"
+                alt={t("imgHeroAlt", lang)}
+                width={1800}
+                height={1013}
+                fetchPriority="high"
+                className="product-photo absolute inset-0 h-full w-full object-cover"
+                onError={(e) => { e.currentTarget.style.display = "none"; }}
+              />
+            </picture>
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" aria-hidden="true" />
           <div className="absolute inset-0 flex flex-col justify-end p-7 sm:p-10 lg:p-14">

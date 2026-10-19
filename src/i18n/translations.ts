@@ -15,6 +15,7 @@ const dict = {
   // Hero / home
   heroTitle: { en: "The Hijab, Refined", ar: "الحجاب… بأرقى نسخته" },
   heroSub: { en: "Fluid chiffons, silky modals and lustrous satins — finished details, everyday elegance, delivered across Egypt.", ar: "شيفون رائق، مودال حريري، وساتان لامع — تفاصيل مدروسة وأناقة يومية، تصلك لكل مصر." },
+  imgHeroAlt: { en: "Woman wearing an elegant hijab and wrapped scarf, strolling on a sunlit city street.", ar: "امرأة ترتدي حجاباً أنيقاً ووشاحاً ملماً وتتجول في شارع مضيء بالشمس." },
   shopNow: { en: "Shop Now", ar: "تسوقي الآن" },
   heroOverline: { en: "New drops every week", ar: "تشكيلات جديدة كل أسبوع" },
 

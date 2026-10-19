@@ -39,16 +39,24 @@ node scripts/qacheck.cjs   # verify all t() translation keys resolve
 ### WhatsApp order flow
 Order INSERT → unique order number → `/order-success` → "Send Order via WhatsApp" opens a pre-filled `wa.me` message to the admin number.
 
-### Placeholder images to replace before launch (photos are Unsplash demo shots)
+### Imagery status (licensed stock photos, verified content)
 
-| Where | What | How to replace |
+All photography is now licensed from Pexels (free commercial license), downloaded into
+`public/images/` as WebP + JPG pairs, and hand-verified image-by-image to be hijab /
+modest fashion / fabric / gift imagery (no makeup or beauty content). Credits per asset:
+`public/image-credits.md`. The site does not hotlink any third-party CDN.
+
+| Where | What | Remaining TODO |
 | --- | --- | --- |
-| `public/hero.jpg` | Home hero (Unsplash 1561442748) | Swap with a real JiA campaign photo, keep ~1800×1013 16:9 |
+| `public/images/hero.*` | Home hero (Pexels 14355034, 130KB) | Swap with a real JiA campaign photo, keep ~1800×1013 16:9 |
 | `public/logo.png` | Logo circle (navbar, boot screen, favicon, PWA icon fallback) | Real brand logo, square 512px |
 | `public/icon.svg`, `public/icon-maskable.svg` | PWA icons (simple "JiA" glyph) | Real brand-mark SVG, same two files |
-| `src/lib/data.ts` | ~17 unique Unsplash photo IDs used via the `img()` helper for all 16 products + category tiles + gift boxes | Replace the `photo-…` URLs with real product photography (same `img()` helper keeps `auto=format` WebP) |
+| `public/images/p-h12…p-h14` | Undercap / pin set / scarf ring shots | Dedicated product photos (currently borrowed accessory shots) |
+| `public/images/p-h15…p-h16` | Gift boxes | Photos of the real JiA packaging |
 
-Product images fall back through: admin-entered images, then seed Unsplash image. `onImgError` never renders a local path.
+Product images resolve through: admin/Supabase-entered URLs, then the seed local asset.
+Broken links fall back per-file (WebP → JPG) and finally to the branded placeholder —
+never to unrelated imagery.
 
 ### Placeholder legal copy
 `src/pages/Legal.tsx` holds draft Arabic shipping/returns/privacy/terms text marked `TODO(legal)` — have a lawyer review before launch.

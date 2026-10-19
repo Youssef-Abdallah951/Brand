@@ -1,12 +1,16 @@
-/** Only direct https:// URLs are valid product image sources. */
+/**
+ * Valid image sources are direct https:// URLs (Supabase / admin-provided)
+ * or local site paths ("/images/..." files bundled in public/images).
+ */
 export function isDirectImageUrl(u: unknown): u is string {
-  return typeof u === "string" && /^https:\/\//i.test(u.trim());
+  if (typeof u !== "string") return false;
+  const s = u.trim();
+  return /^https:\/\//i.test(s) || (s.startsWith("/") && !s.startsWith("//"));
 }
 
 /**
  * First valid direct image URL (mirrors the required behavior:
  * first entry with a usable URL, then legacy single-URL field, else "").
- * The URL is passed to <img src> untouched — never converted to a local path.
  */
 export function firstProductImage(
   images: unknown,
@@ -28,24 +32,22 @@ export function firstProductImage(
   return "";
 }
 
-const catImg = (id: string) =>
-  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=800&q=80`;
-
-// Curated fallback per category slug — used ONLY when the Supabase
+// Curated local fallback per category slug — used ONLY when the Supabase
 // `categories.image` value is missing. Supabase stays the source of truth:
-// a stored https URL always wins. IDs match the seed catalog and were
-// verified (HTTP 200) so tiles never render empty in production.
+// a stored URL always wins. Files live in public/images (WebP with JPG
+// duplicates; onError chains swap WebP → JPG before giving up). Content was
+// verified image-by-image: hijab / modest-fashion / fabric / gift shots only.
 const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
-  chiffon: catImg("photo-1528459801416-a9e53bbf4e17"),
-  modal: catImg("photo-1558769132-cb1aea458c5e"),
-  satin: catImg("photo-1620799139507-2a76f79a2f4d"),
-  accessories: catImg("photo-1609803384069-19f3e5a70e75"),
-  gifts: catImg("photo-1549465220-1a8b9238cd48"),
+  chiffon: "/images/p-h1-hover.webp",
+  modal: "/images/p-h5-hover.webp",
+  satin: "/images/p-h9-hover.webp",
+  accessories: "/images/p-h13-main.webp",
+  gifts: "/images/p-h15-main.webp",
 };
 
-const GENERIC_CATEGORY_IMAGE = catImg("photo-1554545729-bfecfdf2f989");
+const GENERIC_CATEGORY_IMAGE = "/images/placeholder.webp";
 
-/** Fallback tile for a category slug (unknown slugs get a generic cosmetics image). */
+/** Fallback tile for a category slug (unknown slugs get the branded placeholder). */
 export function categoryFallbackUrl(slug: unknown): string {
   const key = String(slug ?? "").trim().toLowerCase();
   return CATEGORY_FALLBACK_IMAGES[key] ?? GENERIC_CATEGORY_IMAGE;
@@ -53,7 +55,7 @@ export function categoryFallbackUrl(slug: unknown): string {
 
 /**
  * Resolved tile image for a category: stored Supabase `image` first,
- * curated slug fallback otherwise. Never returns a local path.
+ * curated slug fallback otherwise (local branded assets).
  */
 export function categoryImageUrl(image: unknown, slug: unknown): string {
   return firstProductImage([image]) || categoryFallbackUrl(slug);

@@ -15,9 +15,33 @@ export function productImage(p: Product, idx = 0): string {
   return firstProductImage(p.images, undefined, idx);
 }
 
+/**
+ * Graceful <img> failure chain:
+ *   WebP → same-name JPG (public/images keeps a duplicate) → branded
+ *   placeholder → hide. Remote Supabase URLs go straight to the placeholder.
+ * The card behind keeps its tinted background in every case.
+ */
 export function onImgError(e: React.SyntheticEvent<HTMLImageElement>): void {
-  // Broken remote image → hide the element (never swap in fake/mock imagery).
-  e.currentTarget.style.display = "none";
+  const el = e.currentTarget;
+  const step = el.dataset.fbk ?? "";
+  const src = el.getAttribute("src") ?? "";
+  let next: string;
+  if (step === "") {
+    next = src.toLowerCase().endsWith(".webp")
+      ? src.replace(/\.webp$/i, ".jpg")
+      : "/images/placeholder.jpg";
+  } else if (step === "jpg") {
+    next = "/images/placeholder.jpg";
+  } else {
+    el.style.display = "none";
+    return;
+  }
+  if (!next || next === src) {
+    el.style.display = "none";
+    return;
+  }
+  el.dataset.fbk = step === "" ? "jpg" : "ph";
+  el.src = next;
 }
 
 /** Small name element reused by card + quick view + PDP. */
