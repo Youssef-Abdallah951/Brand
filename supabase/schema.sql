@@ -256,8 +256,8 @@ create policy "public read zones" on delivery_zones for select using (active = t
 create policy "public read settings" on site_settings for select using (true);
 create policy "public read reviews" on reviews for select using (true);
 
--- Checkout INSERTs only. Order reads happen ONLY via the track-order
--- Edge Function (service role). No public SELECT on orders/customers/payments.
+-- Checkout INSERTs only. Admin order management reads orders via the
+-- admin UI (admin_roles RLS only). No public SELECT on orders/customers/payments.
 create policy "checkout insert orders" on orders for insert with check (true);
 create policy "checkout insert order_items" on order_items for insert with check (true);
 create policy "checkout upsert customers" on customers for insert with check (true);

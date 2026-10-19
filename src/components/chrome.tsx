@@ -7,7 +7,7 @@ import { t } from "../i18n/translations";
 import { fmtPrice } from "../lib/format";
 import { SITE_CONFIG } from "../lib/siteConfig";
 import { productImage } from "./product";
-import { CartIcon, HeartIcon, MenuIcon, MoonIcon, PhoneIcon, SearchIcon, StarIcon, SunIcon, UserIcon, XIcon } from "./icons";
+import { CartIcon, HeartIcon, MenuIcon, MoonIcon, PhoneIcon, SearchIcon, StarIcon, SunIcon, XIcon } from "./icons";
 
 export function Stars({ value = 4.5 }: { value?: number }) {
   return (
@@ -188,7 +188,6 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
     { to: "/", label: t("home", lang) },
     { to: "/shop", label: t("shopAll", lang) },
     { to: "/categories", label: t("categories", lang) },
-    { to: "/track-order", label: t("myAccount", lang) },
     { to: "/contact", label: t("contact", lang) },
   ];
   return (
@@ -264,9 +263,6 @@ export function Navbar() {
           <button onClick={() => setSearchOpen((s) => !s)} aria-expanded={searchOpen} aria-label={t("search", lang)} className={`${iconBtn} hidden sm:grid`}>
             <SearchIcon className="w-5 h-5" />
           </button>
-          <Link to="/track-order" aria-label={t("myAccount", lang)} className={`${iconBtn} hidden sm:grid`}>
-            <UserIcon className="w-5 h-5" />
-          </Link>
           <Link to="/wishlist" aria-label={t("wishlist", lang)} className={iconBtn}>
             <HeartIcon className="w-5 h-5" />
             {wishlist.length > 0 && (
@@ -338,7 +334,6 @@ export function Footer() {
         <div>
           <div className="text-xs font-bold tracking-[0.2em] uppercase text-bronze mb-4">{t("customerService", lang)}</div>
           <div className="grid gap-2.5 text-sm">
-            <Link className="hover:text-white transition w-fit" to="/track-order">{t("trackOrder", lang)}</Link>
             <Link className="hover:text-white transition w-fit" to="/policies/shipping">{t("policyShipping", lang)}</Link>
             <Link className="hover:text-white transition w-fit" to="/policies/shipping">{t("policyReturns", lang)}</Link>
             <Link className="hover:text-white transition w-fit" to="/faq">{t("faq", lang)}</Link>

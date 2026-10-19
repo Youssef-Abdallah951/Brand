@@ -20,7 +20,6 @@ const ProductDetails = lazy(() => import("./pages/ProductDetails"));
 const Cart = lazy(() => import("./pages/Cart"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const OrderSuccess = lazy(() => import("./pages/OrderSuccess"));
-const TrackOrder = lazy(() => import("./pages/TrackOrder"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
 const CategoriesPage = lazy(() =>
@@ -106,7 +105,6 @@ export default function App() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/order-success" element={<OrderSuccess />} />
-                <Route path="/track-order" element={<TrackOrder />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/wishlist" element={<Wishlist />} />
                 <Route path="/policies/shipping" element={<ShippingPolicy />} />

@@ -20,15 +20,14 @@ export default function OrderSuccess() {
   const { state } = useLocation();
   const [params] = useSearchParams();
   // Supabase is the source of truth; this page only displays what checkout
-  // just created (passed via router state). A refresh loses state by design —
-  // the customer then uses Track Order with the order number.
+  // just created (passed via router state). A refresh keeps the order number
+  // via the ?order= param; full item details are transient by design.
   const s = (state as SuccessState | null) ?? null;
   const orderNumber = s?.orderNumber ?? params.get("order") ?? "";
   const nowIso = useMemo(() => new Date().toISOString(), []);
   // Full snapshot (fresh checkout) → build the real WhatsApp order message
   // sent to the store's admin number. Refresh/back (only ?order= in URL) →
-  // WhatsApp CTA hidden by design; tracking by order number is the source
-  // of truth.
+  // WhatsApp CTA degraded to a plain contact link; order number stays visible.
   const fullOrder: Order | null =
     s && Array.isArray(s.items) && s.governorate && s.address && s.deliveryMethod
       ? {
@@ -61,7 +60,7 @@ export default function OrderSuccess() {
   if (!orderNumber) {
     return (
       <main className="shell max-w-xl mx-auto py-20 text-center">
-        <h1 className="font-display text-xl font-bold text-ink dark:text-[#f3ede3]">{t("trackNotFound", lang)}</h1>
+        <h1 className="font-display text-xl font-bold text-ink dark:text-[#f3ede3]">{t("orderMissingNo", lang)}</h1>
         <Link to="/shop" className="inline-block mt-5 bg-ink text-[#f3ede3] hover:bg-bronze-deep font-bold text-sm px-8 py-3.5 rounded-full transition btn-press">{t("continueShopping", lang)}</Link>
       </main>
     );
@@ -108,6 +107,14 @@ export default function OrderSuccess() {
             <ChatIcon className="w-5 h-5" /> {t("sendWhatsApp", lang)}
           </a>
         )}
+        <a
+          href={SITE_CONFIG.admin.whatsappLink}
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-2xl bg-[#23b26b]/95 border border-[#23b26b] text-white font-bold min-h-[50px] leading-[3rem] text-center btn-press inline-flex items-center justify-center gap-2"
+        >
+          <ChatIcon className="w-5 h-5" /> {t("helpWhatsApp", lang)}
+        </a>
         <Link to="/shop" className="rounded-2xl border border-ink dark:border-[#f3ede3] text-ink dark:text-[#f3ede3] hover:bg-sand dark:hover:bg-[#201a15] font-bold min-h-[50px] leading-[3rem] text-center btn-press transition">{t("continueShopping", lang)}</Link>
         <div className="text-center text-sm text-mute dark:text-[#a89f92] mt-2">
           {lang === "ar" ? "تحتاجي مساعدة؟" : "Need help?"} <a className="font-bold text-bronze-deep dark:text-bronze underline-offset-4 hover:underline" href={SITE_CONFIG.admin.telLink} dir="ltr">{SITE_CONFIG.admin.phoneLocal}</a>

@@ -1,6 +1,6 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+﻿import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Order, Product, Category, DeliveryZone, ProductTag } from "./types";
-import { normalizeOrderNumber, normalizeWhatsApp } from "./egypt";
+import { normalizeWhatsApp } from "./egypt";
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -17,9 +17,8 @@ const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 // ---------------------------------------------------------------------------
 if (!anon) {
   console.error(
-    "[JiA] VITE_SUPABASE_ANON_KEY is missing — checkout, catalog sync " +
-    "and order tracking are disabled. Set it in .env (or your host's env " +
-    "vars) and restart/rebuild.",
+    "[JiA] VITE_SUPABASE_ANON_KEY is missing — checkout and catalog sync " +
+    "are disabled. Set it in .env (or your host's env vars) and rebuild.",
   );
 }
 
@@ -44,7 +43,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /** True for transient transport/server failures worth one more attempt. */
 export function isTransientError(e: unknown): boolean {
   const msg = e instanceof Error ? `${e.name} ${e.message}` : String(e ?? "");
-  return /failed to fetch|network|timeout|abort|502|503|504|track-failed/i.test(msg);
+  return /failed to fetch|network|timeout|abort|502|503|504/i.test(msg);
 }
 
 export async function withRetry<T>(
@@ -269,88 +268,6 @@ async function createOrderLegacy(
   if (itemsErr) throw new Error(`Order items save failed: ${itemsErr.message}`);
 
   return orderNumber;
-}
-
-export interface TrackedOrder extends Order {}
-
-/**
- * Secure order lookup via the `track-order` Edge Function.
- * The browser NEVER runs SELECT on orders — the service-role key lives
- * only inside the Edge Function environment.
- * Lookup is by order number only (no customer phone data is collected).
- */
-export async function trackOrderViaFunction(
-  rawOrderNumber: string,
-  rawWhatsapp?: string,
-): Promise<TrackedOrder> {
-  const sb = getSupabase();
-  if (!sb) throw new Error("not-configured");
-
-  const order_number = normalizeOrderNumber(rawOrderNumber);
-  // Optional legacy second factor: old orders still carry a WhatsApp number
-  // and the Edge Function verifies it when the stored row has one.
-  const whatsapp = rawWhatsapp ? normalizeWhatsApp(rawWhatsapp) : "";
-
-  const { data, error } = await withRetry(() =>
-    sb.functions.invoke("track-order", {
-      body: whatsapp ? { order_number, whatsapp } : { order_number },
-    }),
-  {
-    attempts: 2,
-    // Never retry a definitive answer — only transient transport failures.
-    shouldRetry: (e) => {
-      const status = (e as { context?: { status?: number } })?.context?.status;
-      if (status === 404 || status === 400) return false;
-      return isTransientError(e);
-    },
-  });
-  if (error) {
-    // FunctionsHttpError carries the function response status
-    const status = (error as { context?: { status?: number } }).context?.status;
-    if (status === 404) throw new Error("not-found");
-    if (status === 400) throw new Error("bad-request");
-    throw new Error(`track-failed: ${error.message}`);
-  }
-  const o = (data as { order?: Record<string, unknown> })?.order;
-  if (!o) throw new Error("not-found");
-
-  const items = ((o.items as unknown[]) ?? []).map((raw) => {
-    const i = raw as Record<string, unknown>;
-    return {
-      productId: String(i.product_id ?? ""),
-      nameEn: String(i.name_en ?? ""),
-      nameAr: String(i.name_ar ?? ""),
-      price: Number(i.price ?? 0),
-      qty: Number(i.qty ?? 0),
-      image: String(i.image ?? ""),
-    };
-  });
-
-  return {
-    orderNumber: String(o.order_number ?? order_number),
-    firstName: String(o.first_name ?? ""),
-    lastName: String(o.last_name ?? ""),
-    whatsapp: String(o.whatsapp ?? ""),
-    phone: String(o.phone ?? ""),
-    governorate: String(o.governorate ?? ""),
-    area: String(o.area ?? ""),
-    city: String(o.city ?? ""),
-    address: String(o.address ?? ""),
-    building: String(o.building ?? ""),
-    apartment: String(o.apartment ?? ""),
-    notes: String(o.notes ?? ""),
-    deliveryMethod: (o.delivery_method as "standard" | "express") ?? "standard",
-    paymentMethod: "cod",
-    paymentStatus: (o.payment_status as Order["paymentStatus"]) ?? "pending",
-    items,
-    subtotal: Number(o.subtotal ?? 0),
-    deliveryFee: Number(o.delivery_fee ?? 0),
-    discount: Number(o.discount ?? 0),
-    total: Number(o.total ?? 0),
-    status: (o.status as Order["status"]) ?? "pending",
-    createdAt: String(o.created_at ?? new Date().toISOString()),
-    timeline: [{ status: (o.status as Order["status"]) ?? "pending", at: String(o.created_at ?? new Date().toISOString()) }],
-  };
 }
 
 // ---------- Public catalog (RLS allows public SELECT on these) ----------

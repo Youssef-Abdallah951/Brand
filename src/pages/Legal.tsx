@@ -98,8 +98,8 @@ const FAQS: { q: { en: string; ar: string }; a: { en: string; ar: string } }[] =
     a: { en: "Within 14 days of delivery if the piece is unused and in its original packaging.", ar: "خلال ١٤ يوماً من الاستلام، بشرط ألا تكون القطعة مستخدمة وتظل بغلافها الأصلي." },
   },
   {
-    q: { en: "How do I track my order?", ar: "كيف أتتبع طلبي؟" },
-    a: { en: "Use the order number from your confirmation page on the Track Orders page, or WhatsApp us.", ar: "استخدمي رقم الطلب من صفحة التأكيد في صفحة تتبع الطلبات، أو راسلينا واتساب." },
+    q: { en: "How do I follow up on my order?", ar: "كيف أتابع حالة طلبي؟" },
+    a: { en: "Keep the order number from your confirmation page and message us on WhatsApp — we will update you until your order arrives.", ar: "احفظي رقم الطلب من صفحة التأكيد وراسلينا على واتساب — سنوافيك بتحديثات الطلب حتى وصوله إليك." },
   },
   {
     q: { en: "Is free shipping available?", ar: "هل يوجد شحن مجاني؟" },

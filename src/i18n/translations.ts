@@ -9,7 +9,6 @@ const dict = {
   categories: { en: "Categories", ar: "الأقسام" },
   gifts: { en: "Gifts", ar: "الهدايا" },
   contact: { en: "Contact", ar: "تواصل معنا" },
-  trackOrder: { en: "Track Order", ar: "تتبع الطلب" },
   search: { en: "Search products…", ar: "ابحثي عن منتجات…" },
 
   // Hero / home
@@ -178,9 +177,9 @@ const dict = {
   orderSuccess: { en: "Your order has been placed successfully.", ar: "تم تأكيد طلبك بنجاح" },
   orderThanks: { en: "Thank you! We will contact you to confirm your order.", ar: "شكراً لطلبك، سيتم التواصل معك لتأكيد الطلب." },
   orderNumber: { en: "Order Number", ar: "رقم الطلب" },
-  trackNotFound: { en: "Order not found. Please check your order number.", ar: "لم يتم العثور على الطلب. يرجى التأكد من رقم الطلب." },
-  trackHint: { en: "Enter the order number you received when you placed your order.", ar: "أدخلي رقم الطلب الذي استلمتيه عند إتمام الشراء." },
-  saveOrderNo: { en: "Save your order number — you will need it to track your order.", ar: "احفظي رقم طلبك — ستحتاجينه لتتبع طلبك." },
+  saveOrderNo: { en: "Save your order number — you will need it for support and WhatsApp service.", ar: "احفظي رقم طلبك — ستحتاجينه لخدمة العملاء والتواصل عبر واتساب." },
+  orderMissingNo: { en: "We couldn't find an order number in this link.", ar: "لم نتمكن من العثور على رقم الطلب في هذا الرابط." },
+  helpWhatsApp: { en: "Ask about your order on WhatsApp", ar: "اسألي عن طلبك على واتساب" },
   connError: { en: "Unable to connect to the server. Please try again.", ar: "تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى." },
   genericError: { en: "Something went wrong. Please try again.", ar: "حدث خطأ ما. يرجى المحاولة مرة أخرى." },
   retry: { en: "Try again", ar: "حاول مرة أخرى" },
@@ -206,7 +205,6 @@ const dict = {
   madeInEgypt: { en: "Made with love in Egypt", ar: "صُنع بحب في مصر" },
   menu: { en: "Menu", ar: "القائمة" },
   close: { en: "Close", ar: "إغلاق" },
-  myAccount: { en: "My orders", ar: "طلباتي" },
   notFoundTitle: { en: "Page not found", ar: "الصفحة غير موجودة" },
   notFoundSub: { en: "The link you followed doesn't exist or has moved", ar: "الرابط الذي فتحتِه غير موجود أو تم نقله" },
   policyTerms: { en: "Terms of Use", ar: "شروط الاستخدام" },
