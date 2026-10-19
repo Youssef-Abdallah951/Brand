@@ -14,14 +14,19 @@ interface ShopState {
   cart: CartItem[];
   wishlist: string[];
   toasts: Toast[];
-  addToCart: (id: string, qty?: number, notes?: string) => void;
-  removeFromCart: (id: string) => void;
-  setQty: (id: string, qty: number) => void;
+  addToCart: (id: string, qty?: number, notes?: string, color?: string) => void;
+  removeFromCart: (lineId: string) => void;
+  setQty: (lineId: string, qty: number) => void;
   clearCart: () => void;
+  subtotalOf: () => number;
   toggleWish: (id: string) => void;
   cartCount: number;
   pushToast: (msg: string) => void;
   productById: (id: string) => Product | undefined;
+  cartOpen: boolean;
+  setCartOpen: (open: boolean) => void;
+  quickView: Product | null;
+  setQuickView: (p: Product | null) => void;
 }
 
 const Ctx = createContext<ShopState | null>(null);
@@ -33,6 +38,11 @@ function readJSON<T>(key: string, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+/** Stable key for a cart line: product + selected colour variant. */
+export function lineId(productId: string, color?: string): string {
+  return color ? `${productId}||${color}` : productId;
 }
 
 export function ShopProvider({ children }: { children: ReactNode }) {
@@ -48,6 +58,8 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>(() => readJSON("lumiere_cart", []));
   const [wishlist, setWishlist] = useState<string[]>(() => readJSON("lumiere_wish", []));
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [quickView, setQuickView] = useState<Product | null>(null);
   const loadId = useRef(0);
 
   const loadCatalog = useCallback(async () => {
@@ -108,24 +120,37 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     reloadProducts: loadCatalog,
     cartCount: cart.reduce((s, c) => s + c.qty, 0),
     productById: (id) => products.find((p) => p.id === id || p.slug === id),
-    addToCart: (id, qty = 1, notes) =>
+    addToCart: (id, qty = 1, notes, color) =>
       setCart((c) => {
-        const f = c.find((x) => x.productId === id);
+        const lid = lineId(id, color);
+        const f = c.find((x) => lineId(x.productId, x.color) === lid);
         if (f) {
           return c.map((x) =>
-            x.productId === id
+            lineId(x.productId, x.color) === lid
               ? { ...x, qty: Math.min(99, x.qty + qty), notes: notes ?? x.notes }
               : x,
           );
         }
-        return [...c, { productId: id, qty: Math.min(99, Math.max(1, qty)), notes }];
+        return [...c, { productId: id, qty: Math.min(99, Math.max(1, qty)), notes, color }];
       }),
-    removeFromCart: (id) => setCart((c) => c.filter((x) => x.productId !== id)),
-    setQty: (id, qty) =>
-      setCart((c) => qty <= 0 ? c.filter((x) => x.productId !== id) : c.map((x) => x.productId === id ? { ...x, qty: Math.min(99, qty) } : x)),
+    removeFromCart: (lid) => setCart((c) => c.filter((x) => lineId(x.productId, x.color) !== lid)),
+    setQty: (lid, qty) =>
+      setCart((c) =>
+        qty <= 0
+          ? c.filter((x) => lineId(x.productId, x.color) !== lid)
+          : c.map((x) => (lineId(x.productId, x.color) === lid ? { ...x, qty: Math.min(99, qty) } : x)),
+      ),
     clearCart: () => setCart([]),
+    subtotalOf: () =>
+      cart.reduce((s, item) => {
+        const p = products.find((x) => x.id === item.productId);
+        if (!p) return s;
+        const unit = p.salePrice && p.salePrice < p.price ? p.salePrice : p.price;
+        return s + unit * item.qty;
+      }, 0),
     toggleWish: (id) => setWishlist((w) => (w.includes(id) ? w.filter((x) => x !== id) : [...w, id])),
-  }), [products, productsLoading, productsError, categories, zones, cart, wishlist, toasts, pushToast, loadCatalog]);
+    cartOpen, setCartOpen, quickView, setQuickView,
+  }), [products, productsLoading, productsError, categories, zones, cart, wishlist, toasts, pushToast, loadCatalog, cartOpen, quickView]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

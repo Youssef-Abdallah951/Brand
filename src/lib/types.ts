@@ -9,6 +9,14 @@ export interface Category {
   active: boolean;
 }
 
+export interface ProductColor {
+  ar: string;
+  en: string;
+  hex: string;
+}
+
+export type ProductTag = "new" | "bestseller";
+
 export interface Product {
   id: string;
   slug: string;
@@ -17,6 +25,7 @@ export interface Product {
   descEn: string;
   descAr: string;
   price: number;
+  salePrice?: number;
   stock: number;
   categoryId: string;
   images: string[];
@@ -24,6 +33,10 @@ export interface Product {
   reviewsCount: number;
   featured?: boolean;
   bestseller?: boolean;
+  tags?: ProductTag[];
+  colors?: ProductColor[];
+  fabricAr?: string;
+  fabricEn?: string;
   active: boolean;
   ingredients?: string;
   createdAt: string;
@@ -47,6 +60,7 @@ export interface CartItem {
   productId: string;
   qty: number;
   notes?: string;
+  color?: string;
 }
 
 export interface CheckoutForm {

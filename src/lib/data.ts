@@ -1,102 +1,260 @@
-import type { Category, DeliveryZone, Product } from "./types";
+﻿import type { Category, DeliveryZone, Product } from "./types";
+
+// ---------------------------------------------------------------------------
+// PLACEHOLDER IMAGERY — Unsplash (free license) photo IDs, verified HTTP 200.
+// Replace with real product photography here only; every catalog consumer
+// reads images from this file (or Supabase `product_images` when configured).
+// ---------------------------------------------------------------------------
 
 const img = (seed: string) =>
-  `https://images.unsplash.com/${seed}?auto=format&fit=crop&w=800&q=80`;
+  `https://images.unsplash.com/${seed}?auto=format&fit=crop&w=900&q=75`;
+
+// Modest-fashion model shots (seed pool for products)
+const M_BLACK = "photo-1630735988694-12186aedd73d";
+const M_GREY = "photo-1752794674886-fb12817a5e96";
+const M_WALL = "photo-1554545729-bfecfdf2f989";
+const M_PURPLE = "photo-1622024773508-c7567eb2835b";
+const M_BEIGE = "photo-1561442748-c50715dc32f6";
+const M_BLUE = "photo-1587181281559-c3865cf7d71f";
+const M_GARDEN = "photo-1560350530-a12ec1414cf5";
+const M_LACE = "photo-1772474500365-c2c520545f44";
+const M_PAINT = "photo-1577975819014-2d6f1e721e77";
+const M_SCARF = "photo-1575897368738-aa5401c4af7d";
+// Fabric / accessory / gift placeholder shots
+const F_CHIFFON = "photo-1528459801416-a9e53bbf4e17";
+const F_HILDA = "photo-1558769132-cb1aea458c5e";
+const F_SOFT = "photo-1620799139507-2a76f79a2f4d";
+const F_CRAFT = "photo-1618354691373-d851c5c3a990";
+const ACC_SCARF = "photo-1609803384069-19f3e5a70e75";
+const ACC_CAP = "photo-1521369909029-2afed882baee";
+const GIFT_BOX = "photo-1549465220-1a8b9238cd48";
+const GIFT_STACK = "photo-1513885535751-8b9238bd345a";
 
 export const SEED_CATEGORIES: Category[] = [
-  { id: "c-makeup", slug: "makeup", nameEn: "Makeup", nameAr: "المكياج", image: img("photo-1512496015851-a90fb38ba796"), active: true },
-  { id: "c-skin", slug: "skincare", nameEn: "Skincare", nameAr: "العناية بالبشرة", image: img("photo-1556228720-195a672e8a03"), active: true },
-  { id: "c-hair", slug: "hair-care", nameEn: "Hair Care", nameAr: "العناية بالشعر", image: img("photo-1522337660859-02fbefca4702"), active: true },
-  { id: "c-perfume", slug: "perfumes", nameEn: "Perfumes", nameAr: "العطور", image: img("photo-1541643600914-78b084683601"), active: true },
-  { id: "c-body", slug: "body-care", nameEn: "Body Care", nameAr: "العناية بالجسم", image: img("photo-1570172619644-dfd03ed5d881"), active: true },
-  { id: "c-acc", slug: "accessories", nameEn: "Accessories", nameAr: "الإكسسوارات", image: img("photo-1596462502278-27bfdc403348"), active: true },
+  { id: "c-chiffon", slug: "chiffon", nameEn: "Chiffon", nameAr: "شيفون", image: img(F_CHIFFON), active: true },
+  { id: "c-modal", slug: "modal", nameEn: "Modal", nameAr: "مودال", image: img(F_HILDA), active: true },
+  { id: "c-satin", slug: "satin", nameEn: "Satin", nameAr: "ساتان", image: img(F_SOFT), active: true },
+  { id: "c-acc", slug: "accessories", nameEn: "Accessories", nameAr: "إكسسوارات", image: img(ACC_SCARF), active: true },
+  { id: "c-gift", slug: "gifts", nameEn: "Gifts", nameAr: "هدايا", image: img(GIFT_BOX), active: true },
 ];
 
+// Color swatch shortcuts
+const C = {
+  black: { ar: "أسود", en: "Black", hex: "#26211d" },
+  ivory: { ar: "أبيض عاجي", en: "Ivory", hex: "#f3ecdf" },
+  sand: { ar: "بيج رملي", en: "Sand", hex: "#cbb499" },
+  olive: { ar: "زيتي", en: "Olive", hex: "#6f7154" },
+  mocha: { ar: "موكا", en: "Mocha", hex: "#8a6a52" },
+  grey: { ar: "رمادي دافئ", en: "Warm Grey", hex: "#a49c93" },
+  cream: { ar: "كريمي", en: "Cream", hex: "#efe5d2" },
+  blush: { ar: "وردي باهت", en: "Blush", hex: "#d8a8a2" },
+  sky: { ar: "أزرق سماوي", en: "Sky Blue", hex: "#9cb9c9" },
+  mint: { ar: "أخضر منت", en: "Mint", hex: "#a9c4b0" },
+  lilac: { ar: "موف فاتح", en: "Lilac", hex: "#b5a8c4" },
+  champagne: { ar: "شامبين", en: "Champagne", hex: "#d9c39d" },
+  ombreBlue: { ar: "أزرق متدرج", en: "Ombré Blue", hex: "#7f97b2" },
+  navy: { ar: "كحلي", en: "Navy", hex: "#2b3245" },
+  gold: { ar: "ذهبي", en: "Gold", hex: "#c8a24b" },
+  silver: { ar: "فضي", en: "Silver", hex: "#b9bdc4" },
+} as const;
+
 export const SEED_PRODUCTS: Product[] = [
+  // ------------------------------ CHIFFON ------------------------------
   {
-    id: "p1", slug: "velvet-matte-lipstick", nameEn: "Velvet Matte Lipstick — Rosewood", nameAr: "أحمر شفاه مخملي مطفي — روزوود",
-    descEn: "Long-wear velvet matte lipstick with vitamin E. Rich pigment, lightweight feel.", descAr: "أحمر شفاه مخملي طويل الثبات بفيتامين E. لون غني وملمس خفيف.",
-    price: 349, stock: 42, categoryId: "c-makeup",
-    images: [img("photo-1586495777744-4413f21062fa"), img("photo-1512496015851-a90fb38ba796")],
-    rating: 4.8, reviewsCount: 214, featured: true, bestseller: true, active: true, createdAt: "2026-01-10",
-    ingredients: "Ricinus oil, Vitamin E, Shea butter",
+    id: "p-h1", slug: "classic-chiffon-hijab",
+    nameEn: "Classic Chiffon Hijab", nameAr: "حجاب شيفون كلاسيك",
+    descEn: "Feather-light matte chiffon with a soft drape — an everyday essential that stays put all day.",
+    descAr: "شيفون خفيف كالريشة بطرف مطفي ناعم — أساسية يومية تدوم معك كل اليوم.",
+    price: 185, stock: 40, categoryId: "c-chiffon",
+    images: [img(M_BEIGE), img(F_CHIFFON)],
+    colors: [C.black, C.ivory, C.sand, C.olive],
+    fabricAr: "شيفون مطفي", fabricEn: "Matte chiffon",
+    rating: 4.8, reviewsCount: 214, bestseller: true, tags: ["bestseller"],
+    active: true, createdAt: "2026-01-10",
   },
   {
-    id: "p2", slug: "vitamin-c-serum", nameEn: "Vitamin C Brightening Serum 30ml", nameAr: "سيروم فيتامين C للتفتيح 30 مل",
-    descEn: "15% vitamin C + hyaluronic acid for glow and even tone.", descAr: "فيتامين C بتركيز 15% مع الهيالورونيك لبشرة مشرقة وموحدة.",
-    price: 549, stock: 35, categoryId: "c-skin",
-    images: [img("photo-1620916566398-39f1143ab7be"), img("photo-1556228720-195a672e8a03")],
-    rating: 4.9, reviewsCount: 386, featured: true, bestseller: true, active: true, createdAt: "2026-02-01",
+    id: "p-h2", slug: "printed-chiffon-hijab",
+    nameEn: "Printed Chiffon Hijab", nameAr: "حجاب شيفون مطبوع",
+    descEn: "Hand-sketched botanical print on airy chiffon, hand-hemmed with a fine edge.",
+    descAr: "طبعة نباتية مرسومة يدوياً على شيفون هوائي، مع مينا مشطوفة يدوياً.",
+    price: 215, salePrice: 185, stock: 25, categoryId: "c-chiffon",
+    images: [img(M_GARDEN), img(F_CHIFFON)],
+    colors: [C.blush, C.sky, C.mint],
+    fabricAr: "شيفون مطبوع", fabricEn: "Printed chiffon",
+    rating: 4.6, reviewsCount: 88, tags: ["new"],
+    active: true, createdAt: "2026-03-05",
   },
   {
-    id: "p3", slug: "argan-hair-oil", nameEn: "Moroccan Argan Hair Oil 100ml", nameAr: "زيت الأرجان المغربي للشعر 100 مل",
-    descEn: "Repairing argan oil for frizz-free shine.", descAr: "زيت أرجان معالج للهيشان ولمعان صحي.",
-    price: 429, stock: 50, categoryId: "c-hair",
-    images: [img("photo-1526947425960-945c6e72858f")],
-    rating: 4.7, reviewsCount: 158, bestseller: true, active: true, createdAt: "2026-01-20",
+    id: "p-h3", slug: "chiffon-duo-set",
+    nameEn: "Chiffon Duo Set — 2 Scarves", nameAr: "طقم شيفون دِيو — قطعتان",
+    descEn: "Two coordinating chiffon scarves in our signature neutrals, wrapped in a keepsake sleeve.",
+    descAr: "شالان شيفون منسّقان بألواننا الأساسية، داخل غلاف هدية أنيق يصلح للإهداء.",
+    price: 345, salePrice: 299, stock: 18, categoryId: "c-chiffon",
+    images: [img(M_LACE), img(F_HILDA)],
+    colors: [C.black, C.sand, C.grey],
+    fabricAr: "شيفون مطفي", fabricEn: "Matte chiffon",
+    rating: 4.9, reviewsCount: 57, tags: ["new"],
+    active: true, createdAt: "2026-03-18",
   },
   {
-    id: "p4", slug: "rose-oud-parfum", nameEn: "Rose Oud Eau de Parfum 75ml", nameAr: "عطر الورد والعود 75 مل",
-    descEn: "Elegant rose, oud and amber. Long-lasting.", descAr: "ورد أنيق مع العود والعنبر. ثبات عالي.",
-    price: 1299, stock: 18, categoryId: "c-perfume",
-    images: [img("photo-1541643600914-78b084683601")],
-    rating: 4.9, reviewsCount: 97, featured: true, active: true, createdAt: "2026-03-01",
+    id: "p-h4", slug: "ombre-chiffon-scarf",
+    nameEn: "Ombré Chiffon Scarf", nameAr: "شال شيفون متدرج",
+    descEn: "A calm gradient woven into gauzy chiffon — the finishing touch to every look.",
+    descAr: "تدرّج لوني هادئ داخل شيفون خفيف — اللمسة النهائية لأي إطلالة.",
+    price: 235, stock: 14, categoryId: "c-chiffon",
+    images: [img(M_BLUE), img(F_SOFT)],
+    colors: [C.ombreBlue, C.lilac],
+    fabricAr: "شيفون متدرج", fabricEn: "Ombré chiffon",
+    rating: 4.7, reviewsCount: 63, bestseller: true, tags: ["bestseller"],
+    active: true, createdAt: "2026-02-20",
+  },
+  // ------------------------------ MODAL ------------------------------
+  {
+    id: "p-h5", slug: "everyday-modal-hijab",
+    nameEn: "Everyday Modal Hijab", nameAr: "حجاب مودال لكل يوم",
+    descEn: "Silky plant-based modal with natural stretch — breathable, barely-there, endlessly wearable.",
+    descAr: "مودال نباتي حريري بمرونة طبيعية — يتنفس، خفيف كأنه غير موجود، يدوم طويلاً.",
+    price: 265, stock: 52, categoryId: "c-modal",
+    images: [img(M_GREY), img(F_HILDA)],
+    colors: [C.grey, C.black, C.cream],
+    fabricAr: "مودال ممزوج", fabricEn: "Modal blend",
+    rating: 4.9, reviewsCount: 312, bestseller: true, tags: ["bestseller"],
+    active: true, createdAt: "2026-01-20",
   },
   {
-    id: "p5", slug: "hydra-body-lotion", nameEn: "Shea Hydra Body Lotion", nameAr: "لوشن الجسم بزبدة الشيا",
-    descEn: "48h moisture with shea + niacinamide.", descAr: "ترطيب 48 ساعة بزبدة الشيا والنياسيناميد.",
-    price: 279, stock: 60, categoryId: "c-body",
-    images: [img("photo-1570172619644-dfd03ed5d881")],
-    rating: 4.6, reviewsCount: 143, active: true, createdAt: "2026-02-12",
+    id: "p-h6", slug: "stretch-modal-hijab",
+    nameEn: "Stretch Modal Hijab", nameAr: "حجاب مودال مطاطي",
+    descEn: "A second-skin fit with deep elasticity that holds weightless volume without pins.",
+    descAr: "مرونة عالية ترسم شكلاً حجابياً مطروفاً بدون دبابيز، وثبات يدوم للساعات.",
+    price: 285, stock: 30, categoryId: "c-modal",
+    images: [img(M_PURPLE), img(F_HILDA)],
+    colors: [C.mocha, C.navy, C.ivory],
+    fabricAr: "مودال إيلاستان", fabricEn: "Modal + elastane",
+    rating: 4.8, reviewsCount: 121, tags: ["new"],
+    active: true, createdAt: "2026-03-22",
   },
   {
-    id: "p6", slug: "hydra-foundation", nameEn: "Skin Tint Hydra Foundation", nameAr: "كريم أساس مرطب خفيف",
-    descEn: "Natural coverage with SPF 15.", descAr: "تغطية طبيعية مع حماية SPF 15.",
-    price: 499, stock: 28, categoryId: "c-makeup",
-    images: [img("photo-1631730359585-38a4935cbec4"), img("photo-1596462502278-27bfdc403348")],
-    rating: 4.5, reviewsCount: 88, featured: true, active: true, createdAt: "2026-03-10",
+    id: "p-h7", slug: "premium-modal-shawl",
+    nameEn: "Premium Modal Shawl", nameAr: "شال مودال فاخر",
+    descEn: "Extra-wide modal shawl with a whisper-soft finish, generous enough for effortless draping.",
+    descAr: "شال مودال عريض بملمس ناعم جداً واتساع يسمح لفّة أنيقة سهلة.",
+    price: 325, salePrice: 289, stock: 16, categoryId: "c-modal",
+    images: [img(M_WALL), img(ACC_SCARF)],
+    colors: [C.sand, C.mocha, C.olive],
+    fabricAr: "مودال حريري", fabricEn: "Silky modal",
+    rating: 4.9, reviewsCount: 74, bestseller: true, tags: ["bestseller"],
+    active: true, createdAt: "2026-02-02",
   },
   {
-    id: "p7", slug: "lash-volume-mascara", nameEn: "Volume Lash Mascara", nameAr: "ماسكارا تكثيف الرموش",
-    descEn: "Clump-free volume, smudge-proof.", descAr: "كثافة بدون تكتل ومقاومة للتلطخ.",
-    price: 299, stock: 70, categoryId: "c-makeup",
-    images: [img("photo-1631214540242-3cd8c4b0b3b8")],
-    rating: 4.4, reviewsCount: 64, active: true, createdAt: "2026-02-20",
+    id: "p-h8", slug: "modal-square-scarf",
+    nameEn: "Modal Square Scarf", nameAr: "إيشارب مودال مربع",
+    descEn: "The square-cut classic in breathable modal — folds crisp, drapes soft.",
+    descAr: "كلاسيكية القطع المربع بمودال يتنفس — تُطوى حادة وتنسدل ناعمة.",
+    price: 245, stock: 0, categoryId: "c-modal",
+    images: [img(M_SCARF), img(F_CHIFFON)],
+    colors: [C.ivory, C.grey],
+    fabricAr: "مودال ناعم", fabricEn: "Buttery modal",
+    rating: 4.6, reviewsCount: 95,
+    active: true, createdAt: "2026-02-14",
+  },
+  // ------------------------------ SATIN ------------------------------
+  {
+    id: "p-h9", slug: "silky-satin-hijab",
+    nameEn: "Silky Satin Hijab", nameAr: "حجاب ساتان حريري",
+    descEn: "Lustrous charmeuse satin that resists creases and gives elegant shine without slipping.",
+    descAr: "ساتان شارموس لامع لا يتجعّد، يعطي بريقاً راقياً ولا ينزلق.",
+    price: 295, stock: 28, categoryId: "c-satin",
+    images: [img(M_BLACK), img(F_SOFT)],
+    colors: [C.black, C.champagne, C.mocha],
+    fabricAr: "ساتان شارموس", fabricEn: "Charmeuse satin",
+    rating: 4.8, reviewsCount: 167, bestseller: true, tags: ["bestseller"],
+    active: true, createdAt: "2026-01-28",
   },
   {
-    id: "p8", slug: "hair-repair-mask", nameEn: "Keratin Repair Hair Mask", nameAr: "ماسك الكيراتين لإصلاح الشعر",
-    descEn: "Deep repair in 5 minutes.", descAr: "إصلاح عميق في 5 دقائق.",
-    price: 379, stock: 33, categoryId: "c-hair",
-    images: [img("photo-1535585209827-a15fcdbc4c2d")],
-    rating: 4.7, reviewsCount: 112, bestseller: true, active: true, createdAt: "2026-01-28",
+    id: "p-h10", slug: "occasion-satin-hijab",
+    nameEn: "Occasion Satin Hijab", nameAr: "حجاب ساتان للمناسبات",
+    descEn: "Our jewel-rich satin for events — deep, light-catching colour with an elegant fall.",
+    descAr: "ساتان بألوان فاخرة للمناسبات — لون عميق يلتقط الضوء بانسدال راقٍ.",
+    price: 355, salePrice: 299, stock: 14, categoryId: "c-satin",
+    images: [img(M_LACE), img(F_SOFT)],
+    colors: [C.navy, C.olive, C.champagne],
+    fabricAr: "ساتان راقٍ", fabricEn: "Premium satin",
+    rating: 4.9, reviewsCount: 41, tags: ["new"],
+    active: true, createdAt: "2026-03-28",
   },
   {
-    id: "p9", slug: "glow-set", nameEn: "Glow Routine Set (Cleanser + Serum + Cream)", nameAr: "مجموعة النضارة (غسول + سيروم + كريم)",
-    descEn: "Complete 3-step glow routine.", descAr: "روتين النضارة الكامل 3 خطوات.",
-    price: 999, stock: 22, categoryId: "c-skin",
-    images: [img("photo-1556228578-8c89e6adf883")],
-    rating: 4.9, reviewsCount: 201, featured: true, bestseller: true, active: true, createdAt: "2026-03-15",
+    id: "p-h11", slug: "satin-stripe-hijab",
+    nameEn: "Satin Stripe Hijab", nameAr: "حجاب ساتان بخطوط",
+    descEn: "Tone-on-tone stitched stripes add quiet texture to liquid-smooth satin.",
+    descAr: "خطوط مطرزة بنفس اللون تضيف ملمساً هادئاً على نعومة الساتان.",
+    price: 265, stock: 22, categoryId: "c-satin",
+    images: [img(M_PAINT), img(F_CHIFFON)],
+    colors: [C.cream, C.blush, C.sky],
+    fabricAr: "ساتان مطرز", fabricEn: "Textured satin",
+    rating: 4.5, reviewsCount: 29,
+    active: true, createdAt: "2026-03-08",
+  },
+  // ------------------------------ ACCESSORIES ------------------------------
+  {
+    id: "p-h12", slug: "no-slip-undercap",
+    nameEn: "No-Slip Undercap", nameAr: "طاقية حجاب مثبتة",
+    descEn: "Featherweight cotton-soft undercap with a hidden silicone band — zero slipping.",
+    descAr: "طاقية خفيفة كالقطن بشريط سيليكون مخفي — لا تنزلق ولا تسبب احتكاكاً.",
+    price: 95, stock: 60, categoryId: "c-acc",
+    images: [img(ACC_CAP), img(F_CRAFT)],
+    colors: [C.black, C.ivory, C.mocha],
+    fabricAr: "قطن مخلوط", fabricEn: "Cotton blend",
+    rating: 4.7, reviewsCount: 143, bestseller: true, tags: ["bestseller"],
+    active: true, createdAt: "2026-01-15",
   },
   {
-    id: "p10", slug: "silk-blush", nameEn: "Silk Blush — Peachy Glow", nameAr: "بلاشر حريري — خوخي",
-    descEn: "Silky powder blush, natural flush.", descAr: "بلاشر حريري بلون طبيعي مشرق.",
-    price: 259, stock: 48, categoryId: "c-makeup",
-    images: [img("photo-1487412947147-5cebf100ffc2")],
-    rating: 4.6, reviewsCount: 73, active: true, createdAt: "2026-02-28",
+    id: "p-h13", slug: "hijab-pin-set",
+    nameEn: "Hijab Pin Set — 6 Pins", nameAr: "طقم دبابيز حجاب — 6 قطع",
+    descEn: "Six polished precision pins with smooth safety tongues in a travel-friendly case.",
+    descAr: "ستّ دبابيز مصقولة بأسنان آمنة ملساء، في علبة عملية للحمل أثناء السفر.",
+    price: 85, stock: 75, categoryId: "c-acc",
+    images: [img(ACC_SCARF), img(GIFT_STACK)],
+    colors: [C.gold, C.silver],
+    fabricAr: "معدن مصقول", fabricEn: "Polished metal",
+    rating: 4.8, reviewsCount: 96, bestseller: true, tags: ["bestseller"],
+    active: true, createdAt: "2026-02-08",
   },
   {
-    id: "p11", slug: "vanilla-musk", nameEn: "Vanilla Musk Body Mist 200ml", nameAr: "بادي ميست الفانيليا والمسك 200 مل",
-    descEn: "Soft daily vanilla musk mist.", descAr: "رذاذ يومي ناعم بالفانيليا والمسك.",
-    price: 329, stock: 40, categoryId: "c-perfume",
-    images: [img("photo-1592945403244-b3fbafd7f539")],
-    rating: 4.7, reviewsCount: 129, active: true, createdAt: "2026-03-05",
+    id: "p-h14", slug: "scarf-ring-duo",
+    nameEn: "Scarf Ring Duo", nameAr: "ثنائية حلقات الشال",
+    descEn: "Sculpted rings that finish any drape into a designed detail without pins or knots.",
+    descAr: "حلقان أنيقان يحوّلان أي لفّة إلى لمسة مصممة بدون دبابيز ولا عقد.",
+    price: 120, stock: 9, categoryId: "c-acc",
+    images: [img(F_CRAFT), img(ACC_SCARF)],
+    colors: [C.gold, C.silver],
+    fabricAr: "معدن مطلي", fabricEn: "Plated metal",
+    rating: 4.6, reviewsCount: 18, tags: ["new"],
+    active: true, createdAt: "2026-04-02",
+  },
+  // ------------------------------ GIFTS ------------------------------
+  {
+    id: "p-h15", slug: "signature-gift-box",
+    nameEn: "Signature Gift Box — 3 Hijabs + Pins", nameAr: "بوكس هدية — 3 حجابات + دبابيز",
+    descEn: "Three best-loved scarves and a pin set, ribboned inside our keepsake gift box.",
+    descAr: "ثلاث حجابات مفضلة لدينا مع طقم دبابيز، ملفوفة بشرابط داخل بوكس هدية يُحتفظ به.",
+    price: 999, salePrice: 849, stock: 12, categoryId: "c-gift",
+    images: [img(GIFT_BOX), img(GIFT_STACK)],
+    colors: [C.sand, C.black, C.cream],
+    fabricAr: "تشكيلة قماشات", fabricEn: "Curated fabrics",
+    rating: 4.9, reviewsCount: 64, bestseller: true, tags: ["bestseller"],
+    active: true, createdAt: "2026-03-01",
   },
   {
-    id: "p12", slug: "jade-roller-set", nameEn: "Jade Roller + Gua Sha Set", nameAr: "طقم رولر اليشم والجوا شا",
-    descEn: "Facial massage set for glow.", descAr: "طقم مساج الوجه للنضارة.",
-    price: 199, stock: 80, categoryId: "c-acc",
-    images: [img("photo-1571781926291-c477ebfd024b")],
-    rating: 4.5, reviewsCount: 58, active: true, createdAt: "2026-01-15",
+    id: "p-h16", slug: "eid-luxe-box",
+    nameEn: "Eid Luxe Gift Box", nameAr: "بوكس العيد الفاخر",
+    descEn: "Satin + modal edit with a gold pin duo and a handwritten card — our most-loved Eid pick.",
+    descAr: "مزيج ساتان ومودال مع طقم دبابيز ذهبي وكارت مكتوب بخط اليد — أكثر اختيار للعيد طلباً عندنا.",
+    price: 1499, stock: 6, categoryId: "c-gift",
+    images: [img(GIFT_STACK), img(GIFT_BOX)],
+    colors: [C.champagne, C.navy],
+    fabricAr: "تشكيلة فاخرة", fabricEn: "Luxe edit",
+    rating: 5, reviewsCount: 22, tags: ["new"],
+    active: true, createdAt: "2026-04-05",
   },
 ];
 

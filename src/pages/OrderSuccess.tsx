@@ -2,6 +2,7 @@ import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useMemo } from "react";
 import { useLang } from "../i18n/LanguageContext";
 import { t, STATUS_LABEL } from "../i18n/translations";
+import { fmtPrice } from "../lib/format";
 import { SITE_CONFIG } from "../lib/siteConfig";
 import { orderWhatsAppLink } from "../lib/whatsapp";
 import { AlertIcon, ChatIcon, CheckIcon } from "../components/icons";
@@ -59,53 +60,57 @@ export default function OrderSuccess() {
 
   if (!orderNumber) {
     return (
-      <main className="max-w-xl mx-auto px-4 py-20 text-center">
-        <h1 className="font-bold text-[1.17rem] text-[#171717] dark:text-white">{t("trackNotFound", lang)}</h1>
-        <Link to="/shop" className="inline-block mt-5 bg-[#e84393] hover:bg-[#c2185b] text-white font-bold px-8 py-3 rounded-2xl">{t("continueShopping", lang)}</Link>
+      <main className="shell max-w-xl mx-auto py-20 text-center">
+        <h1 className="font-display text-xl font-bold text-ink dark:text-[#f3ede3]">{t("trackNotFound", lang)}</h1>
+        <Link to="/shop" className="inline-block mt-5 bg-ink text-[#f3ede3] hover:bg-bronze-deep font-bold text-sm px-8 py-3.5 rounded-full transition btn-press">{t("continueShopping", lang)}</Link>
       </main>
     );
   }
 
   return (
-    <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+    <main className="shell max-w-2xl mx-auto py-10">
       <div className="text-center">
-        <div className="w-20 h-20 mx-auto rounded-full bg-green-100 dark:bg-green-500/15 grid place-items-center text-green-600 dark:text-green-400"><CheckIcon className="w-10 h-10" /></div>
-        <h1 className="font-display text-[1.7rem] font-bold mt-4 text-[#171717] dark:text-white">{t("orderSuccess", lang)}</h1>
-        <p className="text-[#525252] dark:text-[#D4D4D4] mt-2">{t("orderThanks", lang)}</p>
-        <div className="inline-block mt-4 bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-2xl px-6 py-3">
-          <span className="text-xs text-[#525252] dark:text-[#A3A3A3] block">{t("orderNumber", lang)}</span>
-          <span className="font-bold text-[1.17rem] text-[#c2185b] dark:text-[#ff8fb8]" dir="ltr">#{orderNumber}</span>
+        <div className="w-20 h-20 mx-auto rounded-full bg-sand dark:bg-[#201a15] grid place-items-center text-bronze-deep dark:text-bronze soft-shadow"><CheckIcon className="w-9 h-9" /></div>
+        <h1 className="font-display t-h2 font-bold mt-5 text-ink dark:text-[#f3ede3]">{t("orderSuccess", lang)}</h1>
+        <p className="text-mute dark:text-[#a89f92] mt-2">{t("orderThanks", lang)}</p>
+        <div className="inline-block mt-5 bg-white dark:bg-[#191512] border border-line dark:border-[#2e2822] rounded-2xl px-7 py-3.5 soft-shadow">
+          <span className="text-[11px] text-mute dark:text-[#a89f92] block">{t("orderNumber", lang)}</span>
+          <span className="font-display font-bold text-xl text-bronze-deep dark:text-bronze" dir="ltr">#{orderNumber}</span>
         </div>
-        <p className="text-xs text-amber-700 dark:text-amber-200 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl px-4 py-2.5 mt-3 font-bold inline-flex items-center gap-1.5">
+        <p className="text-xs text-amber-700 dark:text-amber-200 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-full px-4 py-2 mt-4 font-bold inline-flex items-center gap-1.5">
           <AlertIcon className="w-4 h-4 shrink-0" /> {t("saveOrderNo", lang)}
         </p>
       </div>
 
       {s && (
-        <div className="bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-3xl p-5 mt-6 card-shadow grid gap-3 text-sm">
-          <div className="flex justify-between"><span className="text-[#525252] dark:text-[#A3A3A3]">{lang === "ar" ? "الاسم" : "Name"}</span><span className="font-bold text-[#171717] dark:text-white">{s.firstName} {s.lastName}</span></div>
-          <div className="flex justify-between"><span className="text-[#525252] dark:text-[#A3A3A3]">{t("payment", lang)}</span><span className="font-bold text-[#171717] dark:text-white">{t("cod", lang)}</span></div>
-          <div className="flex justify-between"><span className="text-[#525252] dark:text-[#A3A3A3]">{lang === "ar" ? "الحالة" : "Status"}</span><span className="bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-200 font-bold px-3 py-0.5 rounded-full text-xs">{STATUS_LABEL.pending?.[lang]}</span></div>
-          <div className="flex justify-between font-bold text-lg border-t border-dashed border-[#E5E5E5] dark:border-[#333333] pt-3"><span className="text-[#171717] dark:text-white">{t("total", lang)}</span><span className="text-[#c2185b] dark:text-[#ff8fb8]">EGP {s.total}</span></div>
+        <div className="bg-cream dark:bg-[#191512] border border-line dark:border-[#2e2822] rounded-3xl p-5 mt-8 grid gap-3 text-sm soft-shadow">
+          <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{lang === "ar" ? "الاسم" : "Name"}</span><span className="font-bold text-ink dark:text-[#f3ede3]">{s.firstName} {s.lastName}</span></div>
+          <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{t("payment", lang)}</span><span className="font-bold text-ink dark:text-[#f3ede3]">{t("cod", lang)}</span></div>
+          <div className="flex justify-between">
+            <span className="text-mute dark:text-[#a89f92]">{lang === "ar" ? "الحالة" : "Status"}</span>
+            <span className="bg-sand dark:bg-[#201a15] text-ink dark:text-[#f3ede3] font-bold px-3 py-0.5 rounded-full text-xs">{STATUS_LABEL.pending?.[lang]}</span>
+          </div>
+          <div className="flex justify-between font-bold text-base border-t border-dashed border-line dark:border-[#2e2822] pt-3">
+            <span className="text-ink dark:text-[#f3ede3]">{t("total", lang)}</span>
+            <span className="text-bronze-deep dark:text-bronze font-extrabold" dir="auto">{fmtPrice(s.total, lang)}</span>
+          </div>
         </div>
       )}
 
-      <div className="grid gap-2.5 mt-6">
+      <div className="grid gap-2.5 mt-7">
         {fullOrder && (
           <a
             href={orderWhatsAppLink(fullOrder)}
             target="_blank"
             rel="noreferrer"
-            className="rounded-2xl bg-[#25D366] text-white font-bold py-3.5 text-center btn-press inline-flex items-center justify-center gap-2"
+            className="rounded-2xl bg-[#23b26b] text-white font-bold min-h-[50px] leading-[3rem] text-center btn-press inline-flex items-center justify-center gap-2"
           >
             <ChatIcon className="w-5 h-5" /> {t("sendWhatsApp", lang)}
           </a>
         )}
-        <div className="grid gap-2.5">
-          <Link to="/shop" className="rounded-2xl border-2 border-[#E5E5E5] dark:border-[#333333] text-[#c2185b] dark:text-[#ff8fb8] font-bold py-3.5 text-center btn-press">{t("continueShopping", lang)}</Link>
-        </div>
-        <div className="text-center text-sm text-[#525252] dark:text-[#A3A3A3] mt-2">
-          {lang === "ar" ? "تحتاجي مساعدة؟" : "Need help?"} <a className="font-bold text-[#c2185b] dark:text-[#ff8fb8]" href={SITE_CONFIG.admin.telLink} dir="ltr">{SITE_CONFIG.admin.phoneLocal}</a>
+        <Link to="/shop" className="rounded-2xl border border-ink dark:border-[#f3ede3] text-ink dark:text-[#f3ede3] hover:bg-sand dark:hover:bg-[#201a15] font-bold min-h-[50px] leading-[3rem] text-center btn-press transition">{t("continueShopping", lang)}</Link>
+        <div className="text-center text-sm text-mute dark:text-[#a89f92] mt-2">
+          {lang === "ar" ? "تحتاجي مساعدة؟" : "Need help?"} <a className="font-bold text-bronze-deep dark:text-bronze underline-offset-4 hover:underline" href={SITE_CONFIG.admin.telLink} dir="ltr">{SITE_CONFIG.admin.phoneLocal}</a>
         </div>
       </div>
     </main>

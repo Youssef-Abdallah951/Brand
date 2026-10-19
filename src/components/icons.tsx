@@ -403,3 +403,39 @@ export function MoonIcon(props: IconProps) {
     </Base>
   );
 }
+
+export function EyeIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </Base>
+  );
+}
+
+export function InstagramIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <rect x="2" y="2" width="20" height="20" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </Base>
+  );
+}
+
+export function FacebookIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </Base>
+  );
+}
+
+export function TiktokIcon(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M16 3v8.6a4.2 4.2 0 1 1-3.6-4.16" />
+      <path d="M16 3c.4 2.3 1.9 3.9 4.4 4.2" />
+    </Base>
+  );
+}

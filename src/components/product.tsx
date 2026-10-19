@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import type { Product } from "../lib/types";
 import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
-import { Price, Stars } from "./chrome";
-import { ArrowLeftIcon, HeartIcon, ImageIcon } from "./icons";
+import { fmtPrice } from "../lib/format";
+import { Stars } from "./chrome";
+import { HeartIcon, ImageIcon } from "./icons";
 import { firstProductImage } from "../lib/productImage";
 
 export { firstProductImage, isDirectImageUrl, categoryFallbackUrl, categoryImageUrl, onCategoryImgError } from "../lib/productImage";
@@ -18,72 +20,168 @@ export function onImgError(e: React.SyntheticEvent<HTMLImageElement>): void {
   e.currentTarget.style.display = "none";
 }
 
+/** Small name element reused by card + quick view + PDP. */
+export function ProductName({ p, className }: { p: Product; className?: string }) {
+  const { lang } = useLang();
+  return (
+    <span className={`font-semibold text-ink dark:text-[#f3ede3] ${className ?? ""}`}>
+      {lang === "ar" ? p.nameAr : p.nameEn}
+    </span>
+  );
+}
+
+export function CardBadges({ p }: { p: Product }) {
+  const { lang } = useLang();
+  const onSale = !!p.salePrice && p.salePrice < p.price;
+  const tag = p.tags?.[0];
+  if (!tag && !onSale) return null;
+  return (
+    <div className="absolute top-3 start-3 z-10 flex flex-col items-start gap-1.5">
+      {tag === "new" && (
+        <span className="bg-ink/90 text-[#f3ede3] text-[11px] font-bold px-2.5 py-1 rounded-full tracking-wide">{t("newTag", lang)}</span>
+      )}
+      {tag === "bestseller" && (
+        <span className="bg-bronze/90 text-white text-[11px] font-bold px-2.5 py-1 rounded-full tracking-wide">{t("bestsellerTag", lang)}</span>
+      )}
+      {onSale && (
+        <span className="bg-clay text-white text-[11px] font-bold px-2.5 py-1 rounded-full tracking-wide">{t("saleTag", lang)}</span>
+      )}
+    </div>
+  );
+}
+
 export function ProductCard({ p }: { p: Product }) {
   const { lang } = useLang();
-  const { addToCart, toggleWish, wishlist, pushToast } = useShop();
+  const { addToCart, toggleWish, wishlist, setQuickView, setCartOpen, pushToast } = useShop();
+  const [addState, setAddState] = useState<"idle" | "busy" | "done">("idle");
   const wished = wishlist.includes(p.id);
   const name = lang === "ar" ? p.nameAr : p.nameEn;
   const out = p.stock <= 0;
-  const cardImg = productImage(p);
+  const imgA = productImage(p);
+  const imgB = productImage(p, 1);
+  const sale = !!p.salePrice && p.salePrice < p.price ? p.salePrice : undefined;
+  const firstColor = p.colors?.[0]?.ar;
+
+  const quickAdd = async () => {
+    if (out || addState !== "idle") return;
+    addToCart(p.id, 1, undefined, firstColor);
+    pushToast(t("addedToCart", lang));
+    setCartOpen(true);
+    setAddState("busy");
+    window.setTimeout(() => setAddState("done"), 420);
+    window.setTimeout(() => setAddState("idle"), 1700);
+  };
+
   return (
-    <article className="group bg-[#FFFFFF] dark:bg-[#0A0A0A] rounded-3xl border border-[#E5E5E5] dark:border-[#333333] overflow-hidden card-shadow hover:-translate-y-1 transition-all flex flex-col">
-      <Link to={`/product/${p.slug}`} className="relative block aspect-[4/5] overflow-hidden bg-blush-100 dark:bg-[#161616]">
-        {cardImg ? (
-          <img src={cardImg} onError={onImgError} alt={name} loading="lazy" className="product-photo w-full h-full object-cover group-hover:scale-105 transition duration-500" />
-        ) : (
-          <span className="w-full h-full grid place-items-center bg-pink-50 dark:bg-[#161616] text-pink-300 dark:text-neutral-600"><ImageIcon className="w-12 h-12" /></span>
+    <article className="group relative flex flex-col min-w-0">
+      {/* Image */}
+      <div className="relative overflow-hidden rounded-2xl bg-sand dark:bg-[#201a15]">
+        <Link to={`/product/${p.slug}`} className="block aspect-[3/4]" aria-label={name}>
+          {imgA ? (
+            <>
+              <img src={imgA} onError={onImgError} alt={name}
+                loading="lazy"
+                className={`product-photo absolute inset-0 w-full h-full object-cover transition duration-500 ${imgB ? "group-hover:opacity-0" : ""}`} />
+              {imgB && (
+                <img src={imgB} onError={onImgError} alt="" aria-hidden="true"
+                  loading="lazy"
+                  className="product-photo absolute inset-0 w-full h-full object-cover opacity-0 transition duration-500 group-hover:opacity-100" />
+              )}
+            </>
+          ) : (
+            <span className="absolute inset-0 grid place-items-center text-bronze/60 dark:text-[#6b6155]"><ImageIcon className="w-10 h-10" /></span>
+          )}
+        </Link>
+        <CardBadges p={p} />
+        {out && (
+          <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 mx-6 bg-ink/80 text-[#f3ede3] text-center text-xs font-bold py-2 rounded-full" aria-hidden="true">{t("soldOut", lang)}</span>
         )}
-        <button
-          onClick={(e) => { e.preventDefault(); toggleWish(p.id); }}
-          aria-label="wishlist"
-          className={`absolute top-3 end-3 w-9 h-9 grid place-items-center rounded-full shadow ${wished ? "bg-[#e84393] text-white" : "bg-white dark:bg-[#1a1a1a] dark:border dark:border-[#333333] text-gray-500 dark:text-[#D4D4D4]"}`}
-        >
-          <HeartIcon filled={wished} className="w-4 h-4" />
-        </button>
-        {p.stock <= 0 && (
-          <span className="absolute inset-x-0 bottom-0 bg-black/60 text-white text-center text-sm py-1.5">{t("outOfStock", lang)}</span>
-        )}
-      </Link>
-      <div className="p-3.5 flex flex-col gap-1.5 flex-1">
-        <div className="flex items-center gap-1.5">
-          <Stars value={p.rating} />
-          <span className="text-xs text-gray-400 dark:text-[#A3A3A3]">({p.reviewsCount})</span>
+
+        {/* Hover actions */}
+        <div className="absolute top-3 end-3 z-10 flex flex-col gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition duration-300">
+          <button
+            onClick={() => toggleWish(p.id)}
+            aria-label={wished ? t("removeWish", lang) : t("addWish", lang)}
+            aria-pressed={wished}
+            className={`w-9 h-9 grid place-items-center rounded-full backdrop-blur ${wished ? "bg-bronze text-white" : "bg-white/90 text-ink hover:bg-white dark:bg-[#1c1815]/90 dark:text-[#f3ede3] dark:hover:bg-[#1c1815]"}`}
+          >
+            <HeartIcon filled={wished} className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setQuickView(p)}
+            aria-label={t("quickView", lang) + " — " + name}
+            className="w-9 h-9 grid place-items-center rounded-full bg-white/90 text-ink hover:bg-white dark:bg-[#1c1815]/90 dark:text-[#f3ede3] dark:hover:bg-[#1c1815] backdrop-blur"
+          >
+            <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" /><circle cx="12" cy="12" r="3" /></svg>
+          </button>
         </div>
-        <Link to={`/product/${p.slug}`} className="font-semibold text-sm leading-snug line-clamp-2 min-h-[40px] text-[#171717] dark:text-white">{name}</Link>
-        <Price price={p.price} lang={lang} />
-        <button
-          disabled={out}
-          onClick={() => { addToCart(p.id); pushToast(lang === "ar" ? "تمت إضافة المنتج إلى السلة" : "Product added to cart"); }}
-          className="mt-auto w-full rounded-2xl bg-[#2b7de9] hover:bg-[#1f63c4] disabled:bg-gray-300 dark:disabled:bg-neutral-800 dark:disabled:text-neutral-500 text-white font-bold py-2.5 text-sm btn-press transition"
-        >
-          {t("addToCart", lang)}
-        </button>
+
+        {/* Quick add — slides up on hover (desktop), always visible on mobile */}
+        <div className="absolute inset-x-3 bottom-3 translate-y-0 opacity-100 md:translate-y-3 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 transition duration-300">
+          <button
+            disabled={out}
+            onClick={quickAdd}
+            className={`w-full min-h-[44px] rounded-full text-sm font-bold transition-colors ${out
+              ? "bg-ink/50 text-white/80 cursor-not-allowed"
+              : addState === "done"
+                ? "bg-bronze-deep text-white"
+                : "bg-ink text-[#f3ede3] hover:bg-black"}`}
+          >
+            {out ? t("soldOut", lang) : addState === "busy" ? t("addToCartBusy", lang) : addState === "done" ? t("addToCartDone", lang) : t("quickAdd", lang)}
+          </button>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="pt-3 pb-1 px-0.5 flex flex-col gap-1">
+        <ProductName p={p} className="text-sm leading-snug line-clamp-2 min-h-[2.6rem]" />
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`font-extrabold text-[0.95rem] ${sale ? "text-clay" : "text-ink dark:text-[#f3ede3]"}`} dir="auto">
+            {fmtPrice(sale ?? p.price, lang)}
+          </span>
+          {sale && (
+            <s className="text-xs text-mute dark:text-[#8d8478]" dir="auto">{fmtPrice(p.price, lang)}</s>
+          )}
+        </div>
+        {p.reviewsCount > 0 && (
+          <div className="flex items-center gap-1.5 opacity-80">
+            <Stars value={p.rating ?? 0} />
+            <span className="text-[11px] text-mute dark:text-[#8d8478]">({p.reviewsCount})</span>
+          </div>
+        )}
       </div>
     </article>
   );
 }
 
-export function SectionTitle({ title, sub, link, linkLabel }: { title: string; sub?: string; link?: string; linkLabel?: string }) {
+export function SectionTitle({ overline, title, sub }: { overline?: string; title: string; sub?: string }) {
   return (
-    <div className="flex items-end justify-between gap-3 mb-5">
-      <div>
-        <h2 className="font-display text-[1.4rem] sm:text-[1.72rem] font-bold text-[#171717] dark:text-white">{title}</h2>
-        {sub && <p className="text-[#525252] dark:text-[#D4D4D4] text-sm mt-1">{sub}</p>}
+    <div className="flex flex-col text-center gap-2 mb-8">
+      {overline && <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-bronze">{overline}</span>}
+      <h2 className="font-display t-h2 font-bold text-ink dark:text-[#f3ede3]">{title}</h2>
+      {sub && <p className="text-mute dark:text-[#a89f92] text-sm max-w-xl mx-auto">{sub}</p>}
+    </div>
+  );
+}
+
+export function SkeletonCard() {
+  return (
+    <div className="animate-none">
+      <div className="rounded-2xl overflow-hidden bg-sand dark:bg-[#201a15]">
+        <div className="skel aspect-[3/4]" />
       </div>
-      {link && <Link to={link} className="text-sm font-bold text-[#c2185b] dark:text-[#ff8fb8] hover:underline shrink-0 inline-flex items-center gap-1">{linkLabel} <ArrowLeftIcon className="w-4 h-4" /></Link>}
+      <div className="pt-3 space-y-2">
+        <div className="skel h-4 rounded w-3/4" />
+        <div className="skel h-4 rounded w-1/3" />
+      </div>
     </div>
   );
 }
 
 export function SkeletonGrid({ n = 8 }: { n?: number }) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-      {Array.from({ length: n }).map((_, i) => (
-        <div key={i} className="rounded-3xl border border-[#E5E5E5] dark:border-[#333333] overflow-hidden animate-pulse">
-          <div className="aspect-[4/5] bg-pink-100 dark:bg-[#161616]" />
-          <div className="p-3 space-y-2"><div className="h-4 bg-pink-100 dark:bg-[#1f1f1f] rounded" /><div className="h-4 w-2/3 bg-pink-100 dark:bg-[#1f1f1f] rounded" /></div>
-        </div>
-      ))}
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-6 sm:gap-x-5">
+      {Array.from({ length: n }).map((_, i) => <SkeletonCard key={i} />)}
     </div>
   );
 }

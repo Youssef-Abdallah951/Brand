@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLang } from "../i18n/LanguageContext";
-import { useShop } from "../store/ShopContext";
+import { useShop, lineId } from "../store/ShopContext";
 import { t, VALIDATION_MSG } from "../i18n/translations";
+import { fmtPrice } from "../lib/format";
 import { GOVERNORATES } from "../lib/egypt";
 import { SITE_CONFIG } from "../lib/siteConfig";
 import { createOrderInSupabase } from "../lib/supabase";
@@ -10,16 +11,18 @@ import { firstProductImage, onImgError } from "../components/product";
 import { CardIcon, CashIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, ImageIcon, LockIcon, MapPinIcon, ReceiptIcon, RetryIcon, SparklesIcon, TruckIcon, UserIcon } from "../components/icons";
 import type { CheckoutForm } from "../lib/types";
 
-const inputCls = "w-full rounded-2xl border border-[#E5E5E5] dark:border-[#333333] bg-white dark:bg-[#0A0A0A] text-[#171717] dark:text-white px-4 py-3.5 outline-none focus:border-[#e84393] focus:ring-2 focus:ring-pink-100 dark:focus:ring-pink-500/20 transition placeholder:text-gray-400 dark:placeholder:text-neutral-500";
-const labelCls = "text-sm font-bold text-[#525252] dark:text-[#D4D4D4] mb-1.5 block";
-const cardCls = "bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] rounded-3xl p-5 sm:p-6 card-shadow";
+const inputCls = "w-full rounded-2xl border border-line dark:border-[#2e2822] bg-white dark:bg-[#1c1815] text-ink dark:text-[#f3ede3] px-4 py-3 text-sm outline-none focus:border-bronze transition placeholder:text-mute/60";
+const labelCls = "text-xs font-bold text-ink dark:text-[#f3ede3] mb-1.5 block";
+const cardCls = "bg-cream dark:bg-[#191512] border border-line dark:border-[#2e2822] rounded-3xl p-5 sm:p-6 soft-shadow";
+const headingCls = "font-display font-bold text-lg inline-flex items-center gap-2 text-ink dark:text-[#f3ede3]";
+const iconCls = "text-bronze";
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div>
       <label className={labelCls}>{label}</label>
       {children}
-      {error && <p className="text-red-500 dark:text-red-400 text-xs font-bold mt-1">{error}</p>}
+      {error && <p className="text-clay text-xs font-bold mt-1" role="alert">{error}</p>}
     </div>
   );
 }
@@ -42,10 +45,14 @@ export default function Checkout() {
   const [errors, setErrors] = useState<Partial<Record<keyof CheckoutForm, string>>>({});
 
   const rows = useMemo(
-    () => cart.map((c) => ({ ...c, p: productById(c.productId)! })).filter((r) => r.p),
+    () => cart.map((c) => {
+      const p = productById(c.productId);
+      return p ? { ...c, p, lid: lineId(c.productId, c.color) } : null;
+    }).filter((r): r is NonNullable<typeof r> => !!r),
     [cart, productById],
   );
-  const subtotal = rows.reduce((s, r) => s + r.p.price * r.qty, 0);
+  const unitPrice = (p: { price: number; salePrice?: number }) => (p.salePrice && p.salePrice < p.price ? p.salePrice : p.price);
+  const subtotal = rows.reduce((s, r) => s + unitPrice(r.p) * r.qty, 0);
 
   // Redirect empty carts as an effect — never navigate during render.
   useEffect(() => {
@@ -56,10 +63,9 @@ export default function Checkout() {
   const deliveryFee = useMemo(() => {
     if (!form.deliveryMethod) return 0;
     if (subtotal >= SITE_CONFIG.delivery.freeThreshold && form.deliveryMethod === "standard") return 0;
-    const base = zone
+    return zone
       ? form.deliveryMethod === "express" ? zone.expressFee : zone.standardFee
       : form.deliveryMethod === "express" ? SITE_CONFIG.delivery.expressFee : SITE_CONFIG.delivery.standardFee;
-    return base;
   }, [form.deliveryMethod, subtotal, zone]);
   const total = subtotal + deliveryFee;
   const vm = (k: string) => VALIDATION_MSG[k]?.[lang] ?? k;
@@ -95,6 +101,8 @@ export default function Checkout() {
     // Re-validate every line against the live catalog: product must exist,
     // be active, have a sane price; quantity clamped to available stock.
     // Totals are computed from THESE trusted values, not from stored state.
+    // The selected colour variant travels with the line notes so the atelier
+    // can pick exactly what was ordered.
     const giftBits: string[] = [];
     const items: { productId: string; nameEn: string; nameAr: string; price: number; qty: number; image: string }[] = [];
     for (const r of rows) {
@@ -111,7 +119,8 @@ export default function Checkout() {
         setSubmitError(t("genericError", lang));
         return;
       }
-      items.push({ productId: fresh.id, nameEn: fresh.nameEn, nameAr: fresh.nameAr, price: fresh.price, qty, image: firstProductImage(fresh.images) });
+      items.push({ productId: fresh.id, nameEn: fresh.nameEn, nameAr: fresh.nameAr, price: unitPrice(fresh), qty, image: firstProductImage(fresh.images) });
+      if (r.color?.trim()) giftBits.push(`${fresh.nameEn}: ${lang === "ar" ? "اللون" : "color"} ${r.color.trim()}`);
       if (r.notes?.trim()) giftBits.push(`${fresh.nameEn}: ${r.notes.trim()}`);
     }
     if (items.length === 0) {
@@ -186,43 +195,47 @@ export default function Checkout() {
   };
 
   return (
-    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-28 lg:pb-10">
-      <h1 className="font-display text-[1.7rem] font-bold text-[#171717] dark:text-white">{t("checkout", lang)}</h1>
+    <main>
+      <div className="shell py-7">
+        <h1 className="font-display t-h2 font-bold text-ink dark:text-[#f3ede3]">{t("checkout", lang)}</h1>
 
-      {submitError && (
-        <div className="mt-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-2xl px-5 py-4 text-sm font-bold animate-fadeUp">
-          {submitError}
-          <button onClick={placeOrder} className="mt-2 underline inline-flex items-center gap-1"><RetryIcon className="w-3.5 h-3.5" /> {t("retry", lang)}</button>
-          <span className="block mt-1 font-normal text-xs">
-            {lang === "ar" ? "أو تواصلي معنا:" : "Or contact us:"} <a className="underline" href={SITE_CONFIG.admin.telLink} dir="ltr">{SITE_CONFIG.admin.phoneLocal}</a>
-          </span>
-        </div>
-      )}
+        {submitError && (
+          <div className="mt-4 bg-clay/10 border border-clay/30 text-clay rounded-2xl px-5 py-4 text-sm font-bold animate-fadeUp" role="alert">
+            {submitError}
+            <button onClick={placeOrder} className="mt-2 underline inline-flex items-center gap-1"><RetryIcon className="w-3.5 h-3.5" /> {t("retry", lang)}</button>
+            <span className="block mt-1 font-normal text-xs opacity-90">
+              {lang === "ar" ? "أو تواصلي معنا:" : "Or contact us:"} <a className="underline" href={SITE_CONFIG.admin.telLink} dir="ltr">{SITE_CONFIG.admin.phoneLocal}</a>
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* Mobile collapsible summary */}
-      <button onClick={() => setShowSummary((s) => !s)} className="lg:hidden w-full mt-4 bg-white dark:bg-[#0A0A0A] border border-[#E5E5E5] dark:border-[#333333] text-[#171717] dark:text-white rounded-2xl px-4 py-3.5 flex justify-between items-center font-bold">
-        <span className="inline-flex items-center gap-2"><ReceiptIcon className="w-5 h-5 text-[#e84393] dark:text-[#ff8fb8]" /> {t("orderSummary", lang)} • EGP {total}</span>
-        <span>{showSummary ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}</span>
-      </button>
+      <div className="shell">
+        <button onClick={() => setShowSummary((s) => !s)} aria-expanded={showSummary} className="lg:hidden w-full bg-cream dark:bg-[#191512] border border-line dark:border-[#2e2822] text-ink dark:text-[#f3ede3] rounded-2xl px-4 py-3.5 flex justify-between items-center font-bold text-sm">
+          <span className="inline-flex items-center gap-2"><ReceiptIcon className={`w-5 h-5 ${iconCls}`} /> {t("orderSummary", lang)} · <span dir="auto">{fmtPrice(total, lang)}</span></span>
+          {showSummary ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
+        </button>
+      </div>
 
-      <div className="grid lg:grid-cols-[1fr_380px] gap-5 mt-4 items-start">
+      <div className="shell grid lg:grid-cols-[1fr_380px] gap-6 mt-4 pb-32 lg:pb-12 items-start">
         <div className="grid gap-5">
           {/* CONTACT */}
           <section className={cardCls}>
-            <h2 className="font-bold text-[1.05rem] mb-4 inline-flex items-center gap-2 text-[#171717] dark:text-white"><UserIcon className="w-5 h-5 text-[#e84393] dark:text-[#ff8fb8]" /> {t("contactInfo", lang)}</h2>
+            <h2 className={`${headingCls} mb-4`}><UserIcon className={`w-5 h-5 ${iconCls}`} /> {t("contactInfo", lang)}</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label={t("firstName", lang)} error={errors.firstName}>
-                <input value={form.firstName} onChange={(e) => set("firstName", e.target.value)} className={inputCls} />
+                <input value={form.firstName} onChange={(e) => set("firstName", e.target.value)} className={inputCls} autoComplete="given-name" />
               </Field>
               <Field label={t("lastName", lang)} error={errors.lastName}>
-                <input value={form.lastName} onChange={(e) => set("lastName", e.target.value)} className={inputCls} />
+                <input value={form.lastName} onChange={(e) => set("lastName", e.target.value)} className={inputCls} autoComplete="family-name" />
               </Field>
             </div>
           </section>
 
           {/* DELIVERY */}
           <section className={cardCls}>
-            <h2 className="font-bold text-[1.05rem] mb-4 inline-flex items-center gap-2 text-[#171717] dark:text-white"><MapPinIcon className="w-5 h-5 text-[#e84393] dark:text-[#ff8fb8]" /> {t("deliveryInfo", lang)}</h2>
+            <h2 className={`${headingCls} mb-4`}><MapPinIcon className={`w-5 h-5 ${iconCls}`} /> {t("deliveryInfo", lang)}</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label={t("governorate", lang)} error={errors.governorate}>
                 <select value={form.governorate} onChange={(e) => set("governorate", e.target.value)} className={inputCls}>
@@ -255,74 +268,92 @@ export default function Checkout() {
 
           {/* DELIVERY METHOD */}
           <section className={cardCls}>
-            <h2 className="font-bold text-[1.05rem] mb-4 inline-flex items-center gap-2 text-[#171717] dark:text-white"><TruckIcon className="w-5 h-5 text-[#e84393] dark:text-[#ff8fb8]" /> {t("deliveryMethod", lang)}</h2>
-            <div className="grid gap-3">
+            <h2 className={`${headingCls} mb-4`}><TruckIcon className={`w-5 h-5 ${iconCls}`} /> {t("deliveryMethod", lang)}</h2>
+            <div className="grid gap-2.5" role="radiogroup" aria-label={t("deliveryMethod", lang)}>
               {([
                 { v: "standard", label: t("standard", lang), fee: zone?.standardFee ?? SITE_CONFIG.delivery.standardFee, eta: zone ? (lang === "ar" ? zone.etaAr : zone.etaEn) : "2-4 days" },
                 { v: "express", label: t("express", lang), fee: zone?.expressFee ?? SITE_CONFIG.delivery.expressFee, eta: lang === "ar" ? "24-48 ساعة" : "24-48 hrs" },
-              ] as const).map((o) => (
-                <button key={o.v} type="button" onClick={() => set("deliveryMethod", o.v)}
-                  className={`flex items-center gap-3 rounded-2xl border-2 px-4 py-3.5 text-start transition ${form.deliveryMethod === o.v ? "border-[#2b7de9] bg-blue-50 dark:bg-blue-500/10" : "border-[#E5E5E5] dark:border-[#333333] hover:border-pink-300 dark:hover:border-pink-500/50"}`}>
-                  <span className={`w-5 h-5 rounded-full border-2 grid place-items-center ${form.deliveryMethod === o.v ? "border-[#2b7de9]" : "border-gray-300 dark:border-neutral-600"}`}>
-                    {form.deliveryMethod === o.v && <span className="w-2.5 h-2.5 rounded-full bg-[#2b7de9]" />}
-                  </span>
-                  <span className="flex-1"><span className="font-bold block text-[#171717] dark:text-white">{o.label}</span><span className="text-xs text-[#525252] dark:text-[#A3A3A3]">{o.eta}</span></span>
-                  <span className="font-bold text-[#c2185b] dark:text-[#ff8fb8]">EGP {subtotal >= SITE_CONFIG.delivery.freeThreshold && o.v === "standard" ? 0 : o.fee}</span>
-                </button>
-              ))}
+              ] as const).map((o) => {
+                const selected = form.deliveryMethod === o.v;
+                return (
+                  <button key={o.v} type="button" role="radio" aria-checked={selected} onClick={() => set("deliveryMethod", o.v)}
+                    className={`flex items-center gap-3 rounded-2xl border-2 px-4 py-3.5 text-start transition ${selected ? "border-bronze bg-sand dark:bg-[#201a15]" : "border-line dark:border-[#2e2822] hover:border-bronze/50"}`}>
+                    <span className={`w-5 h-5 rounded-full border-2 grid place-items-center shrink-0 ${selected ? "border-bronze" : "border-line dark:border-[#2e2822]"}`} aria-hidden="true">
+                      {selected && <span className="w-2.5 h-2.5 rounded-full bg-bronze" />}
+                    </span>
+                    <span className="flex-1 min-w-0"><span className="font-bold block text-ink dark:text-[#f3ede3] text-sm">{o.label}</span><span className="text-xs text-mute dark:text-[#a89f92]" dir="auto">{o.eta}</span></span>
+                    <span className="font-extrabold text-sm text-ink dark:text-[#f3ede3]" dir="auto">
+                      {fmtPrice(subtotal >= SITE_CONFIG.delivery.freeThreshold && o.v === "standard" ? 0 : o.fee, lang)}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-            {errors.deliveryMethod && <p className="text-red-500 dark:text-red-400 text-xs font-bold mt-2">{errors.deliveryMethod}</p>}
-            {subtotal >= SITE_CONFIG.delivery.freeThreshold && <p className="text-green-600 dark:text-green-400 text-xs font-bold mt-2 inline-flex items-center gap-1"><SparklesIcon className="w-4 h-4" /> {lang === "ar" ? "شحن عادي مجاني لطلبك!" : "FREE standard shipping on your order!"}</p>}
+            {errors.deliveryMethod && <p className="text-clay text-xs font-bold mt-2" role="alert">{errors.deliveryMethod}</p>}
+            {subtotal >= SITE_CONFIG.delivery.freeThreshold && (
+              <p className="text-bronze-deep dark:text-bronze text-xs font-bold mt-2.5 inline-flex items-center gap-1">
+                <SparklesIcon className="w-4 h-4" /> {lang === "ar" ? "شحن عادي مجاني لطلبك!" : "FREE standard shipping on your order!"}
+              </p>
+            )}
           </section>
 
           {/* PAYMENT — COD ONLY */}
           <section className={cardCls}>
-            <h2 className="font-bold text-[1.05rem] mb-4 inline-flex items-center gap-2 text-[#171717] dark:text-white"><CardIcon className="w-5 h-5 text-[#e84393] dark:text-[#ff8fb8]" /> {t("payment", lang)}</h2>
-            <div className="rounded-2xl border-2 border-[#2b7de9] dark:border-blue-500/50 bg-blue-50 dark:bg-blue-500/10 px-4 py-4">
-              <span className="font-bold inline-flex items-center gap-1.5 text-[#171717] dark:text-white"><CashIcon className="w-5 h-5 text-green-700 dark:text-green-400" /> {t("cod", lang)}</span>
-              <span className="block text-xs text-[#525252] dark:text-[#A3A3A3] mt-1">{lang === "ar" ? "ادفعي كاش عند وصول المندوب — بدون أي دفع مقدم" : "Pay cash when the courier arrives — no prepayment needed"}</span>
+            <h2 className={`${headingCls} mb-4`}><CardIcon className={`w-5 h-5 ${iconCls}`} /> {t("payment", lang)}</h2>
+            <div className="rounded-2xl border border-bronze/40 bg-sand dark:bg-[#201a15] px-4 py-4">
+              <span className="font-bold inline-flex items-center gap-1.5 text-ink dark:text-[#f3ede3] text-sm"><CashIcon className="w-5 h-5 text-bronze" /> {t("cod", lang)}</span>
+              <span className="block text-xs text-mute dark:text-[#a89f92] mt-1">{lang === "ar" ? "ادفعي كاش عند وصول المندوب — بدون أي دفع مقدم" : "Pay cash when the courier arrives — no prepayment needed"}</span>
             </div>
           </section>
         </div>
 
         {/* SUMMARY */}
-        <aside className={`${cardCls} lg:sticky lg:top-32 ${showSummary ? "block" : "hidden lg:block"}`}>
-          <h2 className="font-bold text-[1.05rem] inline-flex items-center gap-2 text-[#171717] dark:text-white"><ReceiptIcon className="w-5 h-5 text-[#e84393] dark:text-[#ff8fb8]" /> {t("orderSummary", lang)}</h2>
-          <div className="grid gap-3 mt-4 max-h-72 overflow-auto">
+        <aside className={`${cardCls} lg:sticky lg:top-28 ${showSummary ? "block" : "hidden lg:block"}`}>
+          <h2 className={`${headingCls} inline-flex items-center gap-2`}><ReceiptIcon className={`w-5 h-5 ${iconCls}`} /> {t("orderSummary", lang)}</h2>
+          <div className="grid gap-3 mt-4 max-h-72 overflow-auto pe-1">
             {rows.map((r) => {
               const thumb = firstProductImage(r.p.images);
+              const unit = unitPrice(r.p);
               return (
-              <div key={r.productId} className="flex gap-2.5 items-center">
-                <div className="relative shrink-0">
-                  {thumb ? (
-                    <img src={thumb} onError={onImgError} alt="" className="product-photo w-14 h-16 rounded-xl object-cover bg-pink-100 dark:bg-[#161616]" />
-                  ) : (
-                    <span className="w-14 h-16 rounded-xl bg-pink-100 dark:bg-[#161616] grid place-items-center text-pink-300 dark:text-neutral-600"><ImageIcon className="w-6 h-6" /></span>
-                  )}
-                  <span className="absolute -top-1.5 -end-1.5 bg-[#2b2b30] dark:bg-[#1f1f1f] dark:border dark:border-[#333333] text-white text-[10px] w-5 h-5 grid place-items-center rounded-full">{r.qty}</span>
+                <div key={r.lid} className="flex gap-2.5 items-center">
+                  <div className="relative shrink-0">
+                    {thumb ? (
+                      <img src={thumb} onError={onImgError} alt="" className="product-photo w-14 h-16 rounded-xl object-cover bg-sand dark:bg-[#201a15]" />
+                    ) : (
+                      <span className="w-14 h-16 rounded-xl bg-sand dark:bg-[#201a15] grid place-items-center text-bronze/60"><ImageIcon className="w-6 h-6" /></span>
+                    )}
+                    <span className="absolute -top-1.5 -end-1.5 bg-ink dark:bg-bronze text-white text-[10px] w-5 h-5 grid place-items-center rounded-full font-bold" aria-hidden="true">{r.qty}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold line-clamp-2 text-ink dark:text-[#f3ede3] leading-snug">{lang === "ar" ? r.p.nameAr : r.p.nameEn}</p>
+                    {r.color && <p className="text-[11px] text-mute dark:text-[#a89f92] mt-0.5" dir="auto">{t("color", lang)}: {r.color}</p>}
+                  </div>
+                  <div className="text-sm font-bold shrink-0 text-ink dark:text-[#f3ede3]" dir="auto">{fmtPrice(unit * r.qty, lang)}</div>
                 </div>
-                <div className="flex-1 min-w-0 text-sm font-semibold line-clamp-2 text-[#171717] dark:text-white">{lang === "ar" ? r.p.nameAr : r.p.nameEn}</div>
-                <div className="text-sm font-bold shrink-0 text-[#171717] dark:text-white">EGP {r.p.price * r.qty}</div>
-              </div>
               );
             })}
           </div>
-          <div className="border-t border-dashed border-[#E5E5E5] dark:border-[#333333] mt-4 pt-3 grid gap-1.5 text-sm">
-            <div className="flex justify-between"><span className="text-[#525252] dark:text-[#A3A3A3]">{t("subtotal", lang)}</span><span className="font-bold text-[#171717] dark:text-white">EGP {subtotal}</span></div>
-            <div className="flex justify-between"><span className="text-[#525252] dark:text-[#A3A3A3]">{t("delivery", lang)}</span><span className="font-bold text-[#171717] dark:text-white">EGP {deliveryFee}</span></div>
-            <div className="flex justify-between text-lg"><span className="font-bold text-[#171717] dark:text-white">{t("total", lang)}</span><span className="font-bold text-[#c2185b] dark:text-[#ff8fb8]">EGP {total}</span></div>
+          <div className="border-t border-dashed border-line dark:border-[#2e2822] mt-4 pt-3 grid gap-1.5 text-sm">
+            <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{t("subtotal", lang)}</span><span className="font-bold text-ink dark:text-[#f3ede3]" dir="auto">{fmtPrice(subtotal, lang)}</span></div>
+            <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{t("delivery", lang)}</span><span className="font-bold text-ink dark:text-[#f3ede3]" dir="auto">{fmtPrice(deliveryFee, lang)}</span></div>
+            <div className="flex justify-between text-base font-display"><span className="font-bold text-ink dark:text-[#f3ede3]">{t("total", lang)}</span><span className="font-extrabold text-bronze-deep dark:text-bronze" dir="auto">{fmtPrice(total, lang)}</span></div>
           </div>
-          <button onClick={placeOrder} disabled={placing} className="mt-4 w-full rounded-2xl bg-[#e84393] hover:bg-[#c2185b] text-white font-bold py-4 btn-press disabled:opacity-60">
-            {placing ? (lang === "ar" ? "جاري تأكيد الطلب…" : "Placing order…") : (<span className="inline-flex items-center justify-center gap-1.5"><CheckIcon className="w-5 h-5" /> {t("placeOrder", lang)} • EGP {total}</span>)}
+          <button onClick={placeOrder} disabled={placing} className="mt-4 w-full min-h-[52px] rounded-full bg-ink text-[#f3ede3] hover:bg-bronze-deep font-bold transition btn-press disabled:opacity-60 disabled:cursor-wait">
+            {placing ? (lang === "ar" ? "جاري تأكيد الطلب…" : "Placing order…") : (<span className="inline-flex items-center justify-center gap-1.5"><CheckIcon className="w-5 h-5" /> {t("placeOrder", lang)} · <span dir="auto">{fmtPrice(total, lang)}</span></span>)}
           </button>
-          <p className="text-[11px] text-gray-400 dark:text-[#A3A3A3] text-center mt-2 inline-flex items-center justify-center gap-1 w-full"><LockIcon className="w-3.5 h-3.5" /> {lang === "ar" ? "بياناتك آمنة وتُستخدم للتوصيل فقط" : "Your data is safe and used for delivery only"}</p>
+          <p className="text-[11px] text-mute dark:text-[#a89f92] text-center mt-2.5 inline-flex items-center justify-center gap-1 w-full"><LockIcon className="w-3.5 h-3.5" /> {lang === "ar" ? "بياناتك آمنة وتُستخدم للتوصيل فقط" : "Your data is safe and used for delivery only"}</p>
         </aside>
       </div>
 
       {/* Mobile sticky CTA */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-black border-t border-[#E5E5E5] dark:border-[#333333] p-3 flex items-center gap-3">
-        <div className="flex-1"><div className="text-xs text-[#525252] dark:text-[#A3A3A3]">{t("total", lang)}</div><div className="font-bold text-lg text-[#c2185b] dark:text-[#ff8fb8]">EGP {total}</div></div>
-        <button onClick={placeOrder} disabled={placing} className="flex-1 rounded-2xl bg-[#e84393] text-white font-bold py-3.5 btn-press disabled:opacity-60">{placing ? (lang === "ar" ? "جاري…" : "Placing…") : t("placeOrder", lang)}</button>
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-[#14110e] border-t border-line dark:border-[#2e2822] p-3 flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="text-[11px] text-mute dark:text-[#a89f92]">{t("total", lang)}</div>
+          <div className="font-extrabold text-lg text-ink dark:text-[#f3ede3]" dir="auto">{fmtPrice(total, lang)}</div>
+        </div>
+        <button onClick={placeOrder} disabled={placing} className="flex-1 rounded-full bg-clay text-white font-bold py-3.5 btn-press disabled:opacity-60">
+          {placing ? (lang === "ar" ? "جاري…" : "Placing…") : t("placeOrder", lang)}
+        </button>
       </div>
     </main>
   );
