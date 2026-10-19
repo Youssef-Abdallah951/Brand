@@ -318,7 +318,7 @@ export default function Checkout() {
                 <div key={r.lid} className="flex gap-2.5 items-center">
                   <div className="relative shrink-0">
                     {thumb ? (
-                      <img src={thumb} onError={onImgError} alt="" className="product-photo w-14 h-16 rounded-xl object-cover bg-sand dark:bg-[#201a15]" />
+                      <img src={thumb} onError={onImgError} alt="" loading="lazy" className="product-photo w-14 h-16 rounded-xl object-cover bg-sand dark:bg-[#201a15]" />
                     ) : (
                       <span className="w-14 h-16 rounded-xl bg-sand dark:bg-[#201a15] grid place-items-center text-bronze/60"><ImageIcon className="w-6 h-6" /></span>
                     )}

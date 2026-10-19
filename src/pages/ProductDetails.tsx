@@ -83,7 +83,7 @@ export default function ProductDetails() {
         <div>
           <div className="rounded-3xl overflow-hidden bg-sand dark:bg-[#201a15] aspect-[4/5] relative">
             {mainImg ? (
-              <img src={mainImg} onError={onImgError} alt={name} className="product-photo w-full h-full object-cover" />
+              <img src={mainImg} onError={onImgError} alt={name} fetchPriority="high" className="product-photo w-full h-full object-cover" />
             ) : (
               <span className="w-full h-full grid place-items-center text-bronze/60"><ImageIcon className="w-16 h-16" /></span>
             )}

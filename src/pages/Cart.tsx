@@ -61,7 +61,7 @@ export default function Cart() {
               <li key={lid} className="py-5 flex gap-4">
                 <Link to={`/product/${p.slug}`} aria-label={name} className="shrink-0">
                   {thumb ? (
-                    <img src={thumb} onError={onImgError} alt={name} className="product-photo w-20 h-24 sm:w-24 sm:h-28 rounded-2xl object-cover bg-sand dark:bg-[#201a15]" />
+                    <img src={thumb} onError={onImgError} alt={name} loading="lazy" className="product-photo w-20 h-24 sm:w-24 sm:h-28 rounded-2xl object-cover bg-sand dark:bg-[#201a15]" />
                   ) : (
                     <span className="w-20 h-24 sm:w-24 sm:h-28 rounded-2xl bg-sand dark:bg-[#201a15] grid place-items-center text-bronze/60 shrink-0"><ImageIcon className="w-7 h-7" /></span>
                   )}

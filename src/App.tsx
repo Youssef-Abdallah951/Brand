@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { LanguageProvider } from "./i18n/LanguageContext";
 import { ShopProvider } from "./store/ShopContext";
@@ -6,23 +7,37 @@ import { Navbar, Footer, FloatingWhatsApp, Toasts } from "./components/chrome";
 import { CartDrawer } from "./components/CartDrawer";
 import { QuickView } from "./components/QuickView";
 import { RouteProgress } from "./components/RouteProgress";
-import Home from "./pages/Home";
-import Shop from "./pages/Shop";
-import ProductDetails from "./pages/ProductDetails";
-import Cart from "./pages/Cart";
-import Checkout from "./pages/Checkout";
-import OrderSuccess from "./pages/OrderSuccess";
-import TrackOrder from "./pages/TrackOrder";
-import Contact, { CategoriesPage } from "./pages/Contact";
-import { AdminDashboard, AdminLogin } from "./pages/Admin";
+import { PageLoader } from "./components/product";
 
-function Layout() {
+/* Route-level code splitting: every page is its own chunk; the shell
+   (navbar/footer/providers) stays in the main bundle. */
+const Home = lazy(() => import("./pages/Home"));
+const Shop = lazy(() => import("./pages/Shop"));
+const ProductDetails = lazy(() => import("./pages/ProductDetails"));
+const Cart = lazy(() => import("./pages/Cart"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const OrderSuccess = lazy(() => import("./pages/OrderSuccess"));
+const TrackOrder = lazy(() => import("./pages/TrackOrder"));
+const Contact = lazy(() => import("./pages/Contact"));
+const CategoriesPage = lazy(() =>
+  import("./pages/Contact").then((m) => ({ default: m.CategoriesPage })),
+);
+const AdminDashboard = lazy(() =>
+  import("./pages/Admin").then((m) => ({ default: m.AdminDashboard })),
+);
+const AdminLogin = lazy(() =>
+  import("./pages/Admin").then((m) => ({ default: m.AdminLogin })),
+);
+
+function Shell() {
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-[#14110e] text-ink dark:text-[#f3ede3]">
       <RouteProgress />
       <Navbar />
       <div className="flex-1">
-        <Outlet />
+        <Suspense fallback={<PageLoader />}>
+          <Outlet />
+        </Suspense>
       </div>
       <Footer />
       <FloatingWhatsApp />
@@ -36,7 +51,9 @@ function Layout() {
 function AdminLayout() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#14110e] text-ink dark:text-[#f3ede3]">
-      <Outlet />
+      <Suspense fallback={<PageLoader />}>
+        <Outlet />
+      </Suspense>
       <Toasts />
     </div>
   );
@@ -49,7 +66,7 @@ export default function App() {
         <ShopProvider>
           <BrowserRouter>
             <Routes>
-              <Route element={<Layout />}>
+              <Route element={<Shell />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/shop" element={<Shop />} />
                 <Route path="/categories" element={<CategoriesPage />} />
@@ -60,6 +77,7 @@ export default function App() {
                 <Route path="/order-success" element={<OrderSuccess />} />
                 <Route path="/track-order" element={<TrackOrder />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/wishlist" element={<Navigate to="/shop?wish=1" replace />} />
               </Route>
               <Route element={<AdminLayout />}>
                 <Route path="/admin" element={<AdminDashboard />} />

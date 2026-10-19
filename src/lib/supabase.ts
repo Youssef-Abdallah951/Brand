@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { Order, Product, Category, DeliveryZone } from "./types";
+import type { Order, Product, Category, DeliveryZone, ProductTag } from "./types";
 import { normalizeOrderNumber, normalizeWhatsApp } from "./egypt";
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
@@ -355,6 +355,44 @@ export async function trackOrderViaFunction(
 
 // ---------- Public catalog (RLS allows public SELECT on these) ----------
 
+/**
+ * Optional product columns (colors jsonb, tags text[], fabric_* text) —
+ * present after the hijab-catalog migration, absent on DBs created before
+ * it. Returns only keys whose data is valid, so legacy rows map cleanly.
+ */
+function parseProductExtras(rec: Record<string, unknown>): Partial<Product> {
+  const out: Partial<Product> = {};
+
+  if (Array.isArray(rec.colors)) {
+    const colors = (rec.colors as unknown[])
+      .map((raw) => {
+        const c = raw as Partial<Record<"ar" | "en" | "hex", unknown>>;
+        const ar = typeof c?.ar === "string" ? c.ar.trim() : "";
+        const en = typeof c?.en === "string" ? c.en.trim() : "";
+        const hex = typeof c?.hex === "string" && /^#[0-9a-f]{3,8}$/i.test(c.hex.trim()) ? c.hex.trim() : "";
+        return ar && en && hex ? { ar, en, hex } : null;
+      })
+      .filter((c): c is NonNullable<typeof c> => !!c);
+    if (colors.length) out.colors = colors;
+  }
+
+  if (Array.isArray(rec.tags)) {
+    const tags = (rec.tags as unknown[]).filter(
+      (t): t is ProductTag => t === "new" || t === "bestseller",
+    );
+    if (tags.length) out.tags = tags;
+  }
+
+  if (typeof rec.fabric_ar === "string" && rec.fabric_ar.trim()) {
+    out.fabricAr = rec.fabric_ar.trim();
+  }
+  if (typeof rec.fabric_en === "string" && rec.fabric_en.trim()) {
+    out.fabricEn = rec.fabric_en.trim();
+  }
+
+  return out;
+}
+
 export async function fetchProductsRemote(): Promise<Product[] | null> {
   const sb = getSupabase();
   if (!sb) return null;
@@ -385,6 +423,11 @@ export async function fetchProductsRemote(): Promise<Product[] | null> {
         descEn: String(rec.desc_en ?? ""),
         descAr: String(rec.desc_ar ?? ""),
         price: Number(rec.price),
+        // Optional columns — DBs from before the hijab-catalog migration may
+        // not have them; safe accessors keep the mapping working either way.
+        ...(Number.isFinite(Number(rec.sale_price)) && rec.sale_price !== null
+          ? { salePrice: Number(rec.sale_price) }
+          : {}),
         stock: Number(rec.stock ?? 0),
         categoryId: String(rec.category_id ?? ""),
         images: imgs,
@@ -394,6 +437,7 @@ export async function fetchProductsRemote(): Promise<Product[] | null> {
         bestseller: Boolean(rec.bestseller),
         active: Boolean(rec.active),
         createdAt: String(rec.created_at),
+        ...parseProductExtras(rec),
       };
     });
   } catch {

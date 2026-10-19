@@ -185,3 +185,14 @@ export function SkeletonGrid({ n = 8 }: { n?: number }) {
     </div>
   );
 }
+
+/** Full-page fallback shown by Suspense while a route chunk is loading. */
+export function PageLoader() {
+  return (
+    <div className="min-h-[70vh] grid place-items-center" role="status" aria-live="polite">
+      <div className="w-full max-w-6xl shell">
+        <SkeletonGrid n={8} />
+      </div>
+    </div>
+  );
+}

@@ -1,12 +1,11 @@
 import { Link } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { Category, Product } from "../lib/types";
 import { ProductCard, SectionTitle, SkeletonGrid, categoryImageUrl, onCategoryImgError, onImgError } from "../components/product";
 import { AlertIcon, CashIcon, ChatIcon, ImageIcon, RetryIcon, SparklesIcon, TruckIcon } from "../components/icons";
 import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
-import { Stars } from "../components/chrome";
 import { firstProductImage } from "../lib/productImage";
 
 export default function Home() {
@@ -138,10 +137,8 @@ export default function Home() {
       )}
 
       {/* ----------------------------- Reviews ----------------------------- */}
-      <Reviews />
 
       {/* ---------------------------- Newsletter --------------------------- */}
-      <Newsletter />
     </main>
   );
 }
@@ -217,73 +214,10 @@ function CategoryCard({ c, lang }: { c: Category; lang: "ar" | "en" }) {
 }
 
 /* ------------------------------ Reviews ----------------------------- */
-function Reviews() {
-  const { lang } = useLang();
-  const revs = [1, 2, 3, 4].map((i) => ({
-    text: t(`rev${i}`, lang),
-    name: t(`revName${i}`, lang),
-    city: t(`rev${i}City`, lang),
-  }));
-  return (
-    <section className="bg-cream dark:bg-[#191512] py-12 sm:py-14">
-      <div className="shell">
-        <SectionTitle title={t("reviewsTitle", lang)} />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {revs.map((r, i) => (
-            <figure key={i} className="bg-white dark:bg-[#201a15] border border-line dark:border-[#2e2822] rounded-2xl p-5 flex flex-col gap-3">
-              <Stars value={5} />
-              <blockquote className="text-sm leading-relaxed text-ink dark:text-[#f3ede3]">{r.text}</blockquote>
-              <figcaption className="mt-auto text-xs text-mute dark:text-[#a89f92]">
-                <span className="font-bold text-ink dark:text-[#f3ede3]">{r.name}</span> · {r.city}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
+
 
 /* ---------------------------- Newsletter ----------------------------- */
-function Newsletter() {
-  const { lang } = useLang();
-  const [email, setEmail] = useState("");
-  const [state, setState] = useState<"idle" | "ok" | "err">("idle");
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
-    setState(valid ? "ok" : "err");
-    if (valid) setEmail("");
-  };
-  return (
-    <section className="shell pb-14 pt-12 sm:pt-14">
-      <div className="bg-sand dark:bg-[#201a15] rounded-3xl px-6 py-10 sm:px-12 text-center">
-        <h2 className="font-display t-h2 font-bold text-ink dark:text-[#f3ede3]">{t("nlTitle", lang)}</h2>
-        <p className="text-sm text-mute dark:text-[#a89f92] mt-2 max-w-md mx-auto">{t("nlSub", lang)}</p>
-        <form onSubmit={submit} className="mt-6 flex gap-2.5 max-w-md mx-auto" noValidate>
-          <label htmlFor="nl-email" className="sr-only">{t("nlPlaceholder", lang)}</label>
-          <input
-            id="nl-email"
-            type="email"
-            dir="ltr"
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); if (state !== "idle") setState("idle"); }}
-            placeholder={t("nlPlaceholder", lang)}
-            className="flex-1 min-h-[48px] px-5 rounded-full bg-white dark:bg-[#191512] border border-line dark:border-[#2e2822] text-sm text-ink dark:text-[#f3ede3] placeholder:text-mute/70 outline-none focus:border-bronze transition"
-          />
-          <button type="submit" className="min-h-[48px] px-7 rounded-full bg-ink text-[#f3ede3] text-sm font-bold hover:bg-bronze-deep transition btn-press">
-            {t("nlBtn", lang)}
-          </button>
-        </form>
-        {state !== "idle" && (
-          <p className={`mt-3 text-xs font-bold ${state === "ok" ? "text-bronze-deep dark:text-bronze" : "text-clay"}`} role="status">
-            {state === "ok" ? t("nlThanks", lang) : t("nlInvalid", lang)}
-          </p>
-        )}
-      </div>
-    </section>
-  );
-}
+
 
 function EmptyRail() {
   return (

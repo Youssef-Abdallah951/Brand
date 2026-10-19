@@ -21,6 +21,9 @@ export const SITE_CONFIG = {
     // Default chat message
     defaultChatMessageEn: "Hello JiA! I need help with my order.",
     defaultChatMessageAr: "أهلاً JiA! محتاجة مساعدة في الطلب بتاعي.",
+    // Admin-only display affordance: products at/below this stock get a
+    // low-stock badge in the dashboard.
+    lowStock: 5,
   },
   delivery: {
     standardFee: 60,
