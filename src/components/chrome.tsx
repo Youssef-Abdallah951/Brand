@@ -42,14 +42,14 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       aria-label={label}
       title={label}
-      className="w-10 h-10 grid place-items-center rounded-full text-ink/70 dark:text-[#a89f92] hover:bg-sand dark:hover:bg-[#201a15] transition shrink-0"
+      className="w-11 h-11 grid place-items-center rounded-full text-ink/70 dark:text-[#a89f92] hover:bg-sand dark:hover:bg-[#201a15] transition shrink-0"
     >
       {dark ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
     </button>
   );
 }
 
-const iconBtn = "relative w-10 h-10 grid place-items-center rounded-full text-ink dark:text-[#f3ede3] hover:bg-sand dark:hover:bg-[#201a15] transition shrink-0";
+const iconBtn = "relative w-11 h-11 grid place-items-center rounded-full text-ink dark:text-[#f3ede3] hover:bg-sand dark:hover:bg-[#201a15] transition shrink-0";
 const linkCls = ({ isActive }: { isActive: boolean }) =>
   `text-[13px] font-bold tracking-wide transition-colors hover:text-bronze py-1 ${isActive ? "text-bronze" : "text-ink dark:text-[#f3ede3]"}`;
 
@@ -120,7 +120,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
         </button>
       </form>
 
-      <div className="shell pb-5 -mt-1">
+      <div className="shell pb-5 -mt-1 max-h-[70dvh] overflow-y-auto overscroll-contain">
         {q.trim() === "" ? (
           <>
             <p className="text-[11px] font-bold tracking-wider uppercase text-mute dark:text-[#a89f92] mb-2">{t("popular", lang)}</p>
@@ -182,7 +182,30 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
 export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { lang, setLang } = useLang();
   const location = useLocation();
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
   useEffect(() => { onClose(); }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Esc closes, body scroll locks, focus enters the panel and stays in it.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { onClose(); return; }
+      if (e.key === "Tab" && panelRef.current) {
+        const f = panelRef.current.querySelectorAll<HTMLElement>("a[href], button:not([disabled])");
+        if (f.length > 0) {
+          const first = f[0];
+          const last = f[f.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [open, onClose]);
   if (!open) return null;
   const links = [
     { to: "/", label: t("home", lang) },
@@ -193,10 +216,10 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
   return (
     <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label={t("menu", lang)}>
       <button className="absolute inset-0 bg-black/40 fade-in" onClick={onClose} aria-label={t("close", lang)} />
-      <nav className="drawer-panel absolute start-0 top-0 bottom-0 w-[86%] max-w-sm bg-white dark:bg-[#191512] shadow-2xl flex flex-col overflow-y-auto">
+      <nav ref={panelRef} className="drawer-panel absolute start-0 top-0 bottom-0 w-[86%] max-w-sm bg-white dark:bg-[#191512] shadow-2xl flex flex-col overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b border-line dark:border-[#2e2822]">
           <img src="/logo.png" alt="JiA" className="w-10 h-10 rounded-full object-cover" />
-          <button onClick={onClose} aria-label={t("close", lang)} className={iconBtn}><XIcon className="w-5 h-5" /></button>
+          <button ref={closeRef} onClick={onClose} aria-label={t("close", lang)} className={iconBtn}><XIcon className="w-5 h-5" /></button>
         </div>
         <div className="p-4 grid gap-1">
           {links.map((l) => (
@@ -221,20 +244,56 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
 
 export function Navbar() {
   const { lang, setLang } = useLang();
-  const { cartCount, wishlist, setCartOpen } = useShop();
+  const { cartCount, wishlist, setCartOpen, categories } = useShop();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const shopRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  // Shop dropdown: close on outside click / Escape (hover opens it on desktop,
+  // focus opens it for keyboard users).
+  useEffect(() => {
+    if (!shopOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!shopRef.current?.contains(e.target as Node)) setShopOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShopOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [shopOpen]);
   const links = [
     { to: "/", label: t("home", lang) },
     { to: "/shop", label: t("shopAll", lang) },
     { to: "/categories", label: t("categories", lang) },
     { to: "/contact", label: t("contact", lang) },
   ];
+  const menuCls = "w-full text-start py-2.5 px-3.5 rounded-xl text-[13px] font-bold text-ink dark:text-[#f3ede3] hover:bg-sand dark:hover:bg-[#201a15] transition";
+  const cartBadge = cartCount > 0
+    ? (
+      <span className="absolute -top-0.5 -end-0.5 bg-ink dark:bg-bronze text-white text-[10px] min-w-4 h-4 px-1 grid place-items-center rounded-full font-bold tabular-nums" aria-hidden="true">{cartCount > 99 ? "99+" : cartCount}</span>
+    )
+    : null;
+  // The drawer is a sibling of <header> (fragment): the header's
+  // backdrop-filter would otherwise become the fixed overlay's containing
+  // block and clip the drawer to the header height.
   return (
-    <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#14110e]/95 backdrop-blur border-b border-line dark:border-[#2e2822]">
+    <>
+      <header className={`sticky top-0 z-40 bg-white/95 dark:bg-[#14110e]/95 backdrop-blur border-b border-line dark:border-[#2e2822] transition-shadow ${scrolled ? "shadow-[0_10px_30px_-18px_rgba(0,0,0,0.45)]" : ""}`}>
       {/* Announcement bar */}
-      <div className="bg-ink dark:bg-[#201a15] text-[#f3ede3] text-center text-[11px] sm:text-xs font-semibold py-2 px-3">
-        {t("announcement", lang)}
+      <div className="bg-ink dark:bg-[#201a15] text-[#f3ede3] text-center text-[11px] sm:text-xs font-semibold py-2 px-3 pt-[max(0.5rem,env(safe-area-inset-top))]">
+        <p className="truncate whitespace-nowrap">{t("announcement", lang)}</p>
       </div>
 
       {/* Main bar */}
@@ -245,9 +304,39 @@ export function Navbar() {
             <MenuIcon className="w-5 h-5" />
           </button>
           <nav className="hidden lg:flex items-center gap-6 ps-2" aria-label="main">
-            {links.map((l) => (
-              <NavLink key={l.to} to={l.to} className={linkCls}>{l.label}</NavLink>
-            ))}
+            <NavLink to="/" className={linkCls}>{links[0].label}</NavLink>
+            {/* Shop with categories dropdown (hover on pointer devices, focus for keyboards) */}
+            <div
+              ref={shopRef}
+              className="relative hidden lg:block"
+              onMouseEnter={() => setShopOpen(true)}
+              onMouseLeave={() => setShopOpen(false)}
+            >
+              <NavLink to="/shop" className={linkCls} aria-haspopup="menu" aria-expanded={shopOpen} onFocus={() => setShopOpen(true)}>
+                {links[1].label}
+              </NavLink>
+              <div
+                role="menu"
+                aria-label={t("categories", lang)}
+                className={`absolute top-full start-0 mt-2 w-60 rounded-2xl border border-line dark:border-[#2e2822] bg-white dark:bg-[#191512] shadow-xl p-2 flex flex-col ${shopOpen ? "" : "hidden"}`}
+              >
+                <Link role="menuitem" to="/shop" onClick={() => setShopOpen(false)} className={menuCls}>{t("shopAll", lang)}</Link>
+                <div className="h-px bg-line dark:bg-[#2e2822] my-1" aria-hidden="true" />
+                {categories.map((c) => (
+                  <Link
+                    key={c.id}
+                    role="menuitem"
+                    to={`/category/${c.slug}`}
+                    onClick={() => setShopOpen(false)}
+                    className={menuCls}
+                  >
+                    {lang === "ar" ? c.nameAr : c.nameEn}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <NavLink to="/categories" className={linkCls}>{links[2].label}</NavLink>
+            <NavLink to="/contact" className={linkCls}>{links[3].label}</NavLink>
           </nav>
         </div>
 
@@ -260,41 +349,40 @@ export function Navbar() {
 
         {/* End actions */}
         <div className="flex items-center justify-end gap-0.5 pe-2 sm:pe-4">
-          <button onClick={() => setSearchOpen((s) => !s)} aria-expanded={searchOpen} aria-label={t("search", lang)} className={`${iconBtn} hidden sm:grid`}>
+          <button onClick={() => setSearchOpen((s) => !s)} aria-expanded={searchOpen} aria-label={t("search", lang)} className={iconBtn}>
             <SearchIcon className="w-5 h-5" />
           </button>
           <Link to="/wishlist" aria-label={t("wishlist", lang)} className={iconBtn}>
             <HeartIcon className="w-5 h-5" />
             {wishlist.length > 0 && (
-              <span className="absolute -top-0.5 -end-0.5 bg-bronze text-white text-[10px] min-w-4 h-4 px-1 grid place-items-center rounded-full font-bold">{wishlist.length}</span>
+              <span className="absolute -top-0.5 -end-0.5 bg-bronze text-white text-[10px] min-w-4 h-4 px-1 grid place-items-center rounded-full font-bold tabular-nums" aria-hidden="true">{wishlist.length > 99 ? "99+" : wishlist.length}</span>
             )}
           </Link>
           <button onClick={() => setLang(lang === "ar" ? "en" : "ar")}
             aria-label={lang === "ar" ? "Switch to English" : "التبديل للعربية"}
-            className="hidden md:grid w-10 h-10 place-items-center rounded-full text-[11px] font-extrabold text-bronze border border-line dark:border-[#2e2822] hover:bg-sand dark:hover:bg-[#201a15] transition shrink-0">
+            className="hidden md:grid w-11 h-11 place-items-center rounded-full text-[11px] font-extrabold text-bronze border border-line dark:border-[#2e2822] hover:bg-sand dark:hover:bg-[#201a15] transition shrink-0">
             {lang === "ar" ? "EN" : "ع"}
           </button>
           <ThemeToggle />
           <button onClick={() => setCartOpen(true)} aria-label={`${t("cart", lang)} (${cartCount})`} className={iconBtn}>
             <CartIcon className="w-5 h-5" />
-            {cartCount > 0 && (
-              <span className="absolute -top-0.5 -end-0.5 bg-ink dark:bg-bronze text-white text-[10px] min-w-4 h-4 px-1 grid place-items-center rounded-full font-bold" aria-hidden="true">{cartCount}</span>
-            )}
+            {cartBadge}
           </button>
         </div>
       </div>
 
       {/* Mobile inline nav (below logo, tablet down) */}
-      <nav className="hidden max-[1023px]:hidden sm:flex lg:hidden sm:pb-2.5 sm:-mt-1 sm:gap-6 justify-center" aria-label="main-compact" data-nav="tablet">
+      <nav className="hidden sm:flex lg:hidden sm:pb-2.5 sm:-mt-1 sm:gap-6 justify-center" aria-label="main-compact" data-nav="tablet">
         {links.map((l) => (
           <NavLink key={l.to} to={l.to} className={linkCls}>{l.label}</NavLink>
         ))}
       </nav>
 
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+      </header>
       <MobileMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
-    </header>
-  );
+    </>
+    );
 }
 
 const socialBtn = "w-9 h-9 grid place-items-center rounded-full border border-white/15 text-white/80 hover:text-white hover:border-white/40 transition";
