@@ -143,6 +143,15 @@ const dict = {
   addWish: { en: "Add to wishlist", ar: "أضيفي للمفضلة" },
   removeWish: { en: "Remove from wishlist", ar: "احذفي من المفضلة" },
 
+  // Coupon labels
+  coupon: { en: "Discount code", ar: "كود الخصم" },
+  couponApply: { en: "Apply", ar: "تطبيق" },
+  couponInvalid: { en: "This code doesn't exist", ar: "هذا الكود غير صحيح" },
+  couponExpired: { en: "This code has expired", ar: "انتهت صلاحية هذا الكود" },
+  couponMinSpend: { en: "This code needs a higher order total", ar: "الطلب أقل من الحد الأدنى لهذا الكود" },
+  discount: { en: "Discount", ar: "الخصم" },
+  placingOrder: { en: "Placing order…", ar: "جاري إتمام الطلب…" },
+
   // Checkout
   checkout: { en: "Checkout", ar: "إتمام الطلب" },
   orderSummary: { en: "Order Summary", ar: "ملخص الطلب" },
@@ -155,6 +164,7 @@ const dict = {
   cod: { en: "Cash on Delivery", ar: "الدفع عند الاستلام" },
   firstName: { en: "First Name *", ar: "الاسم الأول *" },
   lastName: { en: "Last Name *", ar: "اسم العائلة *" },
+  phone: { en: "Mobile Number *", ar: "رقم الموبايل *" },
   governorate: { en: "Governorate *", ar: "المحافظة *" },
   area: { en: "Area *", ar: "المنطقة *" },
   city: { en: "City", ar: "المدينة" },
@@ -197,7 +207,6 @@ const dict = {
   close: { en: "Close", ar: "إغلاق" },
   myAccount: { en: "My orders", ar: "طلباتي" },
 } as Record<string, Record<Lang, string>>;
-
 export function t(key: string, lang: Lang): string {
   return dict[key]?.[lang] ?? key;
 }
@@ -218,4 +227,5 @@ export const VALIDATION_MSG = {
   payment: { en: "Please select a payment method", ar: "برجاء اختيار طريقة الدفع" },
   gov: { en: "Please select governorate", ar: "برجاء اختيار المحافظة" },
   area: { en: "Please enter area", ar: "برجاء إدخال المنطقة" },
+  phone: { en: "Please enter an Egyptian mobile number (e.g. 01012345678)", ar: "من فضلك أدخلي رقم موبايل مصري (مثال: 01012345678)" },
 } as Record<string, Record<Lang, string>>;

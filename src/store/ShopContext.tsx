@@ -2,6 +2,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { CartItem, Category, DeliveryZone, Product } from "../lib/types";
 import { SEED_PRODUCTS, SEED_ZONES, SEED_CATEGORIES } from "../lib/data";
 import { fetchCategoriesRemote, fetchProductsRemote, fetchZonesRemote, isSupabaseConfigured } from "../lib/supabase";
+import { COUPONS, findCoupon, couponDiscount, type Coupon } from "../lib/coupons";
+
+type CouponError = "invalid" | "expired" | "min-spend";
 
 interface Toast { id: number; msg: string }
 interface ShopState {
@@ -27,6 +30,11 @@ interface ShopState {
   setCartOpen: (open: boolean) => void;
   quickView: Product | null;
   setQuickView: (p: Product | null) => void;
+  // Coupon state is shared so the drawer and checkout agree on the discount.
+  coupon: Coupon | null;
+  applyCoupon: (code: string, subtotal: number) => CouponError | null;
+  clearCoupon: () => void;
+  discountOf: (subtotal: number) => number;
 }
 
 const Ctx = createContext<ShopState | null>(null);
@@ -60,7 +68,15 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [quickView, setQuickView] = useState<Product | null>(null);
+  const [couponCode, setCouponCode] = useState<string>(() => readJSON<string>("lumiere_coupon", ""));
   const loadId = useRef(0);
+
+  // Coupon lives in the config; only the applied code is persisted. An outdated
+  // stored code (deleted from config) resolves to null and is silently invalid.
+  const coupon = useMemo(
+    () => (couponCode ? COUPONS.find((c) => c.code.toUpperCase() === couponCode) ?? null : null),
+    [couponCode],
+  );
 
   const loadCatalog = useCallback(async () => {
     if (!isSupabaseConfigured) {
@@ -103,6 +119,9 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try { localStorage.setItem("lumiere_wish", JSON.stringify(wishlist)); } catch { /*noop*/ }
   }, [wishlist]);
+  useEffect(() => {
+    try { localStorage.setItem("lumiere_coupon", JSON.stringify(couponCode)); } catch { /*noop*/ }
+  }, [couponCode]);
 
   // Toast timers are tracked so unmount never leaves dangling setState.
   const timers = useRef<number[]>([]);
@@ -150,7 +169,15 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       }, 0),
     toggleWish: (id) => setWishlist((w) => (w.includes(id) ? w.filter((x) => x !== id) : [...w, id])),
     cartOpen, setCartOpen, quickView, setQuickView,
-  }), [products, productsLoading, productsError, categories, zones, cart, wishlist, toasts, pushToast, loadCatalog, cartOpen, quickView]);
+    coupon,
+    applyCoupon: (code, sub) => {
+      const { coupon: c, error } = findCoupon(code, sub);
+      if (c) setCouponCode(c.code);
+      return error ?? null;
+    },
+    clearCoupon: () => setCouponCode(""),
+    discountOf: (sub) => (coupon ? couponDiscount(coupon, sub) : 0),
+  }), [products, productsLoading, productsError, categories, zones, cart, wishlist, toasts, pushToast, loadCatalog, cartOpen, quickView, coupon]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

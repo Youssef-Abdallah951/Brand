@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLang } from "../i18n/LanguageContext";
 import { useShop, lineId } from "../store/ShopContext";
 import { t } from "../i18n/translations";
@@ -11,10 +11,12 @@ import { productImage, onImgError } from "./product";
 export function CartDrawer() {
   const { lang } = useLang();
   const {
-    cart, productById, setQty, removeFromCart, cartCount,
+    cart, productById, setQty, removeFromCart, cartCount, pushToast,
     subtotalOf, cartOpen, setCartOpen,
+    coupon, applyCoupon, clearCoupon, discountOf,
   } = useShop();
   const close = () => setCartOpen(false);
+  const [codeInput, setCodeInput] = useState("");
 
   useEffect(() => {
     if (!cartOpen) return;
@@ -127,11 +129,43 @@ export function CartDrawer() {
 
             {/* Footer */}
             <div className="px-5 py-4 border-t border-line dark:border-[#2e2822] bg-white dark:bg-[#191512]">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const raw = codeInput.trim();
+                  if (!raw) return;
+                  const err = applyCoupon(raw, subtotal);
+                  if (err) pushToast(t(err === "invalid" ? "couponInvalid" : err === "expired" ? "couponExpired" : "couponMinSpend", lang));
+                  setCodeInput("");
+                }}
+                className="flex gap-2 mb-3"
+              >
+                <input value={codeInput} onChange={(e) => setCodeInput(e.target.value.toUpperCase())} placeholder={t("coupon", lang)} aria-label={t("coupon", lang)}
+                  className="flex-1 min-w-0 rounded-full border border-line dark:border-[#2e2822] bg-cream dark:bg-[#1c1815] px-4 py-2.5 text-sm outline-none focus:border-bronze text-ink dark:text-[#f3ede3] uppercase tracking-wide" />
+                <button type="submit" className="rounded-full bg-sand dark:bg-[#201a15] border border-line dark:border-[#2e2822] px-4 py-2.5 text-sm font-bold text-ink dark:text-[#f3ede3] hover:border-bronze transition">
+                  {t("couponApply", lang)}
+                </button>
+              </form>
+
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-mute dark:text-[#a89f92]">{t("subtotal", lang)}</span>
                 <span className="font-extrabold text-ink dark:text-[#f3ede3]" dir="auto">{fmtPrice(subtotal, lang)}</span>
               </div>
-              <p className="text-[11px] text-mute dark:text-[#a89f92] mb-3">{t("deliveryCalc", lang)}</p>
+              {coupon && subtotal >= coupon.minSpend && discountOf(subtotal) > 0 && (
+                <div className="flex items-center justify-between text-sm mt-1">
+                  <span className="text-mute dark:text-[#a89f92] inline-flex items-center gap-1.5">
+                    {t("discount", lang)}
+                    <span className="font-bold text-[10px] bg-sand dark:bg-[#201a15] px-1.5 py-0.5 rounded-full" dir="ltr">{coupon.code}</span>
+                    <button type="button" onClick={clearCoupon} className="text-clay hover:underline text-xs font-bold" aria-label={t("removeWish", lang)}
+                      title={t("remove", lang)}>✕</button>
+                  </span>
+                  <span className="font-extrabold text-clay" dir="auto">− {fmtPrice(discountOf(subtotal), lang)}</span>
+                </div>
+              )}
+              {coupon && subtotal < coupon.minSpend && (
+                <p className="text-[11px] text-clay mt-1 font-bold">{t("couponMinSpend", lang)}</p>
+              )}
+              <p className="text-[11px] text-mute dark:text-[#a89f92] mb-3 mt-1">{t("deliveryCalc", lang)}</p>
               <div className="grid grid-cols-2 gap-2.5">
                 <Link onClick={close} to="/cart" className="btn-press text-center font-bold text-sm py-3 rounded-full border border-ink dark:border-[#f3ede3] text-ink dark:text-[#f3ede3] hover:bg-sand dark:hover:bg-[#201a15] transition">
                   {t("viewCart", lang)}

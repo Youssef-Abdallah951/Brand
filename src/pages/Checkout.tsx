@@ -7,6 +7,7 @@ import { fmtPrice } from "../lib/format";
 import { GOVERNORATES } from "../lib/egypt";
 import { SITE_CONFIG } from "../lib/siteConfig";
 import { createOrderInSupabase } from "../lib/supabase";
+import { couponDiscount } from "../lib/coupons";
 import { firstProductImage, onImgError } from "../components/product";
 import { CardIcon, CashIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, ImageIcon, LockIcon, MapPinIcon, ReceiptIcon, RetryIcon, SparklesIcon, TruckIcon, UserIcon } from "../components/icons";
 import type { CheckoutForm } from "../lib/types";
@@ -29,7 +30,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 
 export default function Checkout() {
   const { lang } = useLang();
-  const { cart, productById, clearCart, pushToast, zones } = useShop();
+  const { cart, productById, clearCart, pushToast, zones, coupon, applyCoupon, clearCoupon, discountOf } = useShop();
   const nav = useNavigate();
   const [showSummary, setShowSummary] = useState(false);
   const [placing, setPlacing] = useState(false);
@@ -39,10 +40,12 @@ export default function Checkout() {
   const submitting = useRef(false);
   const [form, setForm] = useState<CheckoutForm>({
     firstName: "", lastName: "",
+    phone: "",
     governorate: "", area: "", city: "", address: "", building: "", apartment: "", notes: "",
     deliveryMethod: "", paymentMethod: "cod",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof CheckoutForm, string>>>({});
+  const [codeInput, setCodeInput] = useState("");
 
   const rows = useMemo(
     () => cart.map((c) => {
@@ -67,7 +70,12 @@ export default function Checkout() {
       ? form.deliveryMethod === "express" ? zone.expressFee : zone.standardFee
       : form.deliveryMethod === "express" ? SITE_CONFIG.delivery.expressFee : SITE_CONFIG.delivery.standardFee;
   }, [form.deliveryMethod, subtotal, zone]);
-  const total = subtotal + deliveryFee;
+  const totalCalc = useMemo(() => {
+    const discount = coupon && subtotal >= coupon.minSpend ? discountOf(subtotal) : 0;
+    return Math.max(0, subtotal - discount + deliveryFee);
+  }, [subtotal, deliveryFee, coupon, discountOf]);
+  const discount = coupon && subtotal >= coupon.minSpend ? discountOf(subtotal) : 0;
+  const total = totalCalc;
   const vm = (k: string) => VALIDATION_MSG[k]?.[lang] ?? k;
 
   const set = (k: keyof CheckoutForm, v: string) => {
@@ -81,6 +89,7 @@ export default function Checkout() {
     const e: typeof errors = {};
     if (!form.firstName.trim()) e.firstName = vm("name");
     if (!form.lastName.trim()) e.lastName = vm("name");
+    if (!/^01[0125]\d{8}$/.test(form.phone.trim())) e.phone = vm("phone");
     if (!form.governorate) e.governorate = vm("gov");
     if (!form.area.trim()) e.area = vm("area");
     if (!form.address.trim()) e.address = vm("address");
@@ -133,7 +142,12 @@ export default function Checkout() {
       : (zone
         ? form.deliveryMethod === "express" ? zone.expressFee : zone.standardFee
         : form.deliveryMethod === "express" ? SITE_CONFIG.delivery.expressFee : SITE_CONFIG.delivery.standardFee);
-    const liveTotal = liveSubtotal + liveDelivery;
+    // The stored coupon is re-checked against the LIVE subtotal: if the cart
+    // shrank below the coupon's minimum spend, the discount silently drops.
+    const liveCoupon = coupon && liveSubtotal >= coupon.minSpend ? coupon : undefined;
+    const liveDiscount = liveCoupon ? couponDiscount(liveCoupon, liveSubtotal) : discountOf(subtotal);
+    if (coupon && !liveCoupon) clearCoupon();
+    const liveTotal = Math.max(0, liveSubtotal - liveDiscount + liveDelivery);
     const notes = [form.notes.trim(), ...giftBits].filter(Boolean).join("\n");
 
     submitting.current = true;
@@ -141,13 +155,13 @@ export default function Checkout() {
     try {
       // Single INSERT attempt — Supabase is the only store. Throws on any
       // failure (timeout, network, RLS). Cart is preserved for safe retry.
-      // Customer contact numbers are no longer collected at checkout.
-      // The backend keeps the columns (nullable / optional) for legacy rows.
+      // The Egyptian mobile number collected above travels with the order so
+      // the courier can coordinate; it is never used for marketing.
       const orderNumber = await createOrderInSupabase({
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
-        whatsapp: "",
-        phone: "",
+        whatsapp: form.phone.trim(),
+        phone: form.phone.trim(),
         governorate: form.governorate,
         area: form.area.trim(),
         city: form.city.trim(),
@@ -157,7 +171,7 @@ export default function Checkout() {
         notes,
         deliveryMethod: form.deliveryMethod as "standard" | "express",
         items,
-        subtotal: liveSubtotal, deliveryFee: liveDelivery, discount: 0, total: liveTotal,
+        subtotal: liveSubtotal, deliveryFee: liveDelivery, discount: liveDiscount, total: liveTotal,
       });
       clearCart(); // only after the order is safely stored
       pushToast(lang === "ar" ? "تم إنشاء الطلب بنجاح" : "Order created successfully");
@@ -166,6 +180,7 @@ export default function Checkout() {
           orderNumber,
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
+          phone: form.phone.trim(),
           governorate: form.governorate,
           area: form.area.trim(),
           city: form.city.trim(),
@@ -179,7 +194,7 @@ export default function Checkout() {
           items,
           subtotal: liveSubtotal,
           deliveryFee: liveDelivery,
-          discount: 0,
+          discount: liveDiscount,
           total: liveTotal,
           status: "pending" as const,
           createdAt: new Date().toISOString(),
@@ -230,6 +245,18 @@ export default function Checkout() {
               <Field label={t("lastName", lang)} error={errors.lastName}>
                 <input value={form.lastName} onChange={(e) => set("lastName", e.target.value)} className={inputCls} autoComplete="family-name" />
               </Field>
+              <div className="sm:col-span-2">
+                <Field label={t("phone", lang)} error={errors.phone}>
+                  <input
+                    value={form.phone}
+                    onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 11))}
+                    className={inputCls}
+                    type="tel" inputMode="numeric" dir="ltr" autoComplete="tel" maxLength={11}
+                    placeholder="01XXXXXXXXX"
+                  />
+                </Field>
+                <p className="text-[11px] text-mute dark:text-[#a89f92] mt-1">{lang === "ar" ? "للتواصل بخصوص التوصيل فقط" : "Used by the courier for delivery coordination only"}</p>
+              </div>
             </div>
           </section>
 
@@ -310,6 +337,38 @@ export default function Checkout() {
         {/* SUMMARY */}
         <aside className={`${cardCls} lg:sticky lg:top-28 ${showSummary ? "block" : "hidden lg:block"}`}>
           <h2 className={`${headingCls} inline-flex items-center gap-2`}><ReceiptIcon className={`w-5 h-5 ${iconCls}`} /> {t("orderSummary", lang)}</h2>
+
+          {/* Coupon row */}
+          {coupon ? (
+            <div className="mt-3 flex items-center justify-between gap-2 bg-sand dark:bg-[#201a15] border border-line dark:border-[#2e2822] rounded-full px-4 py-2">
+              <span className="text-sm font-bold text-ink dark:text-[#f3ede3] inline-flex items-center gap-2">
+                <SparklesIcon className="w-4 h-4 text-bronze" />
+                <span dir="ltr">{coupon.code}</span>
+              </span>
+              <button type="button" onClick={clearCoupon} className="text-clay text-xs font-bold hover:underline" aria-label={t("remove", lang)}>
+                {t("remove", lang)}
+              </button>
+            </div>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const raw = codeInput.trim();
+                if (!raw) return;
+                const err = applyCoupon(raw, subtotal);
+                if (err) pushToast(t(err === "invalid" ? "couponInvalid" : err === "expired" ? "couponExpired" : "couponMinSpend", lang));
+                setCodeInput("");
+              }}
+              className="mt-3 flex gap-2"
+            >
+              <input value={codeInput} onChange={(e) => setCodeInput(e.target.value.toUpperCase())} placeholder={t("coupon", lang)} aria-label={t("coupon", lang)}
+                className="flex-1 min-w-0 rounded-full border border-line dark:border-[#2e2822] bg-white dark:bg-[#1c1815] px-4 py-2.5 text-sm outline-none focus:border-bronze text-ink dark:text-[#f3ede3] uppercase tracking-wide" />
+              <button type="submit" className="rounded-full bg-ink text-[#f3ede3] px-5 py-2.5 text-sm font-bold hover:bg-bronze-deep transition">
+                {t("couponApply", lang)}
+              </button>
+            </form>
+          )}
+
           <div className="grid gap-3 mt-4 max-h-72 overflow-auto pe-1">
             {rows.map((r) => {
               const thumb = firstProductImage(r.p.images);
@@ -335,11 +394,24 @@ export default function Checkout() {
           </div>
           <div className="border-t border-dashed border-line dark:border-[#2e2822] mt-4 pt-3 grid gap-1.5 text-sm">
             <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{t("subtotal", lang)}</span><span className="font-bold text-ink dark:text-[#f3ede3]" dir="auto">{fmtPrice(subtotal, lang)}</span></div>
+            {discount > 0 && (
+              <div className="flex justify-between text-clay">
+                <span>{t("discount", lang)}{coupon ? <> · <span dir="ltr">{coupon.code}</span></> : null}</span>
+                <span className="font-bold" dir="auto">− {fmtPrice(discount, lang)}</span>
+              </div>
+            )}
             <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{t("delivery", lang)}</span><span className="font-bold text-ink dark:text-[#f3ede3]" dir="auto">{fmtPrice(deliveryFee, lang)}</span></div>
             <div className="flex justify-between text-base font-display"><span className="font-bold text-ink dark:text-[#f3ede3]">{t("total", lang)}</span><span className="font-extrabold text-bronze-deep dark:text-bronze" dir="auto">{fmtPrice(total, lang)}</span></div>
           </div>
           <button onClick={placeOrder} disabled={placing} className="mt-4 w-full min-h-[52px] rounded-full bg-ink text-[#f3ede3] hover:bg-bronze-deep font-bold transition btn-press disabled:opacity-60 disabled:cursor-wait">
-            {placing ? (lang === "ar" ? "جاري تأكيد الطلب…" : "Placing order…") : (<span className="inline-flex items-center justify-center gap-1.5"><CheckIcon className="w-5 h-5" /> {t("placeOrder", lang)} · <span dir="auto">{fmtPrice(total, lang)}</span></span>)}
+            {placing ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <span className="w-4 h-4 rounded-full border-2 border-[#f3ede3]/40 border-t-[#f3ede3] spin" aria-hidden="true" />
+                {t("placingOrder", lang)}
+              </span>
+            ) : (
+              <span className="inline-flex items-center justify-center gap-1.5"><CheckIcon className="w-5 h-5" /> {t("placeOrder", lang)} — <span dir="auto">{fmtPrice(total, lang)}</span></span>
+            )}
           </button>
           <p className="text-[11px] text-mute dark:text-[#a89f92] text-center mt-2.5 inline-flex items-center justify-center gap-1 w-full"><LockIcon className="w-3.5 h-3.5" /> {lang === "ar" ? "بياناتك آمنة وتُستخدم للتوصيل فقط" : "Your data is safe and used for delivery only"}</p>
         </aside>
@@ -352,7 +424,12 @@ export default function Checkout() {
           <div className="font-extrabold text-lg text-ink dark:text-[#f3ede3]" dir="auto">{fmtPrice(total, lang)}</div>
         </div>
         <button onClick={placeOrder} disabled={placing} className="flex-1 rounded-full bg-clay text-white font-bold py-3.5 btn-press disabled:opacity-60">
-          {placing ? (lang === "ar" ? "جاري…" : "Placing…") : t("placeOrder", lang)}
+          {placing ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white spin" aria-hidden="true" />
+              {t("placingOrder", lang)}
+            </span>
+          ) : t("placeOrder", lang)}
         </button>
       </div>
     </main>

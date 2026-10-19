@@ -66,8 +66,8 @@ export interface CartItem {
 export interface CheckoutForm {
   firstName: string;
   lastName: string;
-  // NOTE: customer phone/WhatsApp are no longer collected at checkout.
-  // Order.whatsapp/phone below stay for legacy rows + admin display.
+  // Egyptian mobile number (01XXXXXXXXX) — used for delivery coordination.
+  phone: string;
   governorate: string;
   area: string;
   city: string;
