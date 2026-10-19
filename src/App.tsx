@@ -19,6 +19,7 @@ const Checkout = lazy(() => import("./pages/Checkout"));
 const OrderSuccess = lazy(() => import("./pages/OrderSuccess"));
 const TrackOrder = lazy(() => import("./pages/TrackOrder"));
 const Contact = lazy(() => import("./pages/Contact"));
+const Wishlist = lazy(() => import("./pages/Wishlist"));
 const CategoriesPage = lazy(() =>
   import("./pages/Contact").then((m) => ({ default: m.CategoriesPage })),
 );
@@ -77,7 +78,7 @@ export default function App() {
                 <Route path="/order-success" element={<OrderSuccess />} />
                 <Route path="/track-order" element={<TrackOrder />} />
                 <Route path="/contact" element={<Contact />} />
-                <Route path="/wishlist" element={<Navigate to="/shop?wish=1" replace />} />
+                <Route path="/wishlist" element={<Wishlist />} />
               </Route>
               <Route element={<AdminLayout />}>
                 <Route path="/admin" element={<AdminDashboard />} />

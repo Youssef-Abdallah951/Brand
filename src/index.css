@@ -98,6 +98,8 @@ body {
 @keyframes drawerIn { from { transform: translateX(var(--drawer-off, 100%)); } to { transform: translateX(0); } }
 .drawer-panel { animation: drawerIn .32s var(--ease-soft) both; }
 [dir="rtl"] .drawer-panel { --drawer-off: -100%; }
+@keyframes sheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.sheet-panel { animation: sheetIn .32s var(--ease-soft) both; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .fade-in { animation: fadeIn .25s ease both; }
 

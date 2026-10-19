@@ -1,5 +1,6 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import type { Product } from "../lib/types";
 import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
@@ -25,6 +26,28 @@ export default function ProductDetails() {
     setGift("");
     setColor(undefined);
   }, [id]);
+
+  // Record this product for the "recently viewed" rail (local only, best effort).
+  useEffect(() => {
+    if (!id) return;
+    try {
+      const raw = JSON.parse(localStorage.getItem("jia_recent") ?? "[]") as string[];
+      localStorage.setItem("jia_recent", JSON.stringify([id, ...raw.filter((x) => x !== id)].slice(0, 8)));
+    } catch { /* noop */ }
+  }, [id]);
+
+  const recent = useMemo(() => {
+    try {
+      const ids = JSON.parse(localStorage.getItem("jia_recent") ?? "[]") as string[];
+      return ids
+        .filter((x) => x !== id)
+        .map((x) => products.find((p) => p.id === x || p.slug === x))
+        .filter((x): x is Product => Boolean(x))
+        .slice(0, 4);
+    } catch {
+      return [];
+    }
+  }, [products, id]);
 
   const p = productById(id || "");
 
@@ -231,6 +254,18 @@ export default function ProductDetails() {
           <h2 className="font-display t-h3 font-bold mb-5 text-ink dark:text-[#f3ede3]">{t("related", lang)}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-6 sm:gap-x-5">
             {related.map((r) => <ProductCard key={r.id} p={r} />)}
+          </div>
+        </section>
+      )}
+
+      {/* Recently viewed */}
+      {recent.length > 0 && (
+        <section className={`${related.length > 0 ? "pb-14" : "pb-14 pt-2"}`}>
+          <div className="shell">
+            <h2 className="font-display t-h3 font-bold mb-5 text-ink dark:text-[#f3ede3]">{t("recentlyViewed", lang)}</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 gap-y-6 sm:gap-x-5">
+              {recent.map((r) => <ProductCard key={r.id} p={r} />)}
+            </div>
           </div>
         </section>
       )}

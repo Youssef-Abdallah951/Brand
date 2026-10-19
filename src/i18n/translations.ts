@@ -133,9 +133,13 @@ const dict = {
   emptyWishlist: { en: "Your wishlist is empty", ar: "قائمة المفضلة فارغة" },
   clearFilters: { en: "Clear filters", ar: "مسح الفلاتر" },
   loadMore: { en: "Load more", ar: "عرض المزيد" },
+  popular: { en: "Popular now", ar: "الأكثر بحثاً" },
+  recentlyViewed: { en: "Recently viewed", ar: "شاهدتِه مؤخراً" },
+  suggest: { en: "Suggestions", ar: "اقتراحات" },
 
   // Wishlist labels
   wishlist: { en: "Wishlist", ar: "المفضلة" },
+  wishSub: { en: "Your saved pieces — one tap to add to bag", ar: "قطعك المحفوظة — لمسة واحدة للحقيبة" },
   addWish: { en: "Add to wishlist", ar: "أضيفي للمفضلة" },
   removeWish: { en: "Remove from wishlist", ar: "احذفي من المفضلة" },
 
