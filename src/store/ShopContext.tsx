@@ -3,6 +3,7 @@ import type { CartItem, Category, DeliveryZone, Product } from "../lib/types";
 import { SEED_PRODUCTS, SEED_ZONES, SEED_CATEGORIES } from "../lib/data";
 import { fetchCategoriesRemote, fetchProductsRemote, fetchZonesRemote, isSupabaseConfigured } from "../lib/supabase";
 import { COUPONS, findCoupon, couponDiscount, type Coupon } from "../lib/coupons";
+import { useLang } from "../i18n/LanguageContext";
 
 type CouponError = "invalid" | "expired" | "min-spend";
 
@@ -55,7 +56,8 @@ export function lineId(productId: string, color?: string): string {
 
 export function ShopProvider({ children }: { children: ReactNode }) {
   // Seed renders instantly; remote replaces it when Supabase is configured.
-  // Seed is a render fallback only — orders/checkout/tracking never use it.
+  // Seed is a render fallback only — order storage is Supabase-only.
+  const { lang } = useLang();
   const [products, setProducts] = useState<Product[]>(SEED_PRODUCTS);
   const [productsLoading, setProductsLoading] = useState(isSupabaseConfigured);
   const [productsError, setProductsError] = useState<string | null>(null);
@@ -139,26 +141,46 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     reloadProducts: loadCatalog,
     cartCount: cart.reduce((s, c) => s + c.qty, 0),
     productById: (id) => products.find((p) => p.id === id || p.slug === id),
-    addToCart: (id, qty = 1, notes, color) =>
+    addToCart: (id, qty = 1, notes, color) => {
+      // Per-line quantity never exceeds the product's live stock value.
+      const stock = products.find((p) => p.id === id || p.slug === id)?.stock ?? 99;
       setCart((c) => {
         const lid = lineId(id, color);
         const f = c.find((x) => lineId(x.productId, x.color) === lid);
         if (f) {
           return c.map((x) =>
             lineId(x.productId, x.color) === lid
-              ? { ...x, qty: Math.min(99, x.qty + qty), notes: notes ?? x.notes }
+              ? { ...x, qty: Math.min(stock, x.qty + qty), notes: notes ?? x.notes }
               : x,
           );
         }
-        return [...c, { productId: id, qty: Math.min(99, Math.max(1, qty)), notes, color }];
-      }),
+        return [...c, { productId: id, qty: Math.min(stock, Math.max(1, qty)), notes, color }];
+      });
+      // Friendly stock notice when the requested amount had to be capped.
+      const had = cart.find((x) => lineId(x.productId, x.color) === lineId(id, color))?.qty ?? 0;
+      if (stock > 0 && had + qty > stock) {
+        const msg = lang === "ar"
+          ? `الكمية المتاحة من هذا المنتج ${stock} قطعة فقط.`
+          : `Only ${stock} units of this item are in stock.`;
+        pushToast(msg);
+      }
+    },
     removeFromCart: (lid) => setCart((c) => c.filter((x) => lineId(x.productId, x.color) !== lid)),
-    setQty: (lid, qty) =>
+    setQty: (lid, qty) => {
+      const prodId = lid.split("||")[0];
+      const stock = products.find((p) => p.id === prodId)?.stock ?? 99;
+      if (qty > 0 && qty > stock) {
+        const msg = lang === "ar"
+          ? `الكمية المتاحة من هذا المنتج ${stock} قطعة فقط.`
+          : `Only ${stock} units of this item are in stock.`;
+        pushToast(msg);
+      }
       setCart((c) =>
         qty <= 0
           ? c.filter((x) => lineId(x.productId, x.color) !== lid)
-          : c.map((x) => (lineId(x.productId, x.color) === lid ? { ...x, qty: Math.min(99, qty) } : x)),
-      ),
+          : c.map((x) => (lineId(x.productId, x.color) === lid ? { ...x, qty: Math.min(stock, qty) } : x)),
+      );
+    },
     clearCart: () => setCart([]),
     subtotalOf: () =>
       cart.reduce((s, item) => {
@@ -177,7 +199,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     },
     clearCoupon: () => setCouponCode(""),
     discountOf: (sub) => (coupon ? couponDiscount(coupon, sub) : 0),
-  }), [products, productsLoading, productsError, categories, zones, cart, wishlist, toasts, pushToast, loadCatalog, cartOpen, quickView, coupon]);
+  }), [products, productsLoading, productsError, categories, zones, cart, wishlist, toasts, pushToast, loadCatalog, cartOpen, quickView, coupon, lang]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

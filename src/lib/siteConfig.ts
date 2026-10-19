@@ -28,7 +28,9 @@ export const SITE_CONFIG = {
   delivery: {
     standardFee: 60,
     expressFee: 120,
-    freeThreshold: 1500,
+    // Free standard shipping from 8 hijab pieces (order accommodates the
+    // single-piece price point; gift boxes reach it even sooner).
+    freeThreshold: 800,
     currency: "EGP",
   },
   // NOTE: COD ONLY store — no online payment configuration exists.

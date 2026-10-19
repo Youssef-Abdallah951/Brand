@@ -103,7 +103,7 @@ const FAQS: { q: { en: string; ar: string }; a: { en: string; ar: string } }[] =
   },
   {
     q: { en: "Is free shipping available?", ar: "هل يوجد شحن مجاني؟" },
-    a: { en: "Standard shipping is free for orders above 1500 EGP.", ar: "الشحن القياسي مجاني للطلبات فوق ١٥٠٠ جنيه." },
+    a: { en: `Standard shipping is free for orders above ${SITE_CONFIG.delivery.freeThreshold} EGP.`, ar: `الشحن القياسي مجاني للطلبات فوق ${SITE_CONFIG.delivery.freeThreshold} جنيه.` },
   },
 ];
 

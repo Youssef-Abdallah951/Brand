@@ -4,6 +4,7 @@ import { fetchCategoriesRemote, fetchProductsRemote, getSupabase, isSupabaseConf
 import { SEED_PRODUCTS } from "../lib/data";
 import { useShop } from "../store/ShopContext";
 import { SITE_CONFIG } from "../lib/siteConfig";
+import { DEFAULT_HIJAB_PRICE, DEFAULT_HIJAB_STOCK } from "../lib/config";
 import { COUPONS, type Coupon } from "../lib/coupons";
 import { fmtPrice } from "../lib/format";
 import { firstProductImage, onImgError } from "../components/product";
@@ -804,9 +805,9 @@ function AddProductForm({ cats, onAdd }: {
 }) {
   const [nameEn, setNameEn] = useState("");
   const [nameAr, setNameAr] = useState("");
-  const [price, setPrice] = useState(0);
+  const [price, setPrice] = useState(DEFAULT_HIJAB_PRICE);
   const [salePrice, setSalePrice] = useState<number | "">("");
-  const [stock, setStock] = useState(10);
+  const [stock, setStock] = useState(DEFAULT_HIJAB_STOCK);
   const [categoryId, setCategoryId] = useState(cats[0]?.id ?? "");
   const [images, setImages] = useState("");
   const [colors, setColors] = useState("");

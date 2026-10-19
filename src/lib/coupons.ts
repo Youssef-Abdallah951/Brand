@@ -14,9 +14,9 @@ export interface Coupon {
 }
 
 export const COUPONS: Coupon[] = [
-  { code: "JIA10", type: "percent", value: 10, minSpend: 500 },
+  { code: "JIA10", type: "percent", value: 10, minSpend: 300 },
   { code: "WELCOME25", type: "fixed", value: 25, minSpend: 0 },
-  { code: "KHEIR200", type: "fixed", value: 200, minSpend: 1200, expires: "2026-12-31" },
+  { code: "KHEIR200", type: "fixed", value: 200, minSpend: 600, expires: "2026-12-31" },
 ];
 
 export function normalizeCoupon(raw: string): string {
