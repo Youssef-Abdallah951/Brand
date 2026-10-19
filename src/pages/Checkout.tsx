@@ -8,6 +8,7 @@ import { GOVERNORATES } from "../lib/egypt";
 import { SITE_CONFIG } from "../lib/siteConfig";
 import { createOrderInSupabase } from "../lib/supabase";
 import { couponDiscount } from "../lib/coupons";
+import { sanitizeText } from "../lib/sanitize";
 import { usePageMeta } from "../lib/meta";
 import { firstProductImage, onImgError } from "../components/product";
 import { CardIcon, CashIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, ImageIcon, LockIcon, MapPinIcon, ReceiptIcon, RetryIcon, SparklesIcon, TruckIcon, UserIcon } from "../components/icons";
@@ -131,8 +132,8 @@ export default function Checkout() {
         return;
       }
       items.push({ productId: fresh.id, nameEn: fresh.nameEn, nameAr: fresh.nameAr, price: unitPrice(fresh), qty, image: firstProductImage(fresh.images) });
-      if (r.color?.trim()) giftBits.push(`${fresh.nameEn}: ${lang === "ar" ? "اللون" : "color"} ${r.color.trim()}`);
-      if (r.notes?.trim()) giftBits.push(`${fresh.nameEn}: ${r.notes.trim()}`);
+      if (r.color?.trim()) giftBits.push(`${fresh.nameEn}: ${lang === "ar" ? "اللون" : "color"} ${sanitizeText(r.color, 60)}`);
+      if (r.notes?.trim()) giftBits.push(`${fresh.nameEn}: ${sanitizeText(r.notes, 240)}`);
     }
     if (items.length === 0) {
       setSubmitError(t("genericError", lang));
@@ -150,7 +151,7 @@ export default function Checkout() {
     const liveDiscount = liveCoupon ? couponDiscount(liveCoupon, liveSubtotal) : discountOf(subtotal);
     if (coupon && !liveCoupon) clearCoupon();
     const liveTotal = Math.max(0, liveSubtotal - liveDiscount + liveDelivery);
-    const notes = [form.notes.trim(), ...giftBits].filter(Boolean).join("\n");
+    const notes = [sanitizeText(form.notes, 240), ...giftBits].filter(Boolean).join("\n");
 
     submitting.current = true;
     setPlacing(true);

@@ -35,6 +35,8 @@
     <meta property="og:locale" content="ar_EG" />
     <meta property="og:locale:alternate" content="en_US" />
     <link rel="canonical" href="https://brand-alpha-sandy.vercel.app/" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
@@ -94,6 +96,15 @@
     <noscript>
       <div style="padding:3rem;text-align:center;font-family:sans-serif">هذا المتجر يحتاج إلى تشغيل JavaScript. / This store requires JavaScript.</div>
     </noscript>
+    <script>
+      // Static-only service worker (public/sw.js): hashed chunks cached,
+      // pages network-first, API/mutations never cached.
+      if ("serviceWorker" in navigator && location.protocol === "https:") {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("/sw.js").catch(function () {});
+        });
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

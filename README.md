@@ -30,3 +30,13 @@ insert into admin_roles(user_id, role) values ('<auth-user-uuid>', 'admin');
 
 ## WhatsApp order flow
 Order saved (Supabase or local) → unique `ORD-xxxxx` → `/order-success` → "Send Order via WhatsApp" opens `https://wa.me/201018340567?text=<prefilled order>`.
+
+## Placeholder images to replace before launch (photos are Unsplash demo shots)
+
+| Where | What | How to replace |
+| --- | --- | --- |
+| public/hero.jpg | Home hero (Unsplash 1561442748) | Swap with a real JiA campaign photo, keep ~1800x1013 16:9 |
+| public/logo.png | Logo circle (navbar, boot screen, favicon) | Real brand logo, square 512px |
+| src/lib/data.ts | ~17 unique Unsplash photo IDs used via the img() helper for all 16 products + category tiles + gift boxes | Replace the photo-… URLs with real product photography (same img() helper keeps uto=format WebP) |
+
+Product pages fall back through: seed Unsplash image, then admin-entered image URLs. onImgError never renders a local path.

@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { Product } from "../lib/types";
 import { useLang } from "../i18n/LanguageContext";
@@ -21,12 +21,15 @@ export default function ProductDetails() {
   const [imgIdx, setImgIdx] = useState(0);
   const [color, setColor] = useState<string | undefined>(undefined);
   const [gift, setGift] = useState("");
+  const [zoom, setZoom] = useState(false);
+  const touchX = useRef<number | null>(null);
 
   useEffect(() => {
     setQty(1);
     setImgIdx(0);
     setGift("");
     setColor(undefined);
+    setZoom(false);
   }, [id]);
 
   // Record this product for the "recently viewed" rail (local only, best effort).
@@ -50,6 +53,18 @@ export default function ProductDetails() {
       return [];
     }
   }, [products, id]);
+
+  // Gallery zoom / overlay scroll lock — hooks stay above any early return.
+  useEffect(() => {
+    if (!zoom) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setZoom(false); };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [zoom]);
 
   const p = productById(id || "");
 
@@ -83,6 +98,9 @@ export default function ProductDetails() {
   const validGallery = p.images.filter((u): u is string => typeof u === "string" && /^https:\/\//i.test(u.trim()));
   const mainImg = productImage(p, Math.min(imgIdx, Math.max(0, validGallery.length - 1)));
 
+  const nextImg = () => validGallery.length > 1 && setImgIdx((i) => (i + 1) % validGallery.length);
+  const prevImg = () => validGallery.length > 1 && setImgIdx((i) => (i - 1 + validGallery.length) % validGallery.length);
+
   const notes = gift.trim();
   const handleAdd = () => {
     if (out) return;
@@ -113,7 +131,19 @@ export default function ProductDetails() {
       <div className="shell grid md:grid-cols-2 gap-6 lg:gap-10 pt-5 pb-14">
         {/* Gallery */}
         <div>
-          <div className="rounded-3xl overflow-hidden bg-sand dark:bg-[#201a15] aspect-[4/5] relative">
+          <div
+            className="rounded-3xl overflow-hidden bg-sand dark:bg-[#201a15] aspect-[4/5] relative cursor-zoom-in"
+            onClick={() => mainImg && setZoom(true)}
+            onTouchStart={(e) => { touchX.current = e.touches[0]?.clientX ?? null; }}
+            onTouchEnd={(e) => {
+              const start = touchX.current;
+              touchX.current = null;
+              if (start == null) return;
+              const dx = (e.changedTouches[0]?.clientX ?? start) - start;
+              if (dx < -60) nextImg();
+              else if (dx > 60) prevImg();
+            }}
+          >
             {mainImg ? (
               <img src={mainImg} onError={onImgError} alt={name} fetchPriority="high" className="product-photo w-full h-full object-cover" />
             ) : (
@@ -233,7 +263,7 @@ export default function ProductDetails() {
             <label htmlFor="gift-msg" className="text-sm font-bold inline-flex items-center gap-1.5 text-ink dark:text-[#f3ede3]">
               <GiftIcon className={`w-4 h-4 ${perkCls}`} /> {t("giftNote", lang)}
             </label>
-            <textarea id="gift-msg" value={gift} onChange={(e) => setGift(e.target.value)} rows={2}
+            <textarea id="gift-msg" value={gift} onChange={(e) => setGift(e.target.value)} rows={2} maxLength={300}
               className="mt-1.5 w-full rounded-2xl border border-line dark:border-[#2e2822] bg-white dark:bg-[#1c1815] text-ink dark:text-[#f3ede3] px-4 py-2.5 text-sm outline-none focus:border-bronze placeholder:text-mute/60 transition"
               placeholder={t("giftPlaceholder", lang)}
               dir="auto" />
@@ -261,6 +291,27 @@ export default function ProductDetails() {
           ] }) }} />
         </section>
       </div>
+
+      {/* Gallery zoom overlay */}
+      {zoom && mainImg && (
+        <div className="fixed inset-0 z-[70] bg-black/90 fade-in grid place-items-center" role="dialog" aria-modal="true" aria-label={t("gallery", lang)} onClick={() => setZoom(false)}>
+          <img src={mainImg} className="max-h-[92vh] max-w-[94vw] object-contain rounded-xl" alt={name} />
+          <button
+            className="absolute top-4 end-4 w-11 h-11 rounded-full bg-white/90 text-black grid place-items-center"
+            onClick={() => setZoom(false)}
+            aria-label={t("close", lang)}
+          >
+            <XIcon className="w-5 h-5" />
+          </button>
+          {validGallery.length > 1 && (
+            <div className="absolute bottom-6 inset-x-0 flex justify-center gap-1.5" aria-hidden="true">
+              {validGallery.map((_, i) => (
+                <span key={i} className={`w-1.5 h-1.5 rounded-full ${i === imgIdx ? "bg-white" : "bg-white/40"}`} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Related */}
       {related.length > 0 && (

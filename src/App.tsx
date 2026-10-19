@@ -1,13 +1,15 @@
 import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Outlet, useLocation } from "react-router-dom";
 import { trackPage } from "./lib/analytics";
-import { LanguageProvider } from "./i18n/LanguageContext";
+import { LanguageProvider, useLang } from "./i18n/LanguageContext";
+import { t } from "./i18n/translations";
 import { ShopProvider } from "./store/ShopContext";
 import { ThemeProvider } from "./store/ThemeContext";
 import { Navbar, Footer, FloatingWhatsApp, Toasts } from "./components/chrome";
 import { CartDrawer } from "./components/CartDrawer";
 import { QuickView } from "./components/QuickView";
 import { RouteProgress } from "./components/RouteProgress";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { PageLoader } from "./components/product";
 
 /* Route-level code splitting: every page is its own chunk; the shell
@@ -45,14 +47,17 @@ const FaqPage = lazy(() =>
 );
 
 function Shell() {
+  const { lang } = useLang();
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-[#14110e] text-ink dark:text-[#f3ede3]">
       <RouteProgress />
       <Navbar />
       <div className="flex-1">
-        <Suspense fallback={<PageLoader />}>
-          <Outlet />
-        </Suspense>
+        <ErrorBoundary title={t("pageError", lang)} action={t("retry", lang)}>
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
+        </ErrorBoundary>
       </div>
       <Footer />
       <FloatingWhatsApp />
@@ -66,9 +71,11 @@ function Shell() {
 function AdminLayout() {
   return (
     <div className="min-h-screen bg-white dark:bg-[#14110e] text-ink dark:text-[#f3ede3]">
-      <Suspense fallback={<PageLoader />}>
-        <Outlet />
-      </Suspense>
+      <ErrorBoundary title="Admin error" action="Retry">
+        <Suspense fallback={<PageLoader />}>
+          <Outlet />
+        </Suspense>
+      </ErrorBoundary>
       <Toasts />
     </div>
   );

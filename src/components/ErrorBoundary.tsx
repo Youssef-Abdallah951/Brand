@@ -1,46 +1,40 @@
-import { Component, type ReactNode } from "react";
+import { Component, type ErrorInfo, type ReactNode } from "react";
 
-/** Catches unexpected render/runtime errors so the app never white-screens. */
-export class ErrorBoundary extends Component<{ children: ReactNode }, { crashed: boolean }> {
-  state = { crashed: false };
+interface Props {
+  children: ReactNode;
+  /** lang-resolved strings supplied by the caller (class components can't hook). */
+  title?: string;
+  action?: string;
+}
 
-  static getDerivedStateFromError(): { crashed: boolean } {
-    return { crashed: true };
+/** Per-route error wall: a render crash inside one lazy page no longer blanks
+ *  the whole SPA — navbar/footer stay interactive and retry re-mounts the route. */
+export class ErrorBoundary extends Component<Props, { error: Error | null }> {
+  state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
   }
 
-  componentDidCatch(error: unknown): void {
-    // Dev-only log — never renders sensitive data to customers.
-    if (import.meta.env.DEV) {
-      console.error("[ErrorBoundary]", error);
-    }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("[ErrorBoundary]", error, info.componentStack);
   }
 
-  render(): ReactNode {
-    if (this.state.crashed) {
-      const rtl = document.documentElement.dir === "rtl";
+  render() {
+    if (this.state.error) {
       return (
-        <main
-          dir={rtl ? "rtl" : "ltr"}
-          style={{ maxWidth: 560, margin: "0 auto", padding: "80px 20px", textAlign: "center", fontFamily: "system-ui", background: "var(--bg)", color: "var(--text)", minHeight: "100vh" }}
-        >
-          <div style={{ fontSize: 64, display: "flex", justifyContent: "center", color: "#e84393" }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
+        <div className="min-h-[50vh] flex items-center justify-center px-6 text-center">
+          <div className="max-w-sm">
+            <p className="font-display text-xl font-bold text-ink dark:text-[#f3ede3]">{this.props.title ?? "Something went wrong"}</p>
+            <p className="text-sm text-mute dark:text-[#a89f92] mt-2 break-words" dir="auto">{String(this.state.error.message || this.state.error)}</p>
+            <button
+              onClick={() => this.setState({ error: null })}
+              className="mt-6 inline-block bg-ink text-[#f3ede3] font-bold text-sm px-8 py-3 rounded-full hover:bg-bronze-deep transition btn-press"
+            >
+              {this.props.action ?? "Retry"}
+            </button>
           </div>
-          <h1 style={{ fontSize: 22, fontWeight: 800 }}>Something went wrong. / حدث خطأ غير متوقع.</h1>
-          <p style={{ color: "var(--text-2)", marginTop: 8 }}>
-            Please try again. / يرجى المحاولة مرة أخرى.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            style={{ marginTop: 20, background: "#e84393", color: "#fff", fontWeight: 700, border: 0, borderRadius: 16, padding: "12px 32px", cursor: "pointer" }}
-          >
-            Try again / حاول مرة أخرى
-          </button>
-        </main>
+        </div>
       );
     }
     return this.props.children;
