@@ -6,13 +6,13 @@ import { t, VALIDATION_MSG } from "../i18n/translations";
 import { fmtPrice } from "../lib/format";
 import { GOVERNORATES } from "../lib/egypt";
 import { SITE_CONFIG } from "../lib/siteConfig";
-import { createOrderInSupabase } from "../lib/supabase";
+import { createOrder } from "../lib/orders";
 import { couponDiscount } from "../lib/coupons";
 import { sanitizeText } from "../lib/sanitize";
 import { usePageMeta } from "../lib/meta";
 import { firstProductImage, onImgError } from "../components/product";
 import { CardIcon, CashIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, ImageIcon, LockIcon, MapPinIcon, ReceiptIcon, RetryIcon, SparklesIcon, TruckIcon, UserIcon } from "../components/icons";
-import type { CheckoutForm } from "../lib/types";
+import type { CheckoutForm, Order } from "../lib/types";
 
 const inputCls = "w-full rounded-2xl border border-line dark:border-[#2e2822] bg-white dark:bg-[#1c1815] text-ink dark:text-[#f3ede3] px-4 py-3 text-sm outline-none focus:border-bronze transition placeholder:text-mute/60";
 const labelCls = "text-xs font-bold text-ink dark:text-[#f3ede3] mb-1.5 block";
@@ -116,7 +116,7 @@ export default function Checkout() {
     // The selected colour variant travels with the line notes so the atelier
     // can pick exactly what was ordered.
     const giftBits: string[] = [];
-    const items: { productId: string; nameEn: string; nameAr: string; price: number; qty: number; image: string }[] = [];
+    const items: Order["items"] = [];
     for (const r of rows) {
       const fresh = productById(r.productId);
       if (!fresh || !fresh.active || !(fresh.price > 0)) {
@@ -131,7 +131,7 @@ export default function Checkout() {
         setSubmitError(t("genericError", lang));
         return;
       }
-      items.push({ productId: fresh.id, nameEn: fresh.nameEn, nameAr: fresh.nameAr, price: unitPrice(fresh), qty, image: firstProductImage(fresh.images) });
+      items.push({ productId: fresh.id, nameEn: fresh.nameEn, nameAr: fresh.nameAr, price: unitPrice(fresh), qty, image: firstProductImage(fresh.images), color: r.color?.trim() || undefined });
       if (r.color?.trim()) giftBits.push(`${fresh.nameEn}: ${lang === "ar" ? "اللون" : "color"} ${sanitizeText(r.color, 60)}`);
       if (r.notes?.trim()) giftBits.push(`${fresh.nameEn}: ${sanitizeText(r.notes, 240)}`);
     }
@@ -156,11 +156,11 @@ export default function Checkout() {
     submitting.current = true;
     setPlacing(true);
     try {
-      // Single INSERT attempt — Supabase is the only store. Throws on any
-      // failure (timeout, network, RLS). Cart is preserved for safe retry.
-      // The Egyptian mobile number collected above travels with the order so
-      // the courier can coordinate; it is never used for marketing.
-      const orderNumber = await createOrderInSupabase({
+      // One adapter for both worlds: with Supabase env → database INSERT;
+      // without → local order (localStorage) + WhatsApp handoff. Local mode
+      // completes inside the click's user activation, so the window.open
+      // below is allowed to open the prefilled WhatsApp message.
+      const res = await createOrder({
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         whatsapp: form.phone.trim(),
@@ -178,9 +178,17 @@ export default function Checkout() {
       });
       clearCart(); // only after the order is safely stored
       pushToast(lang === "ar" ? "تم إنشاء الطلب بنجاح" : "Order created successfully");
-      nav(`/order-success?order=${orderNumber}`, {
+      // Local mode: best-effort WhatsApp popup right away. If the browser
+      // blocks it, the success page always shows the "Send order" button.
+      if (res.mode === "local" && res.whatsapp) {
+        try {
+          const w = window.open(res.whatsapp, "_blank");
+          if (w) w.opener = null;
+        } catch { /* popup blocked — success page CTA covers it */ }
+      }
+      nav(`/order-success?order=${res.orderNumber}`, {
         state: {
-          orderNumber,
+          orderNumber: res.orderNumber,
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
           phone: form.phone.trim(),
@@ -204,7 +212,7 @@ export default function Checkout() {
         },
       });
     } catch {
-      // Keep everything: cart, form, and a retryable error (no auto-retry).
+      // Server mode only: keep everything (cart, form) and a retryable error.
       submitting.current = false;
       setPlacing(false);
       setSubmitError(t("connError", lang));

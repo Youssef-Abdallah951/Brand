@@ -87,6 +87,9 @@ export interface OrderItem {
   price: number;
   qty: number;
   image: string;
+  // Colour variant chosen at checkout (when any) — used by the WhatsApp
+  // order message and kept in the local order snapshot.
+  color?: string;
 }
 
 export interface Order {

@@ -9,6 +9,7 @@ import { COUPONS, type Coupon } from "../lib/coupons";
 import { fmtPrice } from "../lib/format";
 import { firstProductImage, onImgError } from "../components/product";
 import { STATUS_LABEL } from "../i18n/translations";
+import { useLang } from "../i18n/LanguageContext";
 import { CashIcon, ChartIcon, CheckIcon, ClockIcon, FlameIcon, GridIcon, ImageIcon, LockIcon, MapPinIcon, PackageIcon, PencilIcon, PlusIcon, ReceiptIcon, RetryIcon, StarIcon, TrashIcon, TruckIcon, UsersIcon, XIcon } from "../components/icons";
 import type { Category, DeliveryZone, Order, OrderStatus, Product, ProductColor } from "../lib/types";
 
@@ -16,11 +17,10 @@ const card = "bg-cream dark:bg-[#191512] border border-line dark:border-[#2e2822
 const chip = "text-xs font-bold px-3 py-1.5 rounded-full";
 const cls = "w-full rounded-xl border border-line dark:border-[#2e2822] bg-white dark:bg-[#1c1815] text-ink dark:text-[#f3ede3] px-3 py-2 text-sm outline-none focus:border-bronze";
 const tokenOk = "bg-sand dark:bg-[#201a15] text-ink dark:text-[#f3ede3]";
-const demoAuthKey = "lumiere_admin_demo";
 
-/* Login gate — Supabase Auth when configured. Otherwise password NEVER lives
-   in the client: the demo form calls the /api/admin-login serverless
-   function, which checks ADMIN_EMAIL / ADMIN_PASSWORD env vars server-side. */
+/* Login gate — Supabase Auth when configured. Without VITE_SUPABASE_URL /
+   VITE_SUPABASE_ANON_KEY the backend is not connected: /admin/login shows a
+   dedicated "backend not connected" page instead of a login form. */
 function useAdminGuard() {
   const nav = useNavigate();
   const [ready, setReady] = useState(false);
@@ -28,15 +28,10 @@ function useAdminGuard() {
   useEffect(() => {
     const sb = getSupabase();
     if (!sb) {
-      // Demo session token: issued by /api/admin-login (env-var check),
-      // consumed here by value + expiry only.
-      let token = "";
-      try { token = JSON.parse(localStorage.getItem(demoAuthKey) ?? "null")?.token ?? ""; } catch { /* noop */ }
-      const exp = Number(token.split(".")[1] ?? 0);
-      const ok = Boolean(token) && exp > Math.floor(Date.now() / 1000);
-      setIsAdmin(ok);
+      // No backend configured → route to the "backend not connected" page.
+      setIsAdmin(false);
       setReady(true);
-      if (!ok) nav("/admin/login");
+      nav("/admin/login");
       return;
     }
     sb.auth.getSession().then(async ({ data }) => {
@@ -56,42 +51,50 @@ function useAdminGuard() {
 
 export function AdminLogin() {
   const nav = useNavigate();
+  const { lang } = useLang();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const live = isSupabaseConfigured;
 
+  // Backend not connected (seed / preview / missing env vars): the dashboard
+  // cannot read orders or products — show a clear notice instead of a login
+  // form. Storefront ordering keeps working via the WhatsApp/local flow.
+  if (!live) {
+    return (
+      <main className="min-h-[80vh] grid place-items-center px-4 py-10">
+        <div className="w-full max-w-md bg-white dark:bg-[#191512] rounded-3xl border border-line dark:border-[#2e2822] p-8 soft-shadow text-center">
+          <div className="w-16 h-16 mx-auto rounded-full bg-sand dark:bg-[#201a15] grid place-items-center text-bronze"><XIcon className="w-8 h-8" /></div>
+          <h1 className="font-display text-xl font-bold mt-4 text-ink dark:text-[#f3ede3]">Backend not connected</h1>
+          <p dir="rtl" className="text-xs font-bold text-mute dark:text-[#a89f92] mt-1">الخادم غير متصل — لوحة التحكم معطّلة.</p>
+          <p className="text-sm text-mute dark:text-[#a89f92] mt-3 leading-relaxed">
+            The admin dashboard needs the store database. Set{" "}
+            <code dir="ltr" className="bg-sand dark:bg-[#201a15] px-1.5 py-0.5 rounded font-bold text-xs">VITE_SUPABASE_URL</code>{" and "}
+            <code dir="ltr" className="bg-sand dark:bg-[#201a15] px-1.5 py-0.5 rounded font-bold text-xs">VITE_SUPABASE_ANON_KEY</code>{" "}
+            in <span dir="ltr" className="font-bold text-xs">.env</span> and rebuild.
+          </p>
+          <p className="text-xs text-mute dark:text-[#a89f92] mt-3">
+            {lang === "ar"
+              ? "الطلبات تُستقبل بشكل طبيعي — تُحفظ محلياً وتُرسل عبر واتساب."
+              : "Orders keep working — stored locally and confirmed over WhatsApp."}
+          </p>
+          <a href="/" className="mt-5 inline-block text-bronze-deep dark:text-bronze font-bold text-sm hover:underline">← Back to store</a>
+        </div>
+      </main>
+    );
+  }
+
   const login = async (e: React.FormEvent) => {
     e.preventDefault();
     setErr("");
+    setBusy(true);
     const sb = getSupabase();
     if (!sb) {
-      // Demo mode: POST /api/admin-login (env vars checked server-side).
-      setBusy(true);
-      try {
-        const r = await fetch("/api/admin-login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-        const v = (await r.json()) as { ok: boolean; token?: string; error?: string };
-        if (r.ok && v.ok && v.token) {
-          localStorage.setItem(demoAuthKey, JSON.stringify({ token: v.token, at: Date.now() }));
-          nav("/admin");
-        } else {
-          setErr(v.error === "invalid"
-            ? "Invalid credentials / بيانات الدخول غير صحيحة"
-            : `Demo login unavailable: ${v.error ?? r.status}`);
-        }
-      } catch {
-        setErr("Could not reach the login service. Configure ADMIN_EMAIL / ADMIN_PASSWORD on the host.");
-      } finally {
-        setBusy(false);
-      }
+      setErr("Backend not connected.");
+      setBusy(false);
       return;
     }
-    setBusy(true);
     const { error } = await sb.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) setErr(error.message);
@@ -101,11 +104,9 @@ export function AdminLogin() {
   return (
     <main className="min-h-[80vh] grid place-items-center px-4 py-10">
       <form onSubmit={login} className="w-full max-w-md bg-white dark:bg-[#191512] rounded-3xl border border-line dark:border-[#2e2822] p-7 soft-shadow">
-        <h1 className="font-display text-xl font-bold inline-flex items-center gap-2 text-ink dark:text-[#f3ede3]"><LockIcon className="w-6 h-6 text-bronze" /> {live ? "Supabase Auth" : "Admin Login"}</h1>
+        <h1 className="font-display text-xl font-bold inline-flex items-center gap-2 text-ink dark:text-[#f3ede3]"><LockIcon className="w-6 h-6 text-bronze" /> Supabase Auth</h1>
         <p className="text-xs text-mute dark:text-[#a89f92] mt-1">
-          {live
-            ? "Supabase Auth — administrators only. Customers never log in."
-            : "Serverless env-var login (ADMIN_EMAIL / ADMIN_PASSWORD checked server-side; no password ships in the client bundle)."}
+          Supabase Auth — administrators only. Customers never log in.
         </p>
         <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin email" dir="ltr" required type="email" autoComplete="username" className="mt-5 w-full rounded-2xl border border-line dark:border-[#2e2822] bg-white dark:bg-[#1c1815] text-ink dark:text-[#f3ede3] px-4 py-3 text-sm outline-none focus:border-bronze" />
         <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="password" dir="ltr" required autoComplete="current-password" className="mt-2 w-full rounded-2xl border border-line dark:border-[#2e2822] bg-white dark:bg-[#1c1815] text-ink dark:text-[#f3ede3] px-4 py-3 text-sm outline-none focus:border-bronze" />
@@ -496,7 +497,7 @@ export function AdminDashboard() {
         <span className={`text-xs ${tokenOk} font-bold px-3 py-1 rounded-full`}>COD only · {SITE_CONFIG.admin.phoneLocal}</span>
         {!live && <span className="text-xs bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-200 font-bold px-3 py-1 rounded-full">Demo mode — connect Supabase for live data</span>}
         <button
-          onClick={() => { localStorage.removeItem(demoAuthKey); getSupabase()?.auth.signOut(); location.href = "/"; }}
+          onClick={() => { getSupabase()?.auth.signOut(); location.href = "/"; }}
           className="ms-auto text-xs font-bold border border-line dark:border-[#2e2822] rounded-full px-4 py-2 text-ink dark:text-[#f3ede3] hover:bg-sand dark:hover:bg-[#201a15] transition"
         >
           Logout

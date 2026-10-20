@@ -4,7 +4,7 @@ import { useLang } from "../i18n/LanguageContext";
 import { t, STATUS_LABEL } from "../i18n/translations";
 import { fmtPrice } from "../lib/format";
 import { SITE_CONFIG } from "../lib/siteConfig";
-import { orderWhatsAppLink } from "../lib/whatsapp";
+import { getLocalOrder, orderWhatsAppLink } from "../lib/orders";
 import { AlertIcon, ChatIcon, CheckIcon } from "../components/icons";
 import type { Order } from "../lib/types";
 
@@ -24,35 +24,42 @@ export default function OrderSuccess() {
   // via the ?order= param; full item details are transient by design.
   const s = (state as SuccessState | null) ?? null;
   const orderNumber = s?.orderNumber ?? params.get("order") ?? "";
+  // Local orders (no-Supabase mode) live in localStorage — a refresh or a
+  // reopened ?order= link restores the full summary from there.
+  const restored = useMemo(
+    () => (orderNumber && !s ? getLocalOrder(orderNumber) : null),
+    [orderNumber, s],
+  );
+  const snap = s ?? (restored as SuccessState | null);
   const nowIso = useMemo(() => new Date().toISOString(), []);
-  // Full snapshot (fresh checkout) → build the real WhatsApp order message
-  // sent to the store's admin number. Refresh/back (only ?order= in URL) →
-  // WhatsApp CTA degraded to a plain contact link; order number stays visible.
+  // Full snapshot (fresh checkout or a stored local order) → real WhatsApp
+  // order message sent to the store's admin number. Degraded view (only
+  // ?order= in server mode after a refresh) → generic WhatsApp contact link.
   const fullOrder: Order | null =
-    s && Array.isArray(s.items) && s.governorate && s.address && s.deliveryMethod
+    snap && Array.isArray(snap.items) && snap.governorate && snap.address && snap.deliveryMethod
       ? {
-          orderNumber: s.orderNumber,
-          firstName: s.firstName,
-          lastName: s.lastName,
-          whatsapp: "",
-          phone: "",
-          governorate: s.governorate,
-          area: s.area ?? "",
-          city: s.city ?? "",
-          address: s.address,
-          building: s.building ?? "",
-          apartment: s.apartment ?? "",
-          notes: s.notes ?? "",
-          deliveryMethod: s.deliveryMethod,
+          orderNumber: snap.orderNumber,
+          firstName: snap.firstName,
+          lastName: snap.lastName,
+          whatsapp: snap.whatsapp ?? "",
+          phone: snap.phone ?? "",
+          governorate: snap.governorate,
+          area: snap.area ?? "",
+          city: snap.city ?? "",
+          address: snap.address,
+          building: snap.building ?? "",
+          apartment: snap.apartment ?? "",
+          notes: snap.notes ?? "",
+          deliveryMethod: snap.deliveryMethod,
           paymentMethod: "cod",
           paymentStatus: "pending",
-          items: s.items,
-          subtotal: s.subtotal ?? s.total,
-          deliveryFee: s.deliveryFee ?? 0,
-          discount: s.discount ?? 0,
-          total: s.total,
+          items: snap.items,
+          subtotal: snap.subtotal ?? snap.total,
+          deliveryFee: snap.deliveryFee ?? 0,
+          discount: snap.discount ?? 0,
+          total: snap.total,
           status: "pending",
-          createdAt: s.createdAt ?? nowIso,
+          createdAt: snap.createdAt ?? nowIso,
           timeline: [],
         }
       : null;
@@ -81,9 +88,9 @@ export default function OrderSuccess() {
         </p>
       </div>
 
-      {s && (
+      {snap && (
         <div className="bg-cream dark:bg-[#191512] border border-line dark:border-[#2e2822] rounded-3xl p-5 mt-8 grid gap-3 text-sm soft-shadow">
-          <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{lang === "ar" ? "الاسم" : "Name"}</span><span className="font-bold text-ink dark:text-[#f3ede3]">{s.firstName} {s.lastName}</span></div>
+          <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{lang === "ar" ? "الاسم" : "Name"}</span><span className="font-bold text-ink dark:text-[#f3ede3]">{snap.firstName} {snap.lastName}</span></div>
           <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{t("payment", lang)}</span><span className="font-bold text-ink dark:text-[#f3ede3]">{t("cod", lang)}</span></div>
           <div className="flex justify-between">
             <span className="text-mute dark:text-[#a89f92]">{lang === "ar" ? "الحالة" : "Status"}</span>
@@ -91,7 +98,7 @@ export default function OrderSuccess() {
           </div>
           <div className="flex justify-between font-bold text-base border-t border-dashed border-line dark:border-[#2e2822] pt-3">
             <span className="text-ink dark:text-[#f3ede3]">{t("total", lang)}</span>
-            <span className="text-bronze-deep dark:text-bronze font-extrabold" dir="auto">{fmtPrice(s.total, lang)}</span>
+            <span className="text-bronze-deep dark:text-bronze font-extrabold" dir="auto">{fmtPrice(snap.total, lang)}</span>
           </div>
         </div>
       )}

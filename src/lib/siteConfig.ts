@@ -1,5 +1,8 @@
 // Centralized site / admin configuration.
-// Change the admin number HERE ONLY — everything else imports from this file.
+// The admin number is edited in ../config.ts (WHATSAPP_NUMBER) — this file
+// imports it so there is exactly one place to change.
+import { WHATSAPP_NUMBER } from "./config";
+
 export const SITE_CONFIG = {
   brand: {
     nameEn: "JiA",
@@ -10,8 +13,8 @@ export const SITE_CONFIG = {
   admin: {
     // Local format
     phoneLocal: "01018340567",
-    // International digits without +
-    phoneIntl: "201018340567",
+    // International digits without + (single source: WHATSAPP_NUMBER in config.ts)
+    phoneIntl: WHATSAPP_NUMBER,
     get whatsappLink(): string {
       return `https://wa.me/${SITE_CONFIG.admin.phoneIntl}`;
     },

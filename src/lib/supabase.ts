@@ -16,9 +16,11 @@ const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 // restart `npm run dev` / rebuild + redeploy. Never log the key itself.
 // ---------------------------------------------------------------------------
 if (!anon) {
-  console.error(
-    "[JiA] VITE_SUPABASE_ANON_KEY is missing — checkout and catalog sync " +
-    "are disabled. Set it in .env (or your host's env vars) and rebuild.",
+  // Seed / preview mode — NOT an error. src/lib/orders.ts routes checkout to
+  // the local-storage + WhatsApp flow when Supabase is not configured.
+  console.warn(
+    "[JiA] Supabase env vars are not set — running without a backend: " +
+    "orders are stored locally and confirmed over WhatsApp.",
   );
 }
 
@@ -68,9 +70,10 @@ export async function withRetry<T>(
 }
 
 // ---------------------------------------------------------------------------
-// Orders — Supabase is the ONLY source of truth.
-// No localStorage / sessionStorage / mock order storage exists anywhere.
-// React state is used only to display data fetched from Supabase.
+// Orders — with Supabase env vars the database is the source of truth
+// (createOrderInSupabase + the admin dashboard). Without them,
+// src/lib/orders.ts routes checkout to the local-storage + WhatsApp flow and
+// this module stays passive.
 // ---------------------------------------------------------------------------
 
 export interface CreateOrderInput {
