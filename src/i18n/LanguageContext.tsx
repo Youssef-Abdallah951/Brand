@@ -25,10 +25,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
-    document.title =
-      lang === "ar"
-        ? "JiA | Silk & Essentials"
-        : "JiA | Silk & Essentials";
+    document.title = "Jia | Silk & Essentials";
   }, [lang]);
   return (
     <LanguageContext.Provider value={{ lang, setLang, dir: lang === "ar" ? "rtl" : "ltr" }}>

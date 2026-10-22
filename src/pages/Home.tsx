@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { useMemo } from "react";
-import type { Category, Product } from "../lib/types";
-import { ProductCard, SectionTitle, SkeletonGrid, categoryImageUrl, onCategoryImgError, onImgError } from "../components/product";
+import type { Category } from "../lib/types";
+import { ProductCard, ProductRail, SectionTitle, SkeletonGrid, categoryImageUrl, onCategoryImgError, onImgError } from "../components/product";
+import { Reveal, useReveal } from "../components/reveal";
 import { AlertIcon, CashIcon, ChatIcon, ImageIcon, RetryIcon, SparklesIcon, TruckIcon } from "../components/icons";
 import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
@@ -22,7 +23,7 @@ export default function Home() {
   const spotImg = spotlight ? firstProductImage(spotlight.images) : "";
   const spotName = spotlight ? (lang === "ar" ? spotlight.nameAr : spotlight.nameEn) : "";
 
-  usePageMeta("JiA — Silk & Essentials", t("heroSub", lang));
+  usePageMeta("Jia — Silk & Essentials", t("heroSub", lang));
 
   if (productsError) {
     return (
@@ -42,7 +43,7 @@ export default function Home() {
   return (
     <main>
       {/* Organization + WebSite structured data for the whole storefront */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "Organization", name: "JiA", url: "https://brand-alpha-sandy.vercel.app", logo: "https://brand-alpha-sandy.vercel.app/logo.png", sameAs: [], contactPoint: { "@type": "ContactPoint", telephone: "+2" + "201018340567", contactType: "customer service", availableLanguage: ["ar", "en"] } }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "Organization", name: "Jia", url: "https://brand-alpha-sandy.vercel.app", logo: "https://brand-alpha-sandy.vercel.app/logo.png", sameAs: [], contactPoint: { "@type": "ContactPoint", telephone: "+2" + "201018340567", contactType: "customer service", availableLanguage: ["ar", "en"] } }) }} />
       {/* ------------------------------ Hero ------------------------------ */}
       <section className="shell pt-5 pb-8 sm:pt-8 sm:pb-12">
         <div className="relative rounded-3xl overflow-hidden soft-shadow">
@@ -88,9 +89,13 @@ export default function Home() {
         {productsLoading ? (
           <SkeletonGrid n={4} />
         ) : (
-          <div className="relative">
-            <ScrollRow list={newDrops} />
-          </div>
+          <ProductRail label={t("newDropsTitle", lang)}>
+            {newDrops.map((p) => (
+              <div key={p.id} className="w-[46%] sm:w-[30%] lg:w-[23%] shrink-0 snap-start">
+                <ProductCard p={p} />
+              </div>
+            ))}
+          </ProductRail>
         )}
       </section>
 
@@ -132,7 +137,7 @@ export default function Home() {
                 className="product-photo absolute inset-0 w-full h-full object-cover opacity-60" loading="lazy" />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/10" aria-hidden="true" />
-            <div className="relative min-h-[380px] sm:min-h-[420px] flex flex-col justify-end p-7 sm:p-12">
+            <Reveal className="relative min-h-[380px] sm:min-h-[420px] flex flex-col justify-end p-7 sm:p-12">
               <span className="w-fit text-[11px] font-bold tracking-[0.22em] uppercase text-bronze bg-white/95 dark:bg-black/50 px-3 py-1.5 rounded-full mb-4">
                 {t("spotlightLabel", lang)}
               </span>
@@ -140,7 +145,7 @@ export default function Home() {
               <Link to={`/product/${spotlight.slug}`} className="mt-6 w-fit min-h-[48px] inline-flex items-center bg-white text-ink font-bold text-sm px-8 rounded-full hover:bg-cream transition btn-press">
                 {t("spotlightCta", lang)}
               </Link>
-            </div>
+            </Reveal>
           </div>
         </section>
       )}
@@ -165,29 +170,15 @@ function Perks() {
     <div className="shell">
       <ul className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         {items.map(({ Icon, k }) => (
-          <li key={k} className="flex items-center gap-3 bg-cream dark:bg-[#191512] border border-line dark:border-[#2e2822] rounded-2xl px-3.5 py-3">
+          <Reveal tag="li" key={k} className="flex items-center gap-3 bg-cream dark:bg-[#191512] border border-line dark:border-[#2e2822] rounded-2xl px-3.5 py-3">
             <span className="text-bronze shrink-0" aria-hidden="true"><Icon className="w-5 h-5" /></span>
             <div className="min-w-0">
               <p className="text-xs font-bold text-ink dark:text-[#f3ede3] leading-tight">{t(k, lang)}</p>
               <p className="text-[11px] text-mute dark:text-[#a89f92] leading-tight mt-0.5">{t(`${k}Sub`, lang)}</p>
             </div>
-          </li>
+          </Reveal>
         ))}
       </ul>
-    </div>
-  );
-}
-
-/* ------------------------- Horizontal new drops ---------------------- */
-function ScrollRow({ list }: { list: Product[] }) {
-  if (!list.length) return <EmptyRail />;
-  return (
-    <div className="flex gap-3 sm:gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-      {list.map((p) => (
-        <div key={p.id} className="w-[46%] sm:w-[30%] lg:w-[23%] shrink-0 snap-start">
-          <ProductCard p={p} />
-        </div>
-      ))}
     </div>
   );
 }
@@ -196,8 +187,10 @@ function ScrollRow({ list }: { list: Product[] }) {
 function CategoryCard({ c, lang }: { c: Category; lang: "ar" | "en" }) {
   const img = categoryImageUrl(c.image, c.slug);
   const name = lang === "ar" ? c.nameAr : c.nameEn;
+  const reveal = useReveal<HTMLAnchorElement>();
   return (
     <Link
+      ref={reveal}
       to={`/category/${c.slug}`}
       className="group relative rounded-2xl overflow-hidden aspect-[4/5] bg-sand dark:bg-[#201a15]"
       aria-label={name}
@@ -227,12 +220,3 @@ function CategoryCard({ c, lang }: { c: Category; lang: "ar" | "en" }) {
 
 /* ---------------------------- Newsletter ----------------------------- */
 
-
-function EmptyRail() {
-  return (
-    <div className="rounded-2xl border border-dashed border-line dark:border-[#2e2822] p-10 text-center text-sm text-mute dark:text-[#a89f92]">
-      <ImageIcon className="w-8 h-8 mx-auto opacity-50 mb-2" />
-      <span>—</span>
-    </div>
-  );
-}

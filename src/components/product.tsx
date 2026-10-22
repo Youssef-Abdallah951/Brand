@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Product } from "../lib/types";
 import { useLang } from "../i18n/LanguageContext";
 import { useShop } from "../store/ShopContext";
 import { t } from "../i18n/translations";
 import { fmtPrice } from "../lib/format";
 import { Stars } from "./chrome";
-import { HeartIcon, ImageIcon } from "./icons";
+import { useReveal } from "./reveal";
+import { ArrowLeftIcon, ArrowRightIcon, HeartIcon, ImageIcon } from "./icons";
 import { firstProductImage } from "../lib/productImage";
 
 export { firstProductImage, isDirectImageUrl, categoryFallbackUrl, categoryImageUrl, onCategoryImgError } from "../lib/productImage";
@@ -56,9 +57,8 @@ export function ProductName({ p, className }: { p: Product; className?: string }
 
 export function CardBadges({ p }: { p: Product }) {
   const { lang } = useLang();
-  const onSale = !!p.salePrice && p.salePrice < p.price;
   const tag = p.tags?.[0];
-  if (!tag && !onSale) return null;
+  if (!tag) return null;
   return (
     <div className="absolute top-3 start-3 z-10 flex flex-col items-start gap-1.5">
       {tag === "new" && (
@@ -66,9 +66,6 @@ export function CardBadges({ p }: { p: Product }) {
       )}
       {tag === "bestseller" && (
         <span className="bg-bronze/90 text-white text-[11px] font-bold px-2.5 py-1 rounded-full tracking-wide">{t("bestsellerTag", lang)}</span>
-      )}
-      {onSale && (
-        <span className="bg-clay text-white text-[11px] font-bold px-2.5 py-1 rounded-full tracking-wide">{t("saleTag", lang)}</span>
       )}
     </div>
   );
@@ -85,6 +82,7 @@ export function ProductCard({ p }: { p: Product }) {
   const imgB = productImage(p, 1);
   const sale = !!p.salePrice && p.salePrice < p.price ? p.salePrice : undefined;
   const firstColor = p.colors?.[0]?.ar;
+  const reveal = useReveal<HTMLElement>();
 
   const quickAdd = async () => {
     if (out || addState !== "idle") return;
@@ -95,9 +93,8 @@ export function ProductCard({ p }: { p: Product }) {
     window.setTimeout(() => setAddState("done"), 420);
     window.setTimeout(() => setAddState("idle"), 1700);
   };
-
   return (
-    <article className="group relative flex flex-col min-w-0">
+    <article ref={reveal} className="group relative flex flex-col min-w-0">
       {/* Image */}
       <div className="relative overflow-hidden rounded-2xl bg-sand dark:bg-[#201a15]">
         <Link to={`/product/${p.slug}`} className="block aspect-[3/4]" aria-label={name}>
@@ -160,12 +157,9 @@ export function ProductCard({ p }: { p: Product }) {
       <div className="pt-3 pb-1 px-0.5 flex flex-col gap-1">
         <ProductName p={p} className="text-sm leading-snug line-clamp-2 min-h-[2.6rem]" />
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={`font-extrabold text-[0.95rem] ${sale ? "text-clay" : "text-ink dark:text-[#f3ede3]"}`} dir="auto">
+          <span className="font-extrabold text-[0.95rem] text-ink dark:text-[#f3ede3]" dir="auto">
             {fmtPrice(sale ?? p.price, lang)}
           </span>
-          {sale && (
-            <s className="text-xs text-mute dark:text-[#8d8478]" dir="auto">{fmtPrice(p.price, lang)}</s>
-          )}
         </div>
         {p.reviewsCount > 0 && (
           <div className="flex items-center gap-1.5 opacity-80">
@@ -179,8 +173,9 @@ export function ProductCard({ p }: { p: Product }) {
 }
 
 export function SectionTitle({ overline, title, sub }: { overline?: string; title: string; sub?: string }) {
+  const reveal = useReveal<HTMLDivElement>();
   return (
-    <div className="flex flex-col text-center gap-2 mb-8">
+    <div ref={reveal} className="flex flex-col text-center gap-2 mb-8">
       {overline && <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-bronze">{overline}</span>}
       <h2 className="font-display t-h2 font-bold text-ink dark:text-[#f3ede3]">{title}</h2>
       {sub && <p className="text-mute dark:text-[#a89f92] text-sm max-w-xl mx-auto">{sub}</p>}
@@ -217,6 +212,125 @@ export function PageLoader() {
       <div className="w-full max-w-6xl shell">
         <SkeletonGrid n={8} />
       </div>
+    </div>
+  );
+}
+
+const RAIL_EPSILON = 4;
+
+/**
+ * Horizontally scrollable product rail with start/end arrow controls.
+ *
+ * Direction handling is dir-aware, not icon-aware: buttons are positioned with
+ * logical `start`/`end` utilities and the icons flip with the document
+ * direction, so in English (LTR) "next" sits on the right and in Arabic (RTL)
+ * it sits on the left — always pointing toward the reading direction's end.
+ *
+ * RTL scrollLeft conventions differ across browser eras: modern engines
+ * (Chrome 97+, Firefox, Safari 16.4+) run 0 → -max from start to end, while
+ * legacy WebKit runs max → 0. The convention is detected once on the first
+ * measure of an untouched rail (a fresh rail in a legacy browser already
+ * reports `scrollLeft === max`), then scroll progress (0 = content start,
+ * max = content end) and targets are mapped through it consistently.
+ * Arrows are disabled at each boundary and hidden entirely when content fits.
+ */
+export function ProductRail({ children, label }: { children: ReactNode; label: string }) {
+  const { lang, dir } = useLang();
+  const scroller = useRef<HTMLDivElement>(null);
+  const rtlLegacy = useRef<null | boolean>(null);
+  const [bounds, setBounds] = useState({ overflow: false, atStart: true, atEnd: true });
+
+  const measure = useCallback(() => {
+    const el = scroller.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    if (max <= RAIL_EPSILON) {
+      setBounds({ overflow: false, atStart: true, atEnd: true });
+      return;
+    }
+    const sl = el.scrollLeft;
+    let progress: number;
+    if (dir === "rtl") {
+      if (rtlLegacy.current === null) rtlLegacy.current = sl > 0; // untouched rail: legacy reports max at start
+      progress = rtlLegacy.current ? Math.max(0, max - sl) : Math.abs(sl);
+    } else {
+      progress = Math.max(0, sl);
+    }
+    setBounds({
+      overflow: true,
+      atStart: progress <= RAIL_EPSILON,
+      atEnd: progress >= max - RAIL_EPSILON,
+    });
+  }, [dir]);
+
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    measure();
+    el.addEventListener("scroll", measure, { passive: true });
+    // Re-measure on width changes (image/font loading, viewport resize).
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", measure);
+      ro.disconnect();
+    };
+  }, [measure]);
+
+  const track = (to: 1 | -1) => {
+    const el = scroller.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    if (max <= 0) return;
+    const rtl = dir === "rtl";
+    const sl = el.scrollLeft;
+    if (rtl && rtlLegacy.current === null) rtlLegacy.current = sl > 0;
+    const progress = rtl
+      ? (rtlLegacy.current ? Math.max(0, max - sl) : Math.abs(sl))
+      : Math.max(0, sl);
+    const step = Math.max(el.clientWidth * 0.85, 220) * to;
+    const target = Math.max(0, Math.min(max, progress + step));
+    // Map progress back to this browser's scrollLeft convention.
+    const left = rtl ? (rtlLegacy.current ? max - target : -target) : target;
+    el.scrollTo({ left, top: 0, behavior: "smooth" });
+  };
+
+  const startIcon = dir === "ltr" ? <ArrowLeftIcon className="w-5 h-5" /> : <ArrowRightIcon className="w-5 h-5" />;
+  const endIcon = dir === "ltr" ? <ArrowRightIcon className="w-5 h-5" /> : <ArrowLeftIcon className="w-5 h-5" />;
+  const railBtn =
+    "absolute top-1/2 -translate-y-1/2 z-10 w-11 h-11 grid place-items-center rounded-full bg-white/92 dark:bg-[#1c1815]/92 text-ink dark:text-[#f3ede3] shadow-lg backdrop-blur transition hover:bg-white dark:hover:bg-[#201a15] btn-press";
+
+  return (
+    <div className="relative">
+      <div
+        ref={scroller}
+        aria-label={label}
+        className="flex gap-3 sm:gap-5 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2 -mx-4 px-4 sm:mx-0 sm:px-0"
+      >
+        {children}
+      </div>
+      {bounds.overflow && (
+        <>
+          <button
+            type="button"
+            onClick={() => track(-1)}
+            disabled={bounds.atStart}
+            aria-label={t("railPrev", lang)}
+            className={`${railBtn} start-1 sm:start-2 ${bounds.atStart ? "opacity-30 cursor-not-allowed" : ""}`}
+          >
+            {startIcon}
+          </button>
+          <button
+            type="button"
+            onClick={() => track(1)}
+            disabled={bounds.atEnd}
+            aria-label={t("railNext", lang)}
+            className={`${railBtn} end-1 sm:end-2 ${bounds.atEnd ? "opacity-30 cursor-not-allowed" : ""}`}
+          >
+            {endIcon}
+          </button>
+        </>
+      )}
     </div>
   );
 }

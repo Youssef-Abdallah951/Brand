@@ -70,7 +70,7 @@ export default function ProductDetails() {
 
   // SEO: per-product title/description/OG image (hooks before the early return).
   usePageMeta(
-    `${p ? (lang === "ar" ? p.nameAr : p.nameEn) : t("productNotFound", lang)} | JiA`,
+    `${p ? (lang === "ar" ? p.nameAr : p.nameEn) : t("productNotFound", lang)} | Jia`,
     p ? (lang === "ar" ? p.descAr : p.descEn) : undefined,
     p ? firstProductImage(p.images) : undefined,
   );
@@ -177,8 +177,7 @@ export default function ProductDetails() {
             </div>
           )}
           <div className="mt-3" dir="auto">
-            <span className={`text-2xl font-extrabold ${sale ? "text-clay" : "text-ink dark:text-[#f3ede3]"}`}>{fmtPrice(sale ?? p.price, lang)}</span>
-            {sale && <s className="ms-2 text-sm text-mute dark:text-[#8d8478]">{fmtPrice(p.price, lang)}</s>}
+            <span className="text-2xl font-extrabold text-ink dark:text-[#f3ede3]">{fmtPrice(sale ?? p.price, lang)}</span>
           </div>
 
           <p className="text-mute dark:text-[#a89f92] mt-3 leading-relaxed text-sm sm:text-base">{desc}</p>

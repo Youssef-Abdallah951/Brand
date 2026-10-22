@@ -28,7 +28,7 @@ const H = ({ children }: { children: React.ReactNode }) => (
 
 export function ShippingPolicy() {
   const { lang } = useLang();
-  usePageMeta(`${t("policyShipping", lang)} | JiA`, t("heroSub", lang));
+  usePageMeta(`${t("policyShipping", lang)} | Jia`, t("heroSub", lang));
   return (
     <Shell title={t("policyShipping", lang)}>
       {/* TODO(legal): replace with reviewed shipping + returns copy */}
@@ -46,7 +46,7 @@ export function ShippingPolicy() {
 
 export function PrivacyPolicy() {
   const { lang } = useLang();
-  usePageMeta(`${t("policyPrivacy", lang)} | JiA`, t("heroSub", lang));
+  usePageMeta(`${t("policyPrivacy", lang)} | Jia`, t("heroSub", lang));
   return (
     <Shell title={t("policyPrivacy", lang)}>
       {/* TODO(legal): replace with reviewed privacy copy */}
@@ -64,7 +64,7 @@ export function PrivacyPolicy() {
 
 export function TermsOfUse() {
   const { lang } = useLang();
-  usePageMeta(`${t("policyTerms", lang)} | JiA`, t("heroSub", lang));
+  usePageMeta(`${t("policyTerms", lang)} | Jia`, t("heroSub", lang));
   return (
     <Shell title={t("policyTerms", lang)}>
       {/* TODO(legal): replace with reviewed terms copy */}
@@ -75,7 +75,7 @@ export function TermsOfUse() {
       <H>صور المنتجات</H>
       <p>نحرص على أن تعكس الصور المنتج الحقيقي، مع الأخذ في الاعتبار أن الاختلافات البسيطة في درجات الشاشة واردة.</p>
       <H>المحتوى</H>
-      <p>جميع الصور والنصوص في هذا الموقع ملك لمتجر JiA ولا يجوز استخدامها تجارياً دون إذن كتابي.</p>
+      <p>جميع الصور والنصوص في هذا الموقع ملك لمتجر Jia ولا يجوز استخدامها تجارياً دون إذن كتابي.</p>
     </Shell>
   );
 }
@@ -109,7 +109,7 @@ const FAQS: { q: { en: string; ar: string }; a: { en: string; ar: string } }[] =
 
 export function FaqPage() {
   const { lang } = useLang();
-  usePageMeta(`${t("faq", lang)} | JiA`, t("heroSub", lang));
+  usePageMeta(`${t("faq", lang)} | Jia`, t("heroSub", lang));
   return (
     <main className="shell pt-8 pb-16 max-w-3xl">
       <h1 className="font-display t-h2 font-bold text-ink dark:text-[#f3ede3]">{t("faq", lang)}</h1>

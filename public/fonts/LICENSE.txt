@@ -1,0 +1,10 @@
+Norican — brand wordmark font (self-hosted, latin subset)
+=========================================================
+Source: Google Fonts — https://fonts.google.com/specimen/Norican
+Designer: Vernon Adams
+License: SIL Open Font License 1.1 (OFL.txt at the source repo)
+File: norican-latin.woff2 (latin subset, OFL-licensed, woff2)
+
+Chosen to visually match the script lettering of the official "Jia"
+logo artwork (flowing signature script, capital-J loop with an
+underlining swash). Used ONLY for the brand wordmark.

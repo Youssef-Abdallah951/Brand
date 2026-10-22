@@ -88,6 +88,16 @@ function PageviewProbe() {
   return null;
 }
 
+/** Browser back/forward restores scroll naturally; SPA route changes jump to
+ *  the top (path changes only — query changes like filter/hash edits don't). */
+function ScrollToTop() {
+  const pathname = useLocation().pathname;
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname]);
+  return null;
+}
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -95,6 +105,7 @@ export default function App() {
         <ShopProvider>
           <BrowserRouter>
             <PageviewProbe />
+            <ScrollToTop />
             <Routes>
               <Route element={<Shell />}>
                 <Route path="/" element={<Home />} />

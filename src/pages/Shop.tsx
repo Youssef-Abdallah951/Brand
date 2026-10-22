@@ -39,7 +39,7 @@ export default function Shop() {
     }, { replace: true });
   };
 
-  usePageMeta(`${t("shopAll", lang)} | JiA`, t("heroSub", lang));
+  usePageMeta(`${t("shopAll", lang)} | Jia`, t("heroSub", lang));
 
   // Local input for snappy typing, pushed to the URL after a short pause.
   const [qInput, setQInput] = useState(urlQ);

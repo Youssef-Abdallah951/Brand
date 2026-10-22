@@ -3,8 +3,8 @@
  * data integrity beats offline comfort for a COD storefront. Pages are
  * network-first with a cached "/" offline fallback.
  */
-const VERSION = "jia-media-v1";
-const PRECACHE = ["/", "/manifest.webmanifest", "/logo.png", "/images/hero.webp", "/images/hero.jpg", "/images/placeholder.jpg"];
+const VERSION = "jia-media-v2";
+const PRECACHE = ["/", "/manifest.webmanifest", "/logo.png", "/loading-screen.png", "/images/hero.webp", "/images/hero.jpg", "/images/placeholder.jpg"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(

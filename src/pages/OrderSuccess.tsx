@@ -5,7 +5,7 @@ import { t, STATUS_LABEL } from "../i18n/translations";
 import { fmtPrice } from "../lib/format";
 import { SITE_CONFIG } from "../lib/siteConfig";
 import { getLocalOrder, orderWhatsAppLink } from "../lib/orders";
-import { AlertIcon, ChatIcon, CheckIcon } from "../components/icons";
+import { ChatIcon, CheckIcon } from "../components/icons";
 import type { Order } from "../lib/types";
 
 type SuccessState = Partial<Order> & {
@@ -79,13 +79,6 @@ export default function OrderSuccess() {
         <div className="w-20 h-20 mx-auto rounded-full bg-sand dark:bg-[#201a15] grid place-items-center text-bronze-deep dark:text-bronze soft-shadow"><CheckIcon className="w-9 h-9" /></div>
         <h1 className="font-display t-h2 font-bold mt-5 text-ink dark:text-[#f3ede3]">{t("orderSuccess", lang)}</h1>
         <p className="text-mute dark:text-[#a89f92] mt-2">{t("orderThanks", lang)}</p>
-        <div className="inline-block mt-5 bg-white dark:bg-[#191512] border border-line dark:border-[#2e2822] rounded-2xl px-7 py-3.5 soft-shadow">
-          <span className="text-[11px] text-mute dark:text-[#a89f92] block">{t("orderNumber", lang)}</span>
-          <span className="font-display font-bold text-xl text-bronze-deep dark:text-bronze" dir="ltr">#{orderNumber}</span>
-        </div>
-        <p className="text-xs text-amber-700 dark:text-amber-200 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-full px-4 py-2 mt-4 font-bold inline-flex items-center gap-1.5">
-          <AlertIcon className="w-4 h-4 shrink-0" /> {t("saveOrderNo", lang)}
-        </p>
       </div>
 
       {snap && (

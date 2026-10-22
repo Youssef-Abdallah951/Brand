@@ -31,7 +31,7 @@ export function QuickView() {
   if (!p) return null;
   const name = lang === "ar" ? p.nameAr : p.nameEn;
   const out = p.stock <= 0;
-  const sale = p.salePrice && p.salePrice < p.price ? p.salePrice : undefined;
+  const unit = p.salePrice && p.salePrice < p.price ? p.salePrice : p.price;
   const gallery = [0, 1, 2].map((i) => productImage(p, i)).filter((v, i, a) => a.indexOf(v) === i);
   const wished = wishlist.includes(p.id);
 
@@ -70,15 +70,9 @@ export function QuickView() {
           <div className="flex items-center gap-2">
             <Stars value={p.rating} />
             <span className="text-xs text-mute dark:text-[#a89f92]" dir="auto">
-              {fmtPrice(sale ?? p.price, lang)}{p.reviewsCount > 0 ? ` · ${p.reviewsCount} ${t("reviewsCount", lang)}` : ""}
+              {fmtPrice(unit, lang)}{p.reviewsCount > 0 ? ` · ${p.reviewsCount} ${t("reviewsCount", lang)}` : ""}
             </span>
           </div>
-          {sale && (
-            <div className="flex items-baseline gap-2" dir="auto">
-              <span className="text-xl font-extrabold text-clay">{fmtPrice(sale, lang)}</span>
-              <s className="text-sm text-mute dark:text-[#8d8478]">{fmtPrice(p.price, lang)}</s>
-            </div>
-          )}
 
           {p.colors && p.colors.length > 0 && (
             <div>

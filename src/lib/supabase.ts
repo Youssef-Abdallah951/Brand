@@ -19,7 +19,7 @@ if (!anon) {
   // Seed / preview mode — NOT an error. src/lib/orders.ts routes checkout to
   // the local-storage + WhatsApp flow when Supabase is not configured.
   console.warn(
-    "[JiA] Supabase env vars are not set — running without a backend: " +
+    "[Jia] Supabase env vars are not set — running without a backend: " +
     "orders are stored locally and confirmed over WhatsApp.",
   );
 }

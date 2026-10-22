@@ -5,8 +5,8 @@ import { WHATSAPP_NUMBER } from "./config";
 
 export const SITE_CONFIG = {
   brand: {
-    nameEn: "JiA",
-    nameAr: "JiA",
+    nameEn: "Jia",
+    nameAr: "Jia",
     taglineEn: "Silk & Essentials",
     taglineAr: "Silk & Essentials",
   },
@@ -22,8 +22,8 @@ export const SITE_CONFIG = {
       return `tel:+${SITE_CONFIG.admin.phoneIntl}`;
     },
     // Default chat message
-    defaultChatMessageEn: "Hello JiA! I need help with my order.",
-    defaultChatMessageAr: "أهلاً JiA! محتاجة مساعدة في الطلب بتاعي.",
+    defaultChatMessageEn: "Hello Jia! I need help with my order.",
+    defaultChatMessageAr: "أهلاً Jia! محتاجة مساعدة في الطلب بتاعي.",
     // Admin-only display affordance: products at/below this stock get a
     // low-stock badge in the dashboard.
     lowStock: 5,

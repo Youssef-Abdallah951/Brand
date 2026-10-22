@@ -761,7 +761,7 @@ export function AdminDashboard() {
 
       {tab === "coupons" && (
         <div className="mt-5 grid gap-2">
-          {!live && <p className="text-xs text-mute dark:text-[#a89f92] bg-sand dark:bg-[#201a15] rounded-2xl px-4 py-3 font-bold">Coupons are config-based (src/lib/coupons.ts) and work in demo too.</p>}
+          {!live && <p className="text-xs text-mute dark:text-[#a89f92] bg-sand dark:bg-[#201a15] rounded-2xl px-4 py-3 font-bold">Coupon codes are config-based (src/lib/coupons.ts); this catalog is for reference even in demo mode.</p>}
           {COUPONS.map((c: Coupon) => (
             <div key={c.code} className={`${card} p-4 flex flex-wrap items-center gap-3 text-sm`}>
               <span className="font-display font-bold text-bronze-deep dark:text-bronze" dir="ltr">{c.code}</span>
@@ -769,7 +769,7 @@ export function AdminDashboard() {
               <span className="text-xs text-mute dark:text-[#a89f92]">min spend {fmtPrice(c.minSpend, "en")}{c.expires ? ` · until ${c.expires}` : " · no expiry"}</span>
             </div>
           ))}
-          <p className="text-xs text-mute dark:text-[#a89f92]">Edit codes in <code>src/lib/coupons.ts</code> — applied in the cart drawer + checkout; discount travels with the order row.</p>
+          <p className="text-xs text-mute dark:text-[#a89f92]">Edit codes in <code>src/lib/coupons.ts</code> — customer-facing redemption is disabled at checkout; the reference table below is for announcements only.</p>
         </div>
       )}
 

@@ -17,6 +17,8 @@ const dict = {
   imgHeroAlt: { en: "Woman wearing an elegant hijab and wrapped scarf, strolling on a sunlit city street.", ar: "امرأة ترتدي حجاباً أنيقاً ووشاحاً ملماً وتتجول في شارع مضيء بالشمس." },
   shopNow: { en: "Shop Now", ar: "تسوقي الآن" },
   heroOverline: { en: "New drops every week", ar: "تشكيلات جديدة كل أسبوع" },
+  railPrev: { en: "Previous products", ar: "المنتجات السابقة" },
+  railNext: { en: "More products", ar: "منتجات أخرى" },
 
   // Home sections
   fabricTitle: { en: "Shop by Fabric", ar: "اختاري خامتك" },
@@ -32,7 +34,7 @@ const dict = {
   storyTitle: { en: "From our journal", ar: "من مذكّراتنا" },
   storySub: { en: "Styling notes, faith & everyday rituals.", ar: "هامش تأنيق وإيمان وطقوس اليوم الطويل." },
   storyCta: { en: "Read more", ar: "اقرئي المزيد" },
-  nlTitle: { en: "Join the JiA circle", ar: "انضمي إلى عائلة JiA" },
+  nlTitle: { en: "Join the Jia circle", ar: "انضمي إلى عائلة Jia" },
   nlSub: { en: "First looks on new drops, private offers and styling letters — straight to your inbox.", ar: "أول الأخبار عن التشكيلات الجديدة وعروض خاصة ورسائل تأنيق — يوصلك كل ذلك في بريدك." },
   nlPlaceholder: { en: "Your email address", ar: "بريدك الإلكتروني" },
   nlBtn: { en: "Subscribe", ar: "اشتركي" },
@@ -72,7 +74,6 @@ const dict = {
   soldOut: { en: "Sold out", ar: "نفدت الكمية" },
   newTag: { en: "New", ar: "جديد" },
   bestsellerTag: { en: "Bestseller", ar: "الأكثر مبيعاً" },
-  saleTag: { en: "Sale", ar: "خصم" },
   addToCartBusy: { en: "Adding…", ar: "جاري الإضافة…" },
   addToCartDone: { en: "Added ✓", ar: "تمت الإضافة ✓" },
   addedToCart: { en: "Product added to cart", ar: "تمت إضافة المنتج إلى السلة" },
@@ -143,13 +144,7 @@ const dict = {
   addWish: { en: "Add to wishlist", ar: "أضيفي للمفضلة" },
   removeWish: { en: "Remove from wishlist", ar: "احذفي من المفضلة" },
 
-  // Coupon labels
-  coupon: { en: "Discount code", ar: "كود الخصم" },
-  couponApply: { en: "Apply", ar: "تطبيق" },
-  couponInvalid: { en: "This code doesn't exist", ar: "هذا الكود غير صحيح" },
-  couponExpired: { en: "This code has expired", ar: "انتهت صلاحية هذا الكود" },
-  couponMinSpend: { en: "This code needs a higher order total", ar: "الطلب أقل من الحد الأدنى لهذا الكود" },
-  discount: { en: "Discount", ar: "الخصم" },
+  // Checkout
   placingOrder: { en: "Placing order…", ar: "جاري إتمام الطلب…" },
 
   // Checkout
@@ -176,8 +171,6 @@ const dict = {
   sendWhatsApp: { en: "Send Order via WhatsApp", ar: "إرسال الطلب عبر واتساب" },
   orderSuccess: { en: "Your order has been placed successfully.", ar: "تم تأكيد طلبك بنجاح" },
   orderThanks: { en: "Thank you! We will contact you to confirm your order.", ar: "شكراً لطلبك، سيتم التواصل معك لتأكيد الطلب." },
-  orderNumber: { en: "Order Number", ar: "رقم الطلب" },
-  saveOrderNo: { en: "Save your order number — you will need it for support and WhatsApp service.", ar: "احفظي رقم طلبك — ستحتاجينه لخدمة العملاء والتواصل عبر واتساب." },
   orderMissingNo: { en: "We couldn't find an order number in this link.", ar: "لم نتمكن من العثور على رقم الطلب في هذا الرابط." },
   helpWhatsApp: { en: "Ask about your order on WhatsApp", ar: "اسألي عن طلبك على واتساب" },
   connError: { en: "Unable to connect to the server. Please try again.", ar: "تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى." },
@@ -193,7 +186,7 @@ const dict = {
   // Footer
   footerAbout: { en: "Modest fashion, made tender. Modern hijabs and gentle accessories from our atelier to your doorstep — delivered cash-first across Egypt.", ar: "موضة محتشمة بشفافية هي كل جديدنا. حجابات عصرية وإكسسوارات لطيفة من أتيليهنا حتى باب بيتك — والدفع عند الاستلام لكل مصر." },
   quickLinks: { en: "Quick Links", ar: "روابط سريعة" },
-  customerService: { en: "Customer Service", ar: "خدمة العملاء" },
+  policies: { en: "Policies", ar: "السياسات" },
   policyShipping: { en: "Shipping Policy", ar: "سياسة الشحن والتوصيل" },
   policyReturns: { en: "Returns & Exchange", ar: "الاستبدال والاسترجاع" },
   policyPrivacy: { en: "Privacy Policy", ar: "سياسة الخصوصية" },

@@ -4,7 +4,21 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ---------------------------------------------------------------------------
-   JiA design tokens — premium minimal modest-fashion palette.
+   Brand wordmark font — self-hosted Norican (SIL OFL, public/fonts/).
+   Chosen to visually match the script lettering of the official Jia logo:
+   flowing signature script, thick strokes, capital-J loop whose tail
+   sweeps beneath "ia" exactly like the artwork. Latin subset only.
+   --------------------------------------------------------------------------- */
+@font-face {
+  font-family: "Norican";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/norican-latin.woff2") format("woff2");
+}
+
+/* ---------------------------------------------------------------------------
+    Jia design tokens — premium minimal modest-fashion palette.
    Warm neutrals (cream / sand / ink) with a bronze accent.
    --------------------------------------------------------------------------- */
 @theme {
@@ -19,6 +33,7 @@
 
   --font-display: "El Messiri", "Tajawal", "Segoe UI", system-ui, sans-serif;
   --font-body: "Tajawal", "Segoe UI", system-ui, sans-serif;
+  --font-script: "Norican", "Segoe Script", cursive;
 
   --ease-soft: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
@@ -67,6 +82,7 @@ body {
 }
 
 .font-display { font-family: var(--font-display); }
+.font-script { font-family: var(--font-script); font-weight: 400; }
 
 /* Fluid display sizes (no layout shift, mobile-first) */
 .t-hero  { font-size: clamp(2.1rem, 1.2rem + 4.2vw, 4rem); line-height: 1.14; letter-spacing: -0.01em; }
@@ -102,6 +118,29 @@ body {
 .sheet-panel { animation: sheetIn .32s var(--ease-soft) both; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .fade-in { animation: fadeIn .25s ease both; }
+
+/* Scroll reveal (IntersectionObserver driven): the hidden state is ADDED from
+   JS only when IO + full-motion are available, so missing JS, a stale cache or
+   a reduced-motion visitor always gets the plain, fully-visible page. */
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition: opacity .55s var(--ease-soft), transform .55s var(--ease-soft);
+  transition-delay: var(--rd, 0ms);
+}
+.reveal-in {
+  opacity: 1;
+  transform: none;
+  transition-delay: var(--rd, 0ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
 
 /* --- Effects ------------------------------------------------------------ */
 .soft-shadow { box-shadow: 0 18px 50px -24px rgba(28, 26, 23, .22), 0 6px 18px -8px rgba(28, 26, 23, .08); }

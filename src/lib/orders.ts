@@ -119,7 +119,7 @@ export function buildOrderWhatsAppMessage(order: Order): string {
     lines.push(order.notes.trim());
   }
   lines.push("");
-  lines.push("— من موقع JiA | Silk & Essentials");
+  lines.push("— من موقع Jia | Silk & Essentials");
   return lines.join("\n");
 }
 

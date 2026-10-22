@@ -9,7 +9,7 @@ import { usePageMeta } from "../lib/meta";
 export default function Wishlist() {
   const { lang } = useLang();
   const { products, wishlist, productsLoading } = useShop();
-  usePageMeta(`${t("wishlist", lang)} | JiA`);
+  usePageMeta(`${t("wishlist", lang)} | Jia`);
 
   const items = wishlist
     .map((id) => products.find((p) => p.id === id || p.slug === id))

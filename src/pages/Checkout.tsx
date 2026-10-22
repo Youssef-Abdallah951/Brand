@@ -7,7 +7,6 @@ import { fmtPrice } from "../lib/format";
 import { GOVERNORATES } from "../lib/egypt";
 import { SITE_CONFIG } from "../lib/siteConfig";
 import { createOrder } from "../lib/orders";
-import { couponDiscount } from "../lib/coupons";
 import { sanitizeText } from "../lib/sanitize";
 import { usePageMeta } from "../lib/meta";
 import { firstProductImage, onImgError } from "../components/product";
@@ -32,8 +31,8 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 
 export default function Checkout() {
   const { lang } = useLang();
-  const { cart, productById, clearCart, pushToast, zones, coupon, applyCoupon, clearCoupon, discountOf } = useShop();
-  usePageMeta(`${t("checkout", lang)} | JiA`);
+  const { cart, productById, clearCart, pushToast, zones } = useShop();
+  usePageMeta(`${t("checkout", lang)} | Jia`);
   const nav = useNavigate();
   const [showSummary, setShowSummary] = useState(false);
   const [placing, setPlacing] = useState(false);
@@ -48,7 +47,6 @@ export default function Checkout() {
     deliveryMethod: "", paymentMethod: "cod",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof CheckoutForm, string>>>({});
-  const [codeInput, setCodeInput] = useState("");
 
   const rows = useMemo(
     () => cart.map((c) => {
@@ -73,12 +71,8 @@ export default function Checkout() {
       ? form.deliveryMethod === "express" ? zone.expressFee : zone.standardFee
       : form.deliveryMethod === "express" ? SITE_CONFIG.delivery.expressFee : SITE_CONFIG.delivery.standardFee;
   }, [form.deliveryMethod, subtotal, zone]);
-  const totalCalc = useMemo(() => {
-    const discount = coupon && subtotal >= coupon.minSpend ? discountOf(subtotal) : 0;
-    return Math.max(0, subtotal - discount + deliveryFee);
-  }, [subtotal, deliveryFee, coupon, discountOf]);
-  const discount = coupon && subtotal >= coupon.minSpend ? discountOf(subtotal) : 0;
-  const total = totalCalc;
+  // COD pricing: the displayed total is exactly Subtotal + Delivery Fee.
+  const total = Math.max(0, subtotal + deliveryFee);
   const vm = (k: string) => VALIDATION_MSG[k]?.[lang] ?? k;
 
   const set = (k: keyof CheckoutForm, v: string) => {
@@ -145,11 +139,9 @@ export default function Checkout() {
       : (zone
         ? form.deliveryMethod === "express" ? zone.expressFee : zone.standardFee
         : form.deliveryMethod === "express" ? SITE_CONFIG.delivery.expressFee : SITE_CONFIG.delivery.standardFee);
-    // The stored coupon is re-checked against the LIVE subtotal: if the cart
-    // shrank below the coupon's minimum spend, the discount silently drops.
-    const liveCoupon = coupon && liveSubtotal >= coupon.minSpend ? coupon : undefined;
-    const liveDiscount = liveCoupon ? couponDiscount(liveCoupon, liveSubtotal) : discountOf(subtotal);
-    if (coupon && !liveCoupon) clearCoupon();
+    // Discount stays 0 — customer-facing coupon redemption is disabled, but
+    // the DB column/API field is still required by the order pipeline.
+    const liveDiscount = 0;
     const liveTotal = Math.max(0, liveSubtotal - liveDiscount + liveDelivery);
     const notes = [sanitizeText(form.notes, 240), ...giftBits].filter(Boolean).join("\n");
 
@@ -349,37 +341,6 @@ export default function Checkout() {
         <aside className={`${cardCls} lg:sticky lg:top-28 ${showSummary ? "block" : "hidden lg:block"}`}>
           <h2 className={`${headingCls} inline-flex items-center gap-2`}><ReceiptIcon className={`w-5 h-5 ${iconCls}`} /> {t("orderSummary", lang)}</h2>
 
-          {/* Coupon row */}
-          {coupon ? (
-            <div className="mt-3 flex items-center justify-between gap-2 bg-sand dark:bg-[#201a15] border border-line dark:border-[#2e2822] rounded-full px-4 py-2">
-              <span className="text-sm font-bold text-ink dark:text-[#f3ede3] inline-flex items-center gap-2">
-                <SparklesIcon className="w-4 h-4 text-bronze" />
-                <span dir="ltr">{coupon.code}</span>
-              </span>
-              <button type="button" onClick={clearCoupon} className="text-clay text-xs font-bold hover:underline" aria-label={t("remove", lang)}>
-                {t("remove", lang)}
-              </button>
-            </div>
-          ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const raw = codeInput.trim();
-                if (!raw) return;
-                const err = applyCoupon(raw, subtotal);
-                if (err) pushToast(t(err === "invalid" ? "couponInvalid" : err === "expired" ? "couponExpired" : "couponMinSpend", lang));
-                setCodeInput("");
-              }}
-              className="mt-3 flex gap-2"
-            >
-              <input value={codeInput} onChange={(e) => setCodeInput(e.target.value.toUpperCase())} placeholder={t("coupon", lang)} aria-label={t("coupon", lang)}
-                className="flex-1 min-w-0 rounded-full border border-line dark:border-[#2e2822] bg-white dark:bg-[#1c1815] px-4 py-2.5 text-sm outline-none focus:border-bronze text-ink dark:text-[#f3ede3] uppercase tracking-wide" />
-              <button type="submit" className="rounded-full bg-ink text-[#f3ede3] px-5 py-2.5 text-sm font-bold hover:bg-bronze-deep transition">
-                {t("couponApply", lang)}
-              </button>
-            </form>
-          )}
-
           <div className="grid gap-3 mt-4 max-h-72 overflow-auto pe-1">
             {rows.map((r) => {
               const thumb = firstProductImage(r.p.images);
@@ -405,12 +366,6 @@ export default function Checkout() {
           </div>
           <div className="border-t border-dashed border-line dark:border-[#2e2822] mt-4 pt-3 grid gap-1.5 text-sm">
             <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{t("subtotal", lang)}</span><span className="font-bold text-ink dark:text-[#f3ede3]" dir="auto">{fmtPrice(subtotal, lang)}</span></div>
-            {discount > 0 && (
-              <div className="flex justify-between text-clay">
-                <span>{t("discount", lang)}{coupon ? <> · <span dir="ltr">{coupon.code}</span></> : null}</span>
-                <span className="font-bold" dir="auto">− {fmtPrice(discount, lang)}</span>
-              </div>
-            )}
             <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{t("delivery", lang)}</span><span className="font-bold text-ink dark:text-[#f3ede3]" dir="auto">{fmtPrice(deliveryFee, lang)}</span></div>
             <div className="flex justify-between text-base font-display"><span className="font-bold text-ink dark:text-[#f3ede3]">{t("total", lang)}</span><span className="font-extrabold text-bronze-deep dark:text-bronze" dir="auto">{fmtPrice(total, lang)}</span></div>
           </div>

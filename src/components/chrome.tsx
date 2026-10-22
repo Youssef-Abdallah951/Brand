@@ -19,16 +19,6 @@ export function Stars({ value = 4.5 }: { value?: number }) {
   );
 }
 
-export function Price({ price, lang, sale }: { price: number; lang: "ar" | "en"; sale?: number }) {
-  const show = sale && sale < price ? sale : price;
-  return (
-    <span className="inline-flex items-baseline gap-2 flex-wrap" dir="auto">
-      <span className={`font-extrabold text-[1.05rem] ${sale && sale < price ? "text-clay" : "text-ink dark:text-[#f3ede3]"}`}>{fmtPrice(show, lang)}</span>
-      {sale && sale < price && <s className="text-sm text-mute dark:text-[#8d8478]">{fmtPrice(price, lang)}</s>}
-    </span>
-  );
-}
-
 export function ThemeToggle() {
   const { lang } = useLang();
   const { theme, toggleTheme } = useTheme();
@@ -145,7 +135,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                 const name = lang === "ar" ? p.nameAr : p.nameEn;
                 const cat = categories.find((c) => c.id === p.categoryId || c.slug === p.categoryId);
                 const meta = lang === "ar" ? (p.fabricAr || cat?.nameAr || "") : (p.fabricEn || cat?.nameEn || "");
-                const sale = p.salePrice && p.salePrice < p.price ? p.salePrice : undefined;
+                const unit = p.salePrice && p.salePrice < p.price ? p.salePrice : p.price;
                 const img = productImage(p, 0);
                 return (
                   <li key={p.id}>
@@ -163,7 +153,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                         <span className="block truncate text-sm font-bold text-ink dark:text-[#f3ede3]">{name}</span>
                         <span className="block truncate text-xs text-mute dark:text-[#a89f92]" dir="auto">{meta}</span>
                       </span>
-                      <span dir="auto" className={`text-sm font-extrabold shrink-0 ${sale ? "text-clay" : "text-ink dark:text-[#f3ede3]"}`}>{fmtPrice(sale ?? p.price, lang)}</span>
+                      <span dir="auto" className="text-sm font-extrabold shrink-0 text-ink dark:text-[#f3ede3]">{fmtPrice(unit, lang)}</span>
                     </button>
                   </li>
                 );
@@ -218,7 +208,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
       <button className="absolute inset-0 bg-black/40 fade-in" onClick={onClose} aria-label={t("close", lang)} />
       <nav ref={panelRef} className="drawer-panel absolute start-0 top-0 bottom-0 w-[86%] max-w-sm bg-white dark:bg-[#191512] shadow-2xl flex flex-col overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b border-line dark:border-[#2e2822]">
-          <img src="/logo.png" alt="JiA" className="w-10 h-10 rounded-full object-cover" />
+          <img src="/logo.png" alt="Jia" className="w-10 h-10 rounded-full object-cover" />
           <button ref={closeRef} onClick={onClose} aria-label={t("close", lang)} className={iconBtn}><XIcon className="w-5 h-5" /></button>
         </div>
         <div className="p-4 grid gap-1">
@@ -340,11 +330,12 @@ export function Navbar() {
           </nav>
         </div>
 
-        {/* Centered logo */}
-        <Link to="/" className="flex flex-col items-center justify-center gap-0.5 px-2 select-none" aria-label="JiA Silk & Essentials — الرئيسية">
+        {/* Centered logo — official artwork image + live script wordmark
+            matching the logo's lettering (kept for a11y & responsive) */}
+        <Link to="/" className="flex flex-col items-center justify-center px-2 select-none" aria-label="Jia Silk & Essentials — الرئيسية">
           <img src="/logo.png" alt="" aria-hidden="true" className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover shrink-0" />
-          <span className="font-display font-bold text-[1.05rem] md:text-xl leading-none text-ink dark:text-[#f3ede3]">{"JiA"}</span>
-          <span className="hidden min-[380px]:block text-[9px] tracking-[0.28em] uppercase text-bronze leading-none">Silk &amp; Essentials</span>
+          <span className="font-script text-[1.3rem] md:text-[1.5rem] leading-[1.15] text-ink dark:text-[#f3ede3]">Jia</span>
+          <span className="hidden min-[380px]:block text-[9px] tracking-[0.28em] uppercase text-bronze leading-tight font-semibold mt-0.5">Silk &amp; Essentials</span>
         </Link>
 
         {/* End actions */}
@@ -393,21 +384,13 @@ export function Footer() {
     <footer className="mt-20 bg-ink dark:bg-[#191512] text-[#f3ede3]/85">
       <div className="shell py-14 grid gap-10 md:grid-cols-4">
         <div className="md:col-span-1">
-          <div className="font-display font-bold text-xl text-white">JiA <span className="text-bronze">•</span> Silk &amp; Essentials</div>
+          <div className="font-script text-[2.1rem] leading-none text-white">Jia<br /> <span className="font-body uppercase text-base sm:text-lg text-bronze tracking-[0.22em] leading-relaxed">Silk &amp; Essentials</span></div>
           <p className="text-sm text-white/65 mt-3 leading-relaxed">{t("footerAbout", lang)}</p>
           <div className="mt-5 flex gap-2">
-            <a href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram" className={socialBtn}>
-              <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg>
-            </a>
-            <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook" className={socialBtn}>
-              <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
-            </a>
             <a href={SITE_CONFIG.admin.whatsappLink} target="_blank" rel="noreferrer" aria-label="WhatsApp" className={socialBtn}>
               <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>
             </a>
-            <a href="https://tiktok.com" target="_blank" rel="noreferrer" aria-label="TikTok" className={socialBtn}>
-              <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path d="M16 3v8.6a4.2 4.2 0 1 1-3.6-4.16" /><path d="M16 3c.4 2.3 1.9 3.9 4.4 4.2" /></svg>
-            </a>
+
           </div>
         </div>
         <div>
@@ -420,7 +403,7 @@ export function Footer() {
           </div>
         </div>
         <div>
-          <div className="text-xs font-bold tracking-[0.2em] uppercase text-bronze mb-4">{t("customerService", lang)}</div>
+          <div className="text-xs font-bold tracking-[0.2em] uppercase text-bronze mb-4">{t("policies", lang)}</div>
           <div className="grid gap-2.5 text-sm">
             <Link className="hover:text-white transition w-fit" to="/policies/shipping">{t("policyShipping", lang)}</Link>
             <Link className="hover:text-white transition w-fit" to="/policies/shipping">{t("policyReturns", lang)}</Link>
@@ -440,7 +423,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10 text-center text-xs py-5 text-white/50">
-        © 2026 JiA — Silk &amp; Essentials · {t("copyright", lang)} · {t("madeInEgypt", lang)}
+        © 2026 Jia — Silk &amp; Essentials · {t("copyright", lang)} · {t("madeInEgypt", lang)}
       </div>
     </footer>
   );

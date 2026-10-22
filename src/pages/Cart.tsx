@@ -10,7 +10,7 @@ import { CartIcon, ImageIcon, TrashIcon } from "../components/icons";
 export default function Cart() {
   const { lang } = useLang();
   const { cart, productById, setQty, removeFromCart, subtotalOf, pushToast } = useShop();
-  usePageMeta(`${t("cart", lang)} | JiA`);
+  usePageMeta(`${t("cart", lang)} | Jia`);
   const rows = cart
     .map((item) => {
       const p = productById(item.productId);
