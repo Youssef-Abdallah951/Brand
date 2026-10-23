@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 .shots
 devshots.log
+.vercel
+.env*
