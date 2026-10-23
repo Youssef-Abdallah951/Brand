@@ -62,12 +62,8 @@ export default function Home() {
             </picture>
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" aria-hidden="true" />
-          <div className="absolute inset-0 flex flex-col justify-end p-7 sm:p-10 lg:p-14">
-            <span className="w-fit text-[11px] font-bold tracking-[0.22em] uppercase text-white bg-white/15 backdrop-blur px-3 py-1.5 rounded-full mb-4">
-              {t("heroOverline", lang)}
-            </span>
+          <div className="absolute top-22 inset-0 flex flex-col justify-end p-7 sm:p-10 lg:p-14">
             <h1 className="font-display t-hero font-bold text-white max-w-xl">{t("heroTitle", lang)}</h1>
-            <p className="mt-3 text-white/85 text-sm sm:text-base max-w-lg leading-relaxed">{t("heroSub", lang)}</p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link to="/shop" className="min-h-[48px] inline-flex items-center bg-white text-ink font-bold text-sm px-8 rounded-full hover:bg-cream transition btn-press">
                 {t("shopNow", lang)}
