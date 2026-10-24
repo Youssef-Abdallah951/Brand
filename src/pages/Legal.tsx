@@ -15,7 +15,7 @@ function Shell({ title, children }: { title: string; children: React.ReactNode }
         {children}
       </div>
       <p className="mt-8 text-xs text-mute/80 dark:text-[#8d8478] border-t border-line dark:border-[#2e2822] pt-4">
-        لأي استفسار بخصوص هذه السياسة، تواصلي معنا على{" "}
+        لو عندك أي استفسار بخصوص السياسة دي، كلمينا على{" "}
         <a href={SITE_CONFIG.admin.telLink} className="text-bronze underline underline-offset-4" dir="ltr">{SITE_CONFIG.admin.phoneLocal}</a>
       </p>
     </main>
@@ -33,13 +33,13 @@ export function ShippingPolicy() {
     <Shell title={t("policyShipping", lang)}>
       {/* TODO(legal): replace with reviewed shipping + returns copy */}
       <H>مدة التجهيز</H>
-      <p>يتم تجهيز جميع الطلبات داخل ١–٢ يوم عمل من تأكيد الطلب، وتصل طلبات القاهرة والجيزة عادة خلال ٢–٤ أيام عمل، وباقي المحافظات ٣–٥ أيام عمل.</p>
+      <p>بنجهز كل الطلبات خلال ١–٢ يوم عمل من تأكيد الطلب. طلبات القاهرة والجيزة بتوصل عادة خلال ٢–٤ أيام عمل، وباقي المحافظات خلال ٣–٥ أيام عمل.</p>
       <H>الاستبدال والإرجاع</H>
-      <p>يمكنكِ استبدال أو إرجاع أي قطعة خلال ١٤ يوماً من الاستلام، بشرط ألا تكون مستخدمة وأن تظل بغلافها الأصلي وبطاقتها. لا تُستبدل منتجات العناية أو مستلزمات الهدايا المفتوحة.</p>
+      <p>تقدري تستبدلي أو ترجعي أي قطعة خلال ١٤ يوم من الاستلام، بشرط إن القطعة تكون متستخدمتش وتبقى في غلافها الأصلي وببطاقتها. منتجات العناية أو مستلزمات الهدايا اللي اتفتحت مبتتستبدلش.</p>
       <H>رسوم الشحن</H>
-      <p>الشحن القياسي مجاني للطلبات فوق {SITE_CONFIG.delivery.freeThreshold} جنيه، وتُحسب رسوم الشحن السريع حسب المحافظة وتظهر بوضوح قبل تأكيد الطلب.</p>
+      <p>الشحن العادي مجاني للطلبات فوق {SITE_CONFIG.delivery.freeThreshold} جنيه، ورسوم الشحن السريع بتختلف حسب المحافظة وبتظهر بوضوح قبل تأكيد الطلب.</p>
       <H>الدفع عند الاستلام</H>
-      <p>جميع الطلبات تكون الدفع فيها كاش عند الاستلام فقط، ولا توجد أي دفعات إلكترونية مقدمة.</p>
+      <p>كل الطلبات بتتدفع كاش عند الاستلام فقط — مفيش أي دفع إلكتروني مقدم.</p>
     </Shell>
   );
 }
@@ -50,14 +50,14 @@ export function PrivacyPolicy() {
   return (
     <Shell title={t("policyPrivacy", lang)}>
       {/* TODO(legal): replace with reviewed privacy copy */}
-      <H>البيانات التي نجمعها</H>
-      <p>نجمع فقط ما نحتاجه لتوصيل طلبك: الاسم، رقم الموبايل، العنوان، وتفاصيل المنتجات المطلوبة. لا نطلب أي بيانات بنكية إطلاقاً لأن الدفع كاش عند الاستلام.</p>
-      <H>كيف نستخدم بياناتك</H>
-      <p>تُستخدم بياناتك في تجهيز الطلب وتنسيق التوصيل مع مندوب الشحن فقط، ولا نستخدمها لأي رسائل تسويقية إلا بموافقتك الصريحة.</p>
-      <H>مشاركة البيانات</H>
-      <p>نشارك بيانات التوصيل مع شركة الشحن فقط، ولا نبيع أو نشارك أي بيانات مع أي جهة خارجية لأي غرض آخر.</p>
+      <H>البيانات اللي بنجمعها</H>
+      <p>بنجمع بس اللي محتاجينه لتوصيل طلبك: الاسم، رقم الموبايل، العنوان، وتفاصيل المنتجات المطلوبة. مش بنطلب أي بيانات بنكية خالص لأن الدفع كاش عند الاستلام.</p>
+      <H>إزاي بنستخدم بياناتك</H>
+      <p>بياناتك بتتستخدم في تجهيز الطلب وتنسيق التوصيل مع شركة الشحن بس، ومش بنستخدمها في أي رسائل تسويقية غير بموافقتك الصريحة.</p>
+      <H>مين بنشارك بياناتك معاه</H>
+      <p>بنشارك بيانات التوصيل مع شركة الشحن بس، ومش بنبيع أو نشارك أي بيانات مع أي جهة خارجية لأي غرض تاني.</p>
       <H>حقوقك</H>
-      <p>يمكنكِ طلب حذف بياناتك أو الاستفسار عنها في أي وقت عبر التواصل معنا على الرقم الموضح أسفل الصفحة.</p>
+      <p>تقدري في أي وقت تطلبي حذف بياناتك أو تسألي عنها من خلال التواصل معانا على الرقم اللي تحت في الصفحة.</p>
     </Shell>
   );
 }
@@ -69,41 +69,41 @@ export function TermsOfUse() {
     <Shell title={t("policyTerms", lang)}>
       {/* TODO(legal): replace with reviewed terms copy */}
       <H>استخدام الموقع</H>
-      <p>باستخدامك للموقع فإنك توافقين على إتمام الطلبات ببيانات صحيحة وكاملة، وأي طلب ببيانات خاطئة قد يُلغى دون إشعار.</p>
+      <p>باستخدامك الموقع إنتي موافقة إنك تكملي الطلبات ببيانات صحيحة وكاملة، وأي طلب ببيانات غلط ممكن يتلغي من غير إشعار.</p>
       <H>الأسعار والتوفر</H>
-      <p>جميع الأسعار بالجنيه المصري وتشمل قيمة المنتج فقط، وقد يتغير توفر القطع دون إشعار مسبق. في حال نفاد قطعة بعد الطلب، نتواصل معكِ لإكمال أو استرجاع قيمة الطلب.</p>
+      <p>كل الأسعار بالجنيه المصري وتشمل قيمة المنتج بس، وممكن توفر القطع يتغير من غير إشعار مسبق. لو قطعة خلصت بعد الطلب، هنكلمك نكمل الطلب أو نرجعلك قيمته.</p>
       <H>صور المنتجات</H>
-      <p>نحرص على أن تعكس الصور المنتج الحقيقي، مع الأخذ في الاعتبار أن الاختلافات البسيطة في درجات الشاشة واردة.</p>
+      <p>بنحاول خالص إن الصور تعبر عن المنتج الحقيقي، مع مراعاة إن ممكن تحصل اختلافات بسيطة حسب إعدادات الشاشة.</p>
       <H>المحتوى</H>
-      <p>جميع الصور والنصوص في هذا الموقع ملك لمتجر Jia ولا يجوز استخدامها تجارياً دون إذن كتابي.</p>
+      <p>كل الصور والنصوص في الموقع ده ملك لمتجر Jia وممنوع استخدامها تجارياً من غير إذن مكتوب.</p>
     </Shell>
   );
 }
 
 const FAQS: { q: { en: string; ar: string }; a: { en: string; ar: string } }[] = [
   {
-    q: { en: "Is cash on delivery available?", ar: "هل الدفع عند الاستلام متاح؟" },
-    a: { en: "Yes — cash on delivery is the only payment method. Pay the courier when your order arrives.", ar: "نعم، الدفع عند الاستلام هو طريقة الدفع الوحيدة. ادفعي كاش للمندوب عند وصول الطلب." },
+    q: { en: "Is cash on delivery available?", ar: "الدفع عند الاستلام متاح؟" },
+    a: { en: "Yes — cash on delivery is the only payment method. Pay the courier when your order arrives.", ar: "أيوه، الدفع عند الاستلام هو طريقة الدفع الوحيدة. ادفعي كاش للمندوب لما الطلب يوصلك." },
   },
   {
-    q: { en: "How long does shipping take?", ar: "كم يستغرق الشحن؟" },
+    q: { en: "How long does shipping take?", ar: "الشحن بياخد قد إيه؟" },
     a: { en: "Cairo & Giza usually arrive within 2–4 business days; other governorates 3–5 business days.", ar: "القاهرة والجيزة عادة ٢–٤ أيام عمل، وباقي المحافظات ٣–٥ أيام عمل." },
   },
   {
-    q: { en: "Do you ship to all governorates?", ar: "هل يوجد شحن لكل المحافظات؟" },
-    a: { en: "Yes, we deliver to all Egyptian governorates.", ar: "نعم، يوجد توصيل لجميع محافظات مصر." },
+    q: { en: "Do you ship to all governorates?", ar: "في شحن لكل المحافظات؟" },
+    a: { en: "Yes, we deliver to all Egyptian governorates.", ar: "أيوه، بنوصل لكل محافظات مصر." },
   },
   {
-    q: { en: "Can I return or exchange an item?", ar: "هل يمكنني الاستبدال أو الإرجاع؟" },
-    a: { en: "Within 14 days of delivery if the piece is unused and in its original packaging.", ar: "خلال ١٤ يوماً من الاستلام، بشرط ألا تكون القطعة مستخدمة وتظل بغلافها الأصلي." },
+    q: { en: "Can I return or exchange an item?", ar: "أقدر أستبدل أو أرجّع القطعة؟" },
+    a: { en: "Within 14 days of delivery if the piece is unused and in its original packaging.", ar: "خلال ١٤ يوم من الاستلام، بشرط إن القطعة تكون متستخدمتش وتبقى في غلافها الأصلي." },
   },
   {
-    q: { en: "How do I follow up on my order?", ar: "كيف أتابع حالة طلبي؟" },
-    a: { en: "Keep the order number from your confirmation page and message us on WhatsApp — we will update you until your order arrives.", ar: "احفظي رقم الطلب من صفحة التأكيد وراسلينا على واتساب — سنوافيك بتحديثات الطلب حتى وصوله إليك." },
+    q: { en: "How do I follow up on my order?", ar: "أتابع طلبي إزاي؟" },
+    a: { en: "Keep the order number from your confirmation page and message us on WhatsApp — we will update you until your order arrives.", ar: "احفظي رقم الطلب من صفحة التأكيد وابعتيلنا على واتساب — هنبعتلك تحديثات الطلب لحد ما يوصلك." },
   },
   {
-    q: { en: "Is free shipping available?", ar: "هل يوجد شحن مجاني؟" },
-    a: { en: `Standard shipping is free for orders above ${SITE_CONFIG.delivery.freeThreshold} EGP.`, ar: `الشحن القياسي مجاني للطلبات فوق ${SITE_CONFIG.delivery.freeThreshold} جنيه.` },
+    q: { en: "Is free shipping available?", ar: "في شحن مجاني؟" },
+    a: { en: `Standard shipping is free for orders above ${SITE_CONFIG.delivery.freeThreshold} EGP.`, ar: `الشحن العادي مجاني للطلبات فوق ${SITE_CONFIG.delivery.freeThreshold} جنيه.` },
   },
 ];
 

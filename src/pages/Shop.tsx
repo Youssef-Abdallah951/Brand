@@ -183,7 +183,7 @@ export default function Shop() {
       </div>
 
       {/* Mobile filter toggle */}
-      <div className="shell sticky top-0 z-30 bg-white/95 dark:bg-[#14110e]/95 backdrop-blur py-2.5 border-b border-line dark:border-[#2e2822]">
+      <div className="shell sticky top-0 z-30 bg-white/95 dark:bg-black/95 backdrop-blur py-2.5 border-b border-line dark:border-[#2e2822]">
         <div className="flex items-center justify-between gap-2">
           <button onClick={() => setShowFilters(true)} aria-expanded={showFilters}
             className="inline-flex items-center gap-2 rounded-full border border-line dark:border-[#2e2822] px-4 py-2 text-xs font-bold text-ink dark:text-[#f3ede3] hover:bg-sand dark:hover:bg-[#201a15] transition">
@@ -204,7 +204,7 @@ export default function Shop() {
       {showFilters && (
         <div className="lg:hidden fixed inset-0 z-[60] flex items-end" role="dialog" aria-modal="true" aria-label={t("filters", lang)}>
           <button className="absolute inset-0 bg-black/40 fade-in" onClick={() => setShowFilters(false)} aria-label={t("close", lang)} />
-          <div className="sheet-panel relative w-full max-h-[82vh] overflow-y-auto rounded-t-3xl bg-white dark:bg-[#14110e] border-t border-line dark:border-[#2e2822] p-4 pb-8">
+          <div className="sheet-panel relative w-full max-h-[82vh] overflow-y-auto rounded-t-3xl bg-white dark:bg-black border-t border-line dark:border-[#2e2822] p-4 pb-8">
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-display font-bold text-ink dark:text-[#f3ede3]">{t("filters", lang)}</h2>
               <button onClick={() => setShowFilters(false)} aria-label={t("close", lang)}

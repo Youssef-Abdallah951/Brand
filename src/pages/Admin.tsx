@@ -67,7 +67,7 @@ export function AdminLogin() {
         <div className="w-full max-w-md bg-white dark:bg-[#191512] rounded-3xl border border-line dark:border-[#2e2822] p-8 soft-shadow text-center">
           <div className="w-16 h-16 mx-auto rounded-full bg-sand dark:bg-[#201a15] grid place-items-center text-bronze"><XIcon className="w-8 h-8" /></div>
           <h1 className="font-display text-xl font-bold mt-4 text-ink dark:text-[#f3ede3]">Backend not connected</h1>
-          <p dir="rtl" className="text-xs font-bold text-mute dark:text-[#a89f92] mt-1">الخادم غير متصل — لوحة التحكم معطّلة.</p>
+          <p dir="rtl" className="text-xs font-bold text-mute dark:text-[#a89f92] mt-1">السيرفر مش متصل — لوحة التحكم معطلة.</p>
           <p className="text-sm text-mute dark:text-[#a89f92] mt-3 leading-relaxed">
             The admin dashboard needs the store database. Set{" "}
             <code dir="ltr" className="bg-sand dark:bg-[#201a15] px-1.5 py-0.5 rounded font-bold text-xs">VITE_SUPABASE_URL</code>{" and "}
@@ -76,7 +76,7 @@ export function AdminLogin() {
           </p>
           <p className="text-xs text-mute dark:text-[#a89f92] mt-3">
             {lang === "ar"
-              ? "الطلبات تُستقبل بشكل طبيعي — تُحفظ محلياً وتُرسل عبر واتساب."
+              ? "الطلبات شغالة عادي — بتتحفظ محلياً وبتتبعت على واتساب."
               : "Orders keep working — stored locally and confirmed over WhatsApp."}
           </p>
           <a href="/" className="mt-5 inline-block text-bronze-deep dark:text-bronze font-bold text-sm hover:underline">← Back to store</a>

@@ -141,7 +141,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       const had = cart.find((x) => lineId(x.productId, x.color) === lineId(id, color))?.qty ?? 0;
       if (stock > 0 && had + qty > stock) {
         const msg = lang === "ar"
-          ? `الكمية المتاحة من هذا المنتج ${stock} قطعة فقط.`
+          ? `المتاح من المنتج ده ${stock} قطعة بس.`
           : `Only ${stock} units of this item are in stock.`;
         pushToast(msg);
       }
@@ -152,7 +152,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       const stock = products.find((p) => p.id === prodId)?.stock ?? 99;
       if (qty > 0 && qty > stock) {
         const msg = lang === "ar"
-          ? `الكمية المتاحة من هذا المنتج ${stock} قطعة فقط.`
+          ? `المتاح من المنتج ده ${stock} قطعة بس.`
           : `Only ${stock} units of this item are in stock.`;
         pushToast(msg);
       }

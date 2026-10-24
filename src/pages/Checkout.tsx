@@ -100,7 +100,7 @@ export default function Checkout() {
     if (submitting.current || placing) return;
     setSubmitError("");
     if (!validate()) {
-      pushToast(lang === "ar" ? "برجاء مراجعة البيانات" : "Please review the form");
+      pushToast(lang === "ar" ? "راجعي بياناتك الأول" : "Please review the form");
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
@@ -119,7 +119,7 @@ export default function Checkout() {
       }
       const qty = Math.max(1, Math.min(r.qty, fresh.stock > 0 ? fresh.stock : r.qty));
       if (qty !== r.qty) {
-        pushToast(lang === "ar" ? `تم تعديل كمية "${fresh.nameAr}" حسب المتاح` : `Adjusted "${fresh.nameEn}" quantity to available stock`);
+        pushToast(lang === "ar" ? `عدلنا كمية "${fresh.nameAr}" حسب المتاح` : `Adjusted "${fresh.nameEn}" quantity to available stock`);
       }
       if (qty <= 0) {
         setSubmitError(t("genericError", lang));
@@ -222,7 +222,7 @@ export default function Checkout() {
             {submitError}
             <button onClick={placeOrder} className="mt-2 underline inline-flex items-center gap-1"><RetryIcon className="w-3.5 h-3.5" /> {t("retry", lang)}</button>
             <span className="block mt-1 font-normal text-xs opacity-90">
-              {lang === "ar" ? "أو تواصلي معنا:" : "Or contact us:"} <a className="underline" href={SITE_CONFIG.admin.telLink} dir="ltr">{SITE_CONFIG.admin.phoneLocal}</a>
+              {lang === "ar" ? "أو كلمينا:" : "Or contact us:"} <a className="underline" href={SITE_CONFIG.admin.telLink} dir="ltr">{SITE_CONFIG.admin.phoneLocal}</a>
             </span>
           </div>
         )}
@@ -258,7 +258,7 @@ export default function Checkout() {
                     placeholder="01XXXXXXXXX"
                   />
                 </Field>
-                <p className="text-[11px] text-mute dark:text-[#a89f92] mt-1">{lang === "ar" ? "للتواصل بخصوص التوصيل فقط" : "Used by the courier for delivery coordination only"}</p>
+                <p className="text-[11px] text-mute dark:text-[#a89f92] mt-1">{lang === "ar" ? "المندوب بيستخدمه للتوصيل بس" : "Used by the courier for delivery coordination only"}</p>
               </div>
             </div>
           </section>
@@ -379,12 +379,12 @@ export default function Checkout() {
               <span className="inline-flex items-center justify-center gap-1.5"><CheckIcon className="w-5 h-5" /> {t("placeOrder", lang)} — <span dir="auto">{fmtPrice(total, lang)}</span></span>
             )}
           </button>
-          <p className="text-[11px] text-mute dark:text-[#a89f92] text-center mt-2.5 inline-flex items-center justify-center gap-1 w-full"><LockIcon className="w-3.5 h-3.5" /> {lang === "ar" ? "بياناتك آمنة وتُستخدم للتوصيل فقط" : "Your data is safe and used for delivery only"}</p>
+          <p className="text-[11px] text-mute dark:text-[#a89f92] text-center mt-2.5 inline-flex items-center justify-center gap-1 w-full"><LockIcon className="w-3.5 h-3.5" /> {lang === "ar" ? "بياناتك في أمان ونستخدمها للتوصيل بس" : "Your data is safe and used for delivery only"}</p>
         </aside>
       </div>
 
       {/* Mobile sticky CTA */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-[#14110e] border-t border-line dark:border-[#2e2822] p-3 flex items-center gap-3">
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-black border-t border-line dark:border-[#2e2822] p-3 flex items-center gap-3">
         <div className="flex-1 min-w-0">
           <div className="text-[11px] text-mute dark:text-[#a89f92]">{t("total", lang)}</div>
           <div className="font-extrabold text-lg text-ink dark:text-[#f3ede3]" dir="auto">{fmtPrice(total, lang)}</div>

@@ -48,7 +48,7 @@ const FaqPage = lazy(() =>
 function Shell() {
   const { lang } = useLang();
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-[#14110e] text-ink dark:text-[#f3ede3]">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-black text-ink dark:text-[#f3ede3]">
       <RouteProgress />
       <Navbar />
       <div className="flex-1">
@@ -69,7 +69,7 @@ function Shell() {
 
 function AdminLayout() {
   return (
-    <div className="min-h-screen bg-white dark:bg-[#14110e] text-ink dark:text-[#f3ede3]">
+    <div className="min-h-screen bg-white dark:bg-black text-ink dark:text-[#f3ede3]">
       <ErrorBoundary title="Admin error" action="Retry">
         <Suspense fallback={<PageLoader />}>
           <Outlet />

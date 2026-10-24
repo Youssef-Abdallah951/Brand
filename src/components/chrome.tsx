@@ -24,8 +24,8 @@ export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
   const dark = theme === "dark";
   const label = dark
-    ? (lang === "ar" ? "التبديل إلى الوضع الفاتح" : "Switch to light mode")
-    : (lang === "ar" ? "التبديل إلى الوضع الداكن" : "Switch to dark mode");
+    ? (lang === "ar" ? "بدّل للوضع الفاتح" : "Switch to light mode")
+    : (lang === "ar" ? "بدّل للوضع الداكن" : "Switch to dark mode");
   return (
     <button
       type="button"
@@ -280,7 +280,7 @@ export function Navbar() {
   // block and clip the drawer to the header height.
   return (
     <>
-      <header className={`sticky top-0 z-40 bg-white/95 dark:bg-[#14110e]/95 backdrop-blur border-b border-line dark:border-[#2e2822] transition-shadow ${scrolled ? "shadow-[0_10px_30px_-18px_rgba(0,0,0,0.45)]" : ""}`}>
+      <header className={`sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur border-b border-line dark:border-[#2e2822] transition-shadow ${scrolled ? "shadow-[0_10px_30px_-18px_rgba(0,0,0,0.45)]" : ""}`}>
       {/* Announcement bar */}
       <div className="bg-ink dark:bg-[#201a15] text-[#f3ede3] text-center text-[11px] sm:text-xs font-semibold py-2 px-3 pt-[max(0.5rem,env(safe-area-inset-top))]">
         <p className="truncate whitespace-nowrap">{t("announcement", lang)}</p>
@@ -350,7 +350,7 @@ export function Navbar() {
             )}
           </Link>
           <button onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-            aria-label={lang === "ar" ? "Switch to English" : "التبديل للعربية"}
+            aria-label={lang === "ar" ? "Switch to English" : "بدّل للعربية"}
             className="hidden md:grid w-11 h-11 place-items-center rounded-full text-[11px] font-extrabold text-bronze border border-line dark:border-[#2e2822] hover:bg-sand dark:hover:bg-[#201a15] transition shrink-0">
             {lang === "ar" ? "EN" : "ع"}
           </button>

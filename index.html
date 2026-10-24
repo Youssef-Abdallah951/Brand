@@ -5,17 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#FFFFFF" />
     <script>
-      // Apply the saved theme (or OS preference on first visit) before first
-      // paint to avoid a flash of the wrong theme. Mirrors ThemeContext logic.
+      // Apply the saved theme (Light Mode by default on first visit, even when
+      // the OS prefers dark) before first paint to avoid a flash of the wrong
+      // theme. Mirrors ThemeContext logic.
       try {
         var t = localStorage.getItem("jia-theme");
-        if (t !== "light" && t !== "dark") {
-          t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        }
+        if (t !== "light" && t !== "dark") t = "light";
         if (t === "dark") document.documentElement.classList.add("dark");
         document.documentElement.style.colorScheme = t;
         var m = document.querySelector('meta[name="theme-color"]');
-        if (m) m.setAttribute("content", t === "dark" ? "#14110e" : "#FFFFFF");
+        if (m) m.setAttribute("content", t === "dark" ? "#000000" : "#FFFFFF");
+        // Preload the boot screen image for THIS theme so the loading screen
+        // never starts on the wrong artwork. (Spaces URL-encoded.)
+        var pl = document.createElement("link");
+        pl.rel = "preload"; pl.as = "image"; pl.setAttribute("fetchpriority", "high");
+        pl.href = t === "dark" ? "/jia%20dark-mode.png" : "/jia%20white-mode.png";
+        document.head.appendChild(pl);
         // Language mirror: html[dir/lang] set early to the saved preference so
         // RTL/LTR and fonts are correct from the very first paint.
         var lang = "ar";
@@ -25,9 +30,9 @@
       } catch (e) {}
     </script>
     <title>Jia | Silk &amp; Essentials — حجابات رائعة، دفع عند الاستلام</title>
-    <meta name="description" content="Jia Silk & Essentials — حجابات شيفون ومودال وساتان بجودة فاخرة، إكسسوارات هادئة وعلب هدايا أنيقة. توصيل سريع لجميع محافظات مصر والدفع عند الاستلام." />
+    <meta name="description" content="Jia Silk & Essentials — حجابات شيفون ومودال وساتان بجودة فاخرة، إكسسوارات هادئة وعلب هدايا أنيقة. توصيل سريع لكل محافظات مصر والدفع عند الاستلام." />
     <meta property="og:title" content="Jia | Silk & Essentials — الحجاب… بأرقى نسخته" />
-    <meta property="og:description" content="شيفون رائق ومودال حريري وساتان لامع — تفاصيل مدروسة وأناقة يومية، تصل لك لكل مصر مع الدفع عند الاستلام." />
+    <meta property="og:description" content="شيفون رايق ومودال حريري وساتان لامع — تفاصيل مدروسة وأناقة يومية، توصلك لكل مصر مع الدفع عند الاستلام." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/hero.jpg" />
     <meta property="og:image:width" content="1800" />
@@ -41,7 +46,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
     <link rel="preload" as="image" href="/images/hero.webp" type="image/webp" fetchpriority="high" />
-    <link rel="preload" as="image" href="/loading-screen.png" fetchpriority="high" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='50' fill='%231c1a17'/><text x='50' y='70' font-size='58' font-family='Georgia,serif' font-weight='bold' fill='%23ffffff' text-anchor='middle'>J</text></svg>" />
     <style>
       /* Inline boot loader — painted instantly, replaced by React on mount. */
@@ -51,8 +55,9 @@
         min-height: 100dvh;
         background: #ffffff;
       }
+      .dark #root:empty::after { background: #000000; }
       .boot-shell { position: fixed; inset: 0; display: grid; place-items: center; background: #ffffff; z-index: 1; }
-      .dark .boot-shell { background: #14110e; }
+      .dark .boot-shell { background: #000000; }
       .boot-screen {
         display: flex; flex-direction: column; align-items: center;
         animation: bootFade .5s ease-out both;
@@ -82,13 +87,17 @@
     <script>
       (function () {
         try {
+          // The head script already applied the theme — branch the artwork on
+          // it so the very first frame shows the matching image (never a flash
+          // of the other theme's logo).
+          var dark = document.documentElement.classList.contains("dark");
           var boot = document.createElement("div");
           boot.className = "boot-shell";
           boot.setAttribute("aria-hidden", "true");
           boot.innerHTML =
             '<div style="display:grid;place-items:center">' +
             '<div class="boot-screen">' +
-            '<img src="/loading-screen.png" alt="" fetchpriority="high" decoding="async"/>' +
+            '<img src="' + (dark ? "/jia%20dark-mode.png" : "/jia%20white-mode.png") + '" alt="" fetchpriority="high" decoding="async"/>' +
             '<div class="bar"><i></i></div>' +
             "</div></div>";
           document.body.appendChild(boot);
@@ -111,7 +120,7 @@
       })();
     </script>
     <noscript>
-      <div style="padding:3rem;text-align:center;font-family:sans-serif">هذا المتجر يحتاج إلى تشغيل JavaScript. / This store requires JavaScript.</div>
+      <div style="padding:3rem;text-align:center;font-family:sans-serif">المتجر ده محتاج JavaScript علشان يشتغل. / This store requires JavaScript.</div>
     </noscript>
     <script>
       // Static-only service worker (public/sw.js): hashed chunks cached,

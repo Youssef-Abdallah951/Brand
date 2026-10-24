@@ -62,17 +62,6 @@ export default function Home() {
             </picture>
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" aria-hidden="true" />
-          <div className="absolute top-22 inset-0 flex flex-col justify-end p-7 sm:p-10 lg:p-14">
-            <h1 className="font-display t-hero font-bold text-white max-w-xl">{t("heroTitle", lang)}</h1>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link to="/shop" className="min-h-[48px] inline-flex items-center bg-white text-ink font-bold text-sm px-8 rounded-full hover:bg-cream transition btn-press">
-                {t("shopNow", lang)}
-              </Link>
-              <Link to="/categories" className="min-h-[48px] inline-flex items-center border border-white/60 text-white font-bold text-sm px-8 rounded-full hover:bg-white/10 transition btn-press">
-                {t("categories", lang)}
-              </Link>
-            </div>
-          </div>
         </div>
       </section>
 

@@ -56,7 +56,7 @@
 }
 .dark {
   color-scheme: dark;
-  --bg: #14110e;
+  --bg: #000000;
   --bg-soft: #191512;
   --band: #201a15;
   --surface: #1c1815;
@@ -174,7 +174,7 @@ img.product-photo { filter: none; }
 
 .dark ::-webkit-scrollbar { width: 10px; height: 10px; }
 .dark ::-webkit-scrollbar-thumb { background: #2e2822; border-radius: 8px; }
-.dark ::-webkit-scrollbar-track { background: #14110e; }
+.dark ::-webkit-scrollbar-track { background: #000000; }
 
 /* Respect reduced motion — kill decorations, keep instant transitions. */
 @media (prefers-reduced-motion: reduce) {

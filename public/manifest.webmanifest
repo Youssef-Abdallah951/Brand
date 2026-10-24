@@ -7,7 +7,7 @@
   "scope": "/",
   "display": "standalone",
   "background_color": "#faf7f2",
-  "theme_color": "#14110e",
+  "theme_color": "#FFFFFF",
   "description": "متجر Jia للحجاب والأساسيات — الدفع عند الاستلام في كل محافظات مصر.",
   "icons": [
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },

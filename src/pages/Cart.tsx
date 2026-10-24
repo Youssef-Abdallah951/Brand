@@ -24,7 +24,7 @@ export default function Cart() {
   const inc = (lid: string, qty: number, stock: number, name: string) => {
     const p = rows.find((r) => r.lid === lid)?.p;
     if (p && stock > 0 && qty + 1 > stock) {
-      pushToast(lang === "ar" ? `المتاح من "${name}" ${stock} فقط` : `Only ${stock} of "${name}" available`);
+      pushToast(lang === "ar" ? `اللي متاح من "${name}" ${stock} بس` : `Only ${stock} of "${name}" available`);
       setQty(lid, stock);
       return;
     }

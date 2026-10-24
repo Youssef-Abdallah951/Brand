@@ -5,8 +5,9 @@ export type Theme = "light" | "dark";
 export const THEME_STORAGE_KEY = "jia-theme";
 
 function readInitialTheme(): Theme {
-  // The inline script in index.html already applied the saved / preferred
-  // theme as a class before first paint — trust the DOM to avoid a flash.
+  // The inline script in index.html already applied the saved theme (Light
+  // Mode by default) as a class before first paint — trust the DOM to avoid
+  // a flash of the wrong theme.
   if (typeof document !== "undefined") {
     if (document.documentElement.classList.contains("dark")) return "dark";
   }
@@ -16,9 +17,8 @@ function readInitialTheme(): Theme {
   } catch {
     /* storage unavailable — fall through */
   }
-  if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
-  }
+  // No saved preference and no DOM class → Light Mode, even when the OS
+  // itself is configured for Dark Mode.
   return "light";
 }
 

@@ -20,14 +20,14 @@ export default function Contact() {
   const send = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !msg.trim()) {
-      pushToast(lang === "ar" ? "برجاء إكمال البيانات بشكل صحيح" : "Please complete the form correctly");
+      pushToast(lang === "ar" ? "أكملي بياناتك الأول" : "Please complete the form correctly");
       return;
     }
     window.open(
       `${SITE_CONFIG.admin.whatsappLink}?text=${encodeURIComponent(`Name: ${name}\nMessage: ${msg}`)}`,
       "_blank",
     );
-    pushToast(lang === "ar" ? "تم تجهيز رسالتك عبر واتساب" : "Your message is ready via WhatsApp");
+    pushToast(lang === "ar" ? "رسالتك جاهزة على واتساب" : "Your message is ready via WhatsApp");
   };
 
   return (
