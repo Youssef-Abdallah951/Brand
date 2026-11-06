@@ -7,7 +7,7 @@ import { t } from "../i18n/translations";
 import { fmtPrice } from "../lib/format";
 import { SITE_CONFIG } from "../lib/siteConfig";
 import { productImage } from "./product";
-import { CartIcon, HeartIcon, MenuIcon, MoonIcon, PhoneIcon, SearchIcon, StarIcon, SunIcon, XIcon } from "./icons";
+import { CartIcon, FacebookIcon, HeartIcon, InstagramIcon, MenuIcon, MoonIcon, PhoneIcon, SearchIcon, StarIcon, SunIcon, XIcon } from "./icons";
 
 export function Stars({ value = 4.5 }: { value?: number }) {
   return (
@@ -335,7 +335,7 @@ export function Navbar() {
         <Link to="/" className="flex flex-col items-center justify-center px-2 select-none" aria-label="Jia Silk & Essentials — الرئيسية">
           <img src="/logo.png" alt="" aria-hidden="true" className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover shrink-0" />
           <span className="font-script text-[1.3rem] md:text-[1.5rem] leading-[1.15] text-ink dark:text-[#f3ede3]">Jia</span>
-          <span className="hidden min-[380px]:block text-[9px] tracking-[0.28em] uppercase text-bronze leading-tight font-semibold mt-0.5">Silk &amp; Essentials</span>
+          <span className="hidden min-[380px]:block text-[9px] tracking-[0.28em] uppercase text-bronze leading-tight font-semibold">Silk &amp; Essentials</span>
         </Link>
 
         {/* End actions */}
@@ -363,7 +363,7 @@ export function Navbar() {
       </div>
 
       {/* Mobile inline nav (below logo, tablet down) */}
-      <nav className="hidden sm:flex lg:hidden sm:pb-2.5 sm:-mt-1 sm:gap-6 justify-center" aria-label="main-compact" data-nav="tablet">
+      <nav className="hidden sm:flex lg:hidden sm:pb-2.5 sm:gap-6 justify-center" aria-label="main-compact" data-nav="tablet">
         {links.map((l) => (
           <NavLink key={l.to} to={l.to} className={linkCls}>{l.label}</NavLink>
         ))}
@@ -384,9 +384,15 @@ export function Footer() {
     <footer className="mt-20 bg-ink dark:bg-[#191512] text-[#f3ede3]/85">
       <div className="shell py-14 grid gap-10 md:grid-cols-4">
         <div className="md:col-span-1">
-          <div className="font-script text-[2.1rem] leading-none text-white">Jia<br /> <span className="font-body uppercase text-base sm:text-lg text-bronze tracking-[0.22em] leading-relaxed">Silk &amp; Essentials</span></div>
+          <div className="font-script  text-[2.1rem] leading-none text-white">Jia<br /> <span className="font-body uppercase text-base sm:text-lg text-bronze tracking-[0.22em] leading-relaxed">Silk &amp; Essentials</span></div>
           <p className="text-sm text-white/65 mt-3 leading-relaxed">{t("footerAbout", lang)}</p>
           <div className="mt-5 flex gap-2">
+            <a href={SITE_CONFIG.social.facebook} target="_blank" rel="noreferrer" aria-label="Facebook" className={socialBtn}>
+              <FacebookIcon className="w-4 h-4" />
+            </a>
+            <a href={SITE_CONFIG.social.instagram} target="_blank" rel="noreferrer" aria-label="Instagram" className={socialBtn}>
+              <InstagramIcon className="w-4 h-4" />
+            </a>
             <a href={SITE_CONFIG.admin.whatsappLink} target="_blank" rel="noreferrer" aria-label="WhatsApp" className={socialBtn}>
               <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>
             </a>

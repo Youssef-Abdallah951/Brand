@@ -28,6 +28,11 @@ export const SITE_CONFIG = {
     // low-stock badge in the dashboard.
     lowStock: 5,
   },
+  social: {
+    // NOTE: placeholder URLs — replace with the brand's real pages.
+    facebook: "https://www.facebook.com/",
+    instagram: "https://www.instagram.com/",
+  },
   delivery: {
     standardFee: 60,
     expressFee: 120,
