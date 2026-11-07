@@ -66,8 +66,8 @@ const dict = {
   rev4City: { en: "Mansoura", ar: "المنصورة" },
 
   // Product card / quick view
-  addToCart: { en: "Add to Cart", ar: "ضيفي للسلة" },
-  quickAdd: { en: "Quick add", ar: "ضيفيها" },
+  addToCart: { en: "Add to Cart", ar: "أضفِ للسلة" },
+  quickAdd: { en: "Quick add", ar: "أضفِ للسلة" },
   quickView: { en: "Quick view", ar: "نظرة سريعة" },
   buyNow: { en: "Buy Now", ar: "اطلبي دلوقتي" },
   outOfStock: { en: "Out of Stock", ar: "خلصت الكمية" },
@@ -140,7 +140,7 @@ const dict = {
 
   // Wishlist labels
   wishlist: { en: "Wishlist", ar: "المفضلة" },
-  wishSub: { en: "Your saved pieces — one tap to add to bag", ar: "القطع اللي حفظتيها — بضغطة واحدة تضيفيها للسلة" },
+  wishSub: { en: "Your saved pieces — one tap to add to bag", ar: "القطع اللي حفظتيها — بضغطة واحدة أضفِ للسلة" },
   addWish: { en: "Add to wishlist", ar: "ضيفي للمفضلة" },
   removeWish: { en: "Remove from wishlist", ar: "شيليها من المفضلة" },
 
