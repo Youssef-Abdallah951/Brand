@@ -73,7 +73,70 @@ function generateLocalOrderNumber(): string {
 
 /** Arabic-first order summary for the store's admin number. Arabic content
  *  is preserved verbatim — encodeURIComponent at the wa.me link boundary. */
-export function buildOrderWhatsAppMessage(order: Order): string {
+export function buildOrderWhatsAppMessage(order: Order, lang: "ar" | "en" = "ar"): string {
+  const paymentLabel =
+    order.paymentMethod === "instapay"
+      ? "InstaPay"
+      : order.paymentMethod === "vodafone_cash"
+        ? "Vodafone Cash"
+        : lang === "ar"
+          ? "كاش عند الاستلام"
+          : "Cash on Delivery";
+
+  if (lang === "en") {
+    const lines: string[] = [];
+    lines.push(`New order #${order.orderNumber}`);
+    lines.push("");
+    lines.push("Customer:");
+    lines.push(`${order.firstName} ${order.lastName}`.trim());
+    lines.push("");
+    lines.push("Phone:");
+    lines.push(order.phone || order.whatsapp);
+    lines.push("");
+    lines.push("Governorate:");
+    lines.push(order.governorate);
+    lines.push("");
+    lines.push("Address:");
+    lines.push(
+      [
+        order.address,
+        order.area,
+        order.city,
+        ...(order.building ? [`Building ${order.building}`] : []),
+        ...(order.apartment ? [`Apt ${order.apartment}`] : []),
+      ].filter(Boolean).join(" - "),
+    );
+    lines.push("");
+    lines.push("Products:");
+    for (const it of order.items) {
+      const nm = it.nameEn || it.nameAr;
+      const color = it.color ? ` — Color: ${it.color}` : "";
+      lines.push(`• ${nm}${color} — Qty: ${it.qty} — Unit: ${it.price} EGP — Total: ${it.price * it.qty} EGP`);
+    }
+    lines.push("");
+    lines.push(`Subtotal: ${order.subtotal} EGP`);
+    if (order.discount > 0) lines.push(`Discount: -${order.discount} EGP`);
+    lines.push(`Delivery: ${order.deliveryFee} EGP`);
+    lines.push(`Grand total: ${order.total} EGP`);
+    lines.push("");
+    lines.push(`Payment method: ${paymentLabel}`);
+    if (order.paymentMethod !== "cod") {
+      if (order.paymentRecipientNumber) lines.push(`Recipient number: ${order.paymentRecipientNumber}`);
+      if (order.senderPhone) lines.push(`Sender's number: ${order.senderPhone}`);
+      if (order.transactionRef) lines.push(`Transaction reference: ${order.transactionRef}`);
+      if (order.paymentScreenshot) lines.push("Payment screenshot uploaded on the website. Please attach it to this chat (downloadable from the confirmation page).");
+    }
+    lines.push(`Delivery method: ${order.deliveryMethod === "express" ? "Express" : "Standard"}`);
+    if (order.notes?.trim()) {
+      lines.push("");
+      lines.push("Notes / Gift:");
+      lines.push(order.notes.trim());
+    }
+    lines.push("");
+    lines.push("— Jia | Silk & Essentials");
+    return lines.join("\n");
+  }
+
   const lines: string[] = [];
   lines.push(`طلب جديد رقم ${order.orderNumber}`);
   lines.push("");
@@ -101,9 +164,7 @@ export function buildOrderWhatsAppMessage(order: Order): string {
   for (const it of order.items) {
     const nm = it.nameAr || it.nameEn;
     const color = it.color ? ` — اللون: ${it.color}` : "";
-    lines.push(
-      `• ${nm}${color} — الكمية: ${it.qty} — سعر الوحدة: ${it.price} ج.م — الإجمالي: ${it.price * it.qty} ج.م`,
-    );
+    lines.push(`• ${nm}${color} — الكمية: ${it.qty} — سعر الوحدة: ${it.price} ج.م — الإجمالي: ${it.price * it.qty} ج.م`);
   }
   lines.push("");
   lines.push(`الإجمالي الفرعي: ${order.subtotal} ج.م`);
@@ -111,17 +172,13 @@ export function buildOrderWhatsAppMessage(order: Order): string {
   lines.push(`الشحن: ${order.deliveryFee} ج.م`);
   lines.push(`الإجمالي النهائي: ${order.total} ج.م`);
   lines.push("");
-  const paymentLabel =
-    order.paymentMethod === "instapay"
-      ? "InstaPay"
-      : order.paymentMethod === "vodafone_cash"
-        ? "Vodafone Cash"
-        : "كاش عند الاستلام";
   lines.push(`طريقة الدفع: ${paymentLabel}`);
-  if (order.paymentRecipientNumber) lines.push(`رقم التحويل إليه: ${order.paymentRecipientNumber}`);
-  if (order.senderPhone) lines.push(`رقم المرسل: ${order.senderPhone}`);
-  if (order.transactionRef) lines.push(`رقم العملية: ${order.transactionRef}`);
-  if (order.paymentScreenshot) lines.push("تم رفع صورة إثبات الدفع");
+  if (order.paymentMethod !== "cod") {
+    if (order.paymentRecipientNumber) lines.push(`رقم التحويل إليه: ${order.paymentRecipientNumber}`);
+    if (order.senderPhone) lines.push(`رقم المرسل: ${order.senderPhone}`);
+    if (order.transactionRef) lines.push(`رقم العملية: ${order.transactionRef}`);
+    if (order.paymentScreenshot) lines.push("تم رفع صورة إثبات الدفع على الموقع. الرجاء إرفاقها في هذا المحادثة (يمكن تحميلها من صفحة التأكيد).");
+  }
   lines.push(`طريقة الشحن: ${order.deliveryMethod === "express" ? "سريع" : "عادي"}`);
   if (order.notes?.trim()) {
     lines.push("");
@@ -133,8 +190,8 @@ export function buildOrderWhatsAppMessage(order: Order): string {
   return lines.join("\n");
 }
 
-export function orderWhatsAppLink(order: Order): string {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildOrderWhatsAppMessage(order))}`;
+export function orderWhatsAppLink(order: Order, lang: "ar" | "en" = "ar"): string {
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildOrderWhatsAppMessage(order, lang))}`;
 }
 
 function toOrder(input: CreateOrderInput, orderNumber: string): Order {

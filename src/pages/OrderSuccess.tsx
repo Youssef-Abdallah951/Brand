@@ -70,6 +70,32 @@ export default function OrderSuccess() {
       )}
 
       <div className="grid gap-2.5 mt-7">
+        {snap?.whatsapp && (
+          <a
+            href={snap.whatsapp}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-2xl bg-[#23b26b] text-white font-bold min-h-[50px] leading-[3rem] text-center btn-press inline-flex items-center justify-center gap-2"
+          >
+            <ChatIcon className="w-5 h-5" /> {lang === "ar" ? "فتح واتساب مع تفاصيل الطلب" : "Open WhatsApp with order details"}
+          </a>
+        )}
+        {snap?.paymentScreenshot && (
+          <div className="rounded-2xl border border-line dark:border-[#2e2822] bg-cream dark:bg-[#191512] p-4 grid gap-2 text-sm">
+            <p className="text-mute dark:text-[#a89f92]">
+              {lang === "ar"
+                ? "واتساب لا يدعم إرفاق الصورة تلقائياً. من فضلك أرفق صورة إثبات الدفع يدوياً في واتساب."
+                : "WhatsApp does not support automatic image attachment. Please attach your payment proof manually in WhatsApp."}
+            </p>
+            <a
+              href={snap.paymentScreenshot}
+              download="payment-proof.jpg"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-ink dark:border-[#f3ede3] text-ink dark:text-[#f3ede3] hover:bg-sand dark:hover:bg-[#201a15] font-bold min-h-[44px] transition"
+            >
+              {lang === "ar" ? "تحميل صورة إثبات الدفع" : "Download payment proof"}
+            </a>
+          </div>
+        )}
         <a
           href={SITE_CONFIG.admin.whatsappLink}
           target="_blank"

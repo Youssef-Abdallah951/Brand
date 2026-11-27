@@ -77,7 +77,7 @@ export interface CheckoutForm {
   apartment: string;
   notes: string;
   deliveryMethod: DeliveryMethod | "";
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod | "";
   // Manual-payment details (InstaPay / Vodafone Cash) — only used when
   // paymentMethod is not "cod". Kept optional for COD orders.
   paymentRecipientNumber?: string;

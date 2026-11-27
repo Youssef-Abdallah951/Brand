@@ -6,7 +6,7 @@ import { t, VALIDATION_MSG } from "../i18n/translations";
 import { fmtPrice } from "../lib/format";
 import { GOVERNORATES } from "../lib/egypt";
 import { SITE_CONFIG } from "../lib/siteConfig";
-import { createOrder } from "../lib/orders";
+import { createOrder, orderWhatsAppLink } from "../lib/orders";
 import { sanitizeText } from "../lib/sanitize";
 import { usePageMeta } from "../lib/meta";
 import { firstProductImage, onImgError } from "../components/product";
@@ -72,7 +72,7 @@ export default function Checkout() {
     firstName: "", lastName: "",
     phone: "",
     governorate: "", area: "", city: "", address: "", building: "", apartment: "", notes: "",
-    deliveryMethod: "", paymentMethod: "cod",
+    deliveryMethod: "", paymentMethod: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof CheckoutForm, string>>>({});
 
@@ -110,6 +110,27 @@ export default function Checkout() {
 
   const isManualPayment = form.paymentMethod === "instapay" || form.paymentMethod === "vodafone_cash";
 
+  const copyNumber = async (num: string) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(num);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = num;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        if (!ok) throw new Error("copy failed");
+      }
+      pushToast(lang === "ar" ? "تم نسخ الرقم بنجاح" : "Number copied successfully");
+    } catch {
+      pushToast(lang === "ar" ? "تعذر نسخ الرقم" : "Could not copy number");
+    }
+  };
+
   const handleScreenshot = async (file: File | null) => {
     if (!file) { set("paymentScreenshot", ""); return; }
     if (!file.type.startsWith("image/")) {
@@ -140,10 +161,12 @@ export default function Checkout() {
     if (!form.area.trim()) e.area = vm("area");
     if (!form.address.trim()) e.address = vm("address");
     if (!form.deliveryMethod) e.deliveryMethod = vm("delivery");
+    if (!form.paymentMethod) e.paymentMethod = lang === "ar" ? "من فضلك اختار طريقة الدفع أولاً." : "Please select a payment method first.";
     if (form.paymentMethod === "instapay" || form.paymentMethod === "vodafone_cash") {
       if (!form.paymentRecipientNumber) e.paymentRecipientNumber = vm("recipient");
       if (!form.senderPhone?.trim()) e.senderPhone = vm("sender");
       else if (!/^01[0125]\d{8}$/.test(form.senderPhone.trim())) e.senderPhone = vm("phone");
+      if (!form.paymentScreenshot) e.paymentScreenshot = lang === "ar" ? "من فضلك ارفع صورة إثبات التحويل قبل تأكيد الطلب." : "Please upload your payment proof before confirming the order.";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -221,7 +244,7 @@ export default function Checkout() {
         deliveryMethod: form.deliveryMethod as "standard" | "express",
         items,
         subtotal: liveSubtotal, deliveryFee: liveDelivery, discount: liveDiscount, total: liveTotal,
-        paymentMethod: form.paymentMethod,
+        paymentMethod: form.paymentMethod as "cod" | "instapay" | "vodafone_cash",
         paymentRecipientNumber: form.paymentRecipientNumber,
         senderPhone: form.senderPhone,
         transactionRef: form.transactionRef,
@@ -229,6 +252,18 @@ export default function Checkout() {
       });
       clearCart(); // only after the order is safely stored
       pushToast(lang === "ar" ? "تم إنشاء الطلب بنجاح" : "Order created successfully");
+
+      // Open WhatsApp with the prefilled order details (customer presses Send).
+      const waLink = orderWhatsAppLink(res.order, lang);
+      let opened = false;
+      try {
+        const w = window.open(waLink, "_blank");
+        if (w) { w.opener = null; opened = true; }
+      } catch { /* popup blocked */ }
+      if (!opened) {
+        pushToast(lang === "ar" ? "لم يتم فتح واتساب تلقائياً — استخدمي الزر في صفحة التأكيد" : "WhatsApp did not open automatically — use the button on the confirmation page");
+      }
+
       nav(`/order-success?order=${res.orderNumber}`, {
         state: {
           orderNumber: res.orderNumber,
@@ -243,8 +278,12 @@ export default function Checkout() {
           apartment: form.apartment.trim(),
           notes,
           deliveryMethod: form.deliveryMethod as "standard" | "express",
-          paymentMethod: form.paymentMethod,
+          paymentMethod: form.paymentMethod as "cod" | "instapay" | "vodafone_cash",
           paymentStatus: (form.paymentMethod === "instapay" || form.paymentMethod === "vodafone_cash" ? "pending_verification" : "pending") as "pending" | "pending_verification",
+          paymentRecipientNumber: form.paymentRecipientNumber,
+          senderPhone: form.senderPhone,
+          transactionRef: form.transactionRef,
+          paymentScreenshot: form.paymentScreenshot,
           items,
           subtotal: liveSubtotal,
           deliveryFee: liveDelivery,
@@ -252,6 +291,7 @@ export default function Checkout() {
           total: liveTotal,
           status: "pending" as const,
           createdAt: new Date().toISOString(),
+          whatsapp: waLink,
         },
       });
     } catch {
@@ -421,14 +461,20 @@ export default function Checkout() {
                     {["01090726501", "01018340567"].map((num) => {
                       const selected = form.paymentRecipientNumber === num;
                       return (
-                        <button key={num} type="button" role="radio" aria-checked={selected}
-                          onClick={() => set("paymentRecipientNumber", num)}
-                          className={`flex items-center gap-3 rounded-2xl border-2 px-4 py-3 text-start transition ${selected ? "border-bronze bg-sand dark:bg-[#201a15]" : "border-line dark:border-[#2e2822] hover:border-bronze/50"}`}>
-                          <span className={`w-5 h-5 rounded-full border-2 grid place-items-center shrink-0 ${selected ? "border-bronze" : "border-line dark:border-[#2e2822]"}`} aria-hidden="true">
-                            {selected && <span className="w-2.5 h-2.5 rounded-full bg-bronze" />}
-                          </span>
-                          <span className="font-bold text-ink dark:text-[#f3ede3] text-sm" dir="ltr">{num}</span>
-                        </button>
+                        <div key={num} className={`flex items-center gap-2 rounded-2xl border-2 px-3 py-2.5 transition ${selected ? "border-bronze bg-sand dark:bg-[#201a15]" : "border-line dark:border-[#2e2822] hover:border-bronze/50"}`}>
+                          <button type="button" role="radio" aria-checked={selected}
+                            onClick={() => set("paymentRecipientNumber", num)}
+                            className="flex items-center gap-3 flex-1 text-start min-w-0">
+                            <span className={`w-5 h-5 rounded-full border-2 grid place-items-center shrink-0 ${selected ? "border-bronze" : "border-line dark:border-[#2e2822]"}`} aria-hidden="true">
+                              {selected && <span className="w-2.5 h-2.5 rounded-full bg-bronze" />}
+                            </span>
+                            <span className="font-bold text-ink dark:text-[#f3ede3] text-sm" dir="ltr">{num}</span>
+                          </button>
+                          <button type="button" onClick={() => copyNumber(num)}
+                            className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-full border border-line dark:border-[#2e2822] text-ink dark:text-[#f3ede3] hover:border-bronze hover:text-bronze transition">
+                            {lang === "ar" ? "نسخ الرقم" : "Copy Number"}
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -468,7 +514,7 @@ export default function Checkout() {
                         </button>
                       </div>
                     ) : (
-                      <label className="flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line dark:border-[#2e2822] px-4 py-6 cursor-pointer hover:border-bronze transition text-sm text-mute dark:text-[#a89f92]">
+                      <label className={`flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-4 py-6 cursor-pointer transition text-sm text-mute dark:text-[#a89f92] ${errors.paymentScreenshot ? "border-clay bg-clay/5" : "border-line dark:border-[#2e2822] hover:border-bronze"}`}>
                         <ImageIcon className="w-5 h-5" />
                         <span>{lang === "ar" ? "اختاري صورة" : "Choose image"}</span>
                         <input type="file" accept="image/*" className="hidden"
