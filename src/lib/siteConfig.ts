@@ -31,7 +31,7 @@ export const SITE_CONFIG = {
   social: {
     // NOTE: placeholder URLs — replace with the brand's real pages.
     facebook: "https://www.facebook.com/",
-    instagram: "https://www.instagram.com/",
+    instagram: "https://www.instagram.com/jia.store11/?utm_source=ig_web_button_share_sheet",
   },
   delivery: {
     standardFee: 60,
