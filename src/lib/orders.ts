@@ -9,7 +9,7 @@
 //   without a backend. Checkout therefore never sees a "server unavailable"
 //   error — local mode always returns a success.
 // ---------------------------------------------------------------------------
-import { isSupabaseConfigured, createOrderInSupabase, type CreateOrderInput } from "./supabase";
+import { type CreateOrderInput } from "./supabase";
 import { WHATSAPP_NUMBER } from "./config";
 import type { Order } from "./types";
 
@@ -29,7 +29,7 @@ const STORAGE_KEY = "jia_orders_v1";
 const MAX_STORED = 50;
 
 export function isLocalOrderMode(): boolean {
-  return !isSupabaseConfigured;
+  return true;
 }
 
 function readAllLocalOrders(): Order[] {
@@ -111,7 +111,17 @@ export function buildOrderWhatsAppMessage(order: Order): string {
   lines.push(`الشحن: ${order.deliveryFee} ج.م`);
   lines.push(`الإجمالي النهائي: ${order.total} ج.م`);
   lines.push("");
-  lines.push("طريقة الدفع: كاش عند الاستلام");
+  const paymentLabel =
+    order.paymentMethod === "instapay"
+      ? "InstaPay"
+      : order.paymentMethod === "vodafone_cash"
+        ? "Vodafone Cash"
+        : "كاش عند الاستلام";
+  lines.push(`طريقة الدفع: ${paymentLabel}`);
+  if (order.paymentRecipientNumber) lines.push(`رقم التحويل إليه: ${order.paymentRecipientNumber}`);
+  if (order.senderPhone) lines.push(`رقم المرسل: ${order.senderPhone}`);
+  if (order.transactionRef) lines.push(`رقم العملية: ${order.transactionRef}`);
+  if (order.paymentScreenshot) lines.push("تم رفع صورة إثبات الدفع");
   lines.push(`طريقة الشحن: ${order.deliveryMethod === "express" ? "سريع" : "عادي"}`);
   if (order.notes?.trim()) {
     lines.push("");
@@ -143,8 +153,15 @@ function toOrder(input: CreateOrderInput, orderNumber: string): Order {
     apartment: input.apartment,
     notes: input.notes,
     deliveryMethod: input.deliveryMethod,
-    paymentMethod: "cod",
-    paymentStatus: "pending",
+    paymentMethod: input.paymentMethod ?? "cod",
+    paymentStatus:
+      input.paymentMethod === "instapay" || input.paymentMethod === "vodafone_cash"
+        ? "pending_verification"
+        : "pending",
+    paymentRecipientNumber: input.paymentRecipientNumber,
+    senderPhone: input.senderPhone,
+    transactionRef: input.transactionRef,
+    paymentScreenshot: input.paymentScreenshot,
     items: input.items,
     subtotal: input.subtotal,
     deliveryFee: input.deliveryFee,
@@ -156,12 +173,37 @@ function toOrder(input: CreateOrderInput, orderNumber: string): Order {
   };
 }
 
+// Frontend-only order creation. No backend/database is required: the order is
+// generated in the browser and stored in THIS browser's localStorage (a
+// browser-local convenience, NOT a shared/central database).
 export async function createOrder(input: CreateOrderInput): Promise<CreateOrderResult> {
-  if (isLocalOrderMode()) {
-    const order = toOrder(input, generateLocalOrderNumber());
-    saveLocalOrder(order);
-    return { orderNumber: order.orderNumber, mode: "local", order, whatsapp: orderWhatsAppLink(order) };
+  const order = toOrder(input, generateLocalOrderNumber());
+  saveLocalOrder(order);
+  return { orderNumber: order.orderNumber, mode: "local", order, whatsapp: "" };
+}
+
+// Browser-local order store helpers (same browser/device only).
+export function getLocalOrders(): Order[] {
+  return readAllLocalOrders();
+}
+
+export function updateLocalOrder(orderNumber: string, patch: Partial<Order>): void {
+  try {
+    const all = readAllLocalOrders();
+    const idx = all.findIndex((o) => o.orderNumber === orderNumber);
+    if (idx < 0) return;
+    all[idx] = { ...all[idx], ...patch };
+    saveLocalOrder(all[idx]);
+  } catch {
+    /* ignore */
   }
-  const orderNumber = await createOrderInSupabase(input);
-  return { orderNumber, mode: "supabase", order: toOrder(input, orderNumber), whatsapp: "" };
+}
+
+export function deleteLocalOrder(orderNumber: string): void {
+  try {
+    const all = readAllLocalOrders().filter((o) => o.orderNumber !== orderNumber);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  } catch {
+    /* ignore */
+  }
 }

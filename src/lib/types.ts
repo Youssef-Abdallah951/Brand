@@ -43,8 +43,8 @@ export interface Product {
 }
 
 export type DeliveryMethod = "standard" | "express";
-// COD ONLY — the store accepts Cash on Delivery exclusively.
-export type PaymentMethod = "cod";
+// Payment methods supported at checkout.
+export type PaymentMethod = "cod" | "instapay" | "vodafone_cash";
 export type OrderStatus =
   | "pending"
   | "confirmed"
@@ -53,8 +53,9 @@ export type OrderStatus =
   | "delivered"
   | "cancelled";
 // COD orders are created with payment_status = 'pending'.
-// Only an admin may change it later.
-export type PaymentStatus = "pending" | "paid" | "rejected";
+// Manual payments (InstaPay / Vodafone Cash) start as 'pending_verification'
+// and are only ever changed by an admin (approve -> 'paid', reject -> 'rejected').
+export type PaymentStatus = "pending" | "pending_verification" | "paid" | "rejected";
 
 export interface CartItem {
   productId: string;
@@ -76,8 +77,13 @@ export interface CheckoutForm {
   apartment: string;
   notes: string;
   deliveryMethod: DeliveryMethod | "";
-  // Fixed to "cod" at order creation — no payment selector in checkout.
   paymentMethod: PaymentMethod;
+  // Manual-payment details (InstaPay / Vodafone Cash) — only used when
+  // paymentMethod is not "cod". Kept optional for COD orders.
+  paymentRecipientNumber?: string;
+  senderPhone?: string;
+  transactionRef?: string;
+  paymentScreenshot?: string;
 }
 
 export interface OrderItem {
@@ -108,6 +114,11 @@ export interface Order {
   deliveryMethod: DeliveryMethod;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
+  // Manual-payment details (InstaPay / Vodafone Cash). Empty for COD.
+  paymentRecipientNumber?: string;
+  senderPhone?: string;
+  transactionRef?: string;
+  paymentScreenshot?: string;
   items: OrderItem[];
   subtotal: number;
   deliveryFee: number;

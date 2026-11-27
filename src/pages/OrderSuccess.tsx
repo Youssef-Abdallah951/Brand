@@ -4,7 +4,7 @@ import { useLang } from "../i18n/LanguageContext";
 import { t, STATUS_LABEL } from "../i18n/translations";
 import { fmtPrice } from "../lib/format";
 import { SITE_CONFIG } from "../lib/siteConfig";
-import { getLocalOrder, orderWhatsAppLink } from "../lib/orders";
+import { getLocalOrder } from "../lib/orders";
 import { ChatIcon, CheckIcon } from "../components/icons";
 import type { Order } from "../lib/types";
 
@@ -31,39 +31,11 @@ export default function OrderSuccess() {
     [orderNumber, s],
   );
   const snap = s ?? (restored as SuccessState | null);
-  const nowIso = useMemo(() => new Date().toISOString(), []);
+
   // Full snapshot (fresh checkout or a stored local order) → real WhatsApp
   // order message sent to the store's admin number. Degraded view (only
   // ?order= in server mode after a refresh) → generic WhatsApp contact link.
-  const fullOrder: Order | null =
-    snap && Array.isArray(snap.items) && snap.governorate && snap.address && snap.deliveryMethod
-      ? {
-          orderNumber: snap.orderNumber,
-          firstName: snap.firstName,
-          lastName: snap.lastName,
-          whatsapp: snap.whatsapp ?? "",
-          phone: snap.phone ?? "",
-          governorate: snap.governorate,
-          area: snap.area ?? "",
-          city: snap.city ?? "",
-          address: snap.address,
-          building: snap.building ?? "",
-          apartment: snap.apartment ?? "",
-          notes: snap.notes ?? "",
-          deliveryMethod: snap.deliveryMethod,
-          paymentMethod: "cod",
-          paymentStatus: "pending",
-          items: snap.items,
-          subtotal: snap.subtotal ?? snap.total,
-          deliveryFee: snap.deliveryFee ?? 0,
-          discount: snap.discount ?? 0,
-          total: snap.total,
-          status: "pending",
-          createdAt: snap.createdAt ?? nowIso,
-          timeline: [],
-        }
-      : null;
-
+  // keep snap for display; no external handoff needed
   if (!orderNumber) {
     return (
       <main className="shell max-w-xl mx-auto py-20 text-center">
@@ -79,15 +51,16 @@ export default function OrderSuccess() {
         <div className="w-20 h-20 mx-auto rounded-full bg-sand dark:bg-[#201a15] grid place-items-center text-bronze-deep dark:text-bronze soft-shadow"><CheckIcon className="w-9 h-9" /></div>
         <h1 className="font-display t-h2 font-bold mt-5 text-ink dark:text-[#f3ede3]">{t("orderSuccess", lang)}</h1>
         <p className="text-mute dark:text-[#a89f92] mt-2">{t("orderThanks", lang)}</p>
+        <p className="text-xs text-mute dark:text-[#a89f92] mt-1">{t("orderConfirmedMsg", lang)}</p>
       </div>
 
       {snap && (
         <div className="bg-cream dark:bg-[#191512] border border-line dark:border-[#2e2822] rounded-3xl p-5 mt-8 grid gap-3 text-sm soft-shadow">
           <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{lang === "ar" ? "الاسم" : "Name"}</span><span className="font-bold text-ink dark:text-[#f3ede3]">{snap.firstName} {snap.lastName}</span></div>
-          <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{t("payment", lang)}</span><span className="font-bold text-ink dark:text-[#f3ede3]">{t("cod", lang)}</span></div>
+          <div className="flex justify-between"><span className="text-mute dark:text-[#a89f92]">{t("payment", lang)}</span><span className="font-bold text-ink dark:text-[#f3ede3]">{snap.paymentMethod === "instapay" ? t("instapay", lang) : snap.paymentMethod === "vodafone_cash" ? t("vodafoneCash", lang) : t("cod", lang)}</span></div>
           <div className="flex justify-between">
             <span className="text-mute dark:text-[#a89f92]">{lang === "ar" ? "الحالة" : "Status"}</span>
-            <span className="bg-sand dark:bg-[#201a15] text-ink dark:text-[#f3ede3] font-bold px-3 py-0.5 rounded-full text-xs">{STATUS_LABEL.pending?.[lang]}</span>
+            <span className="bg-sand dark:bg-[#201a15] text-ink dark:text-[#f3ede3] font-bold px-3 py-0.5 rounded-full text-xs">{snap.paymentStatus === "pending_verification" ? t("pendingVerification", lang) : (STATUS_LABEL[snap.paymentStatus ?? "pending"]?.[lang] ?? snap.paymentStatus)}</span>
           </div>
           <div className="flex justify-between font-bold text-base border-t border-dashed border-line dark:border-[#2e2822] pt-3">
             <span className="text-ink dark:text-[#f3ede3]">{t("total", lang)}</span>
@@ -97,16 +70,6 @@ export default function OrderSuccess() {
       )}
 
       <div className="grid gap-2.5 mt-7">
-        {fullOrder && (
-          <a
-            href={orderWhatsAppLink(fullOrder)}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-2xl bg-[#23b26b] text-white font-bold min-h-[50px] leading-[3rem] text-center btn-press inline-flex items-center justify-center gap-2"
-          >
-            <ChatIcon className="w-5 h-5" /> {t("sendWhatsApp", lang)}
-          </a>
-        )}
         <a
           href={SITE_CONFIG.admin.whatsappLink}
           target="_blank"

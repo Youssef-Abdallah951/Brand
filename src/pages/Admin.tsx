@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchCategoriesRemote, fetchProductsRemote, getSupabase, isSupabaseConfigured, withRetry } from "../lib/supabase";
+import { getLocalOrders, updateLocalOrder } from "../lib/orders";
 import { SEED_PRODUCTS } from "../lib/data";
 import { useShop } from "../store/ShopContext";
 import { SITE_CONFIG } from "../lib/siteConfig";
@@ -8,7 +9,7 @@ import { DEFAULT_HIJAB_PRICE, DEFAULT_HIJAB_STOCK } from "../lib/config";
 import { COUPONS, type Coupon } from "../lib/coupons";
 import { fmtPrice } from "../lib/format";
 import { firstProductImage, onImgError } from "../components/product";
-import { STATUS_LABEL } from "../i18n/translations";
+import { STATUS_LABEL, t } from "../i18n/translations";
 import { useLang } from "../i18n/LanguageContext";
 import { CashIcon, ChartIcon, CheckIcon, ClockIcon, FlameIcon, GridIcon, ImageIcon, LockIcon, MapPinIcon, PackageIcon, PencilIcon, PlusIcon, ReceiptIcon, RetryIcon, StarIcon, TrashIcon, TruckIcon, UsersIcon, XIcon } from "../components/icons";
 import type { Category, DeliveryZone, Order, OrderStatus, Product, ProductColor } from "../lib/types";
@@ -28,10 +29,10 @@ function useAdminGuard() {
   useEffect(() => {
     const sb = getSupabase();
     if (!sb) {
-      // No backend configured → route to the "backend not connected" page.
-      setIsAdmin(false);
+      // No backend configured → frontend-only / local mode. The admin dashboard
+      // still works, but orders are stored only in this browser (localStorage).
+      setIsAdmin(true);
       setReady(true);
-      nav("/admin/login");
       return;
     }
     sb.auth.getSession().then(async ({ data }) => {
@@ -51,7 +52,6 @@ function useAdminGuard() {
 
 export function AdminLogin() {
   const nav = useNavigate();
-  const { lang } = useLang();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
@@ -65,21 +65,14 @@ export function AdminLogin() {
     return (
       <main className="min-h-[80vh] grid place-items-center px-4 py-10">
         <div className="w-full max-w-md bg-white dark:bg-[#191512] rounded-3xl border border-line dark:border-[#2e2822] p-8 soft-shadow text-center">
-          <div className="w-16 h-16 mx-auto rounded-full bg-sand dark:bg-[#201a15] grid place-items-center text-bronze"><XIcon className="w-8 h-8" /></div>
-          <h1 className="font-display text-xl font-bold mt-4 text-ink dark:text-[#f3ede3]">Backend not connected</h1>
-          <p dir="rtl" className="text-xs font-bold text-mute dark:text-[#a89f92] mt-1">السيرفر مش متصل — لوحة التحكم معطلة.</p>
+          <div className="w-16 h-16 mx-auto rounded-full bg-sand dark:bg-[#201a15] grid place-items-center text-bronze"><CheckIcon className="w-8 h-8" /></div>
+          <h1 className="font-display text-xl font-bold mt-4 text-ink dark:text-[#f3ede3]">Local mode</h1>
+          <p dir="rtl" className="text-xs font-bold text-mute dark:text-[#a89f92] mt-1">الوضع المحلي — لوحة التحكم شغالة.</p>
           <p className="text-sm text-mute dark:text-[#a89f92] mt-3 leading-relaxed">
-            The admin dashboard needs the store database. Set{" "}
-            <code dir="ltr" className="bg-sand dark:bg-[#201a15] px-1.5 py-0.5 rounded font-bold text-xs">VITE_SUPABASE_URL</code>{" and "}
-            <code dir="ltr" className="bg-sand dark:bg-[#201a15] px-1.5 py-0.5 rounded font-bold text-xs">VITE_SUPABASE_ANON_KEY</code>{" "}
-            in <span dir="ltr" className="font-bold text-xs">.env</span> and rebuild.
+            No backend is connected. Orders are stored only in this browser/device
+            (localStorage) and are not centrally or permanently stored.
           </p>
-          <p className="text-xs text-mute dark:text-[#a89f92] mt-3">
-            {lang === "ar"
-              ? "الطلبات شغالة عادي — بتتحفظ محلياً وبتتبعت على واتساب."
-              : "Orders keep working — stored locally and confirmed over WhatsApp."}
-          </p>
-          <a href="/" className="mt-5 inline-block text-bronze-deep dark:text-bronze font-bold text-sm hover:underline">← Back to store</a>
+          <a href="/admin" className="mt-5 inline-block bg-ink text-[#f3ede3] hover:bg-bronze-deep font-bold text-sm px-6 py-3 rounded-full transition">Open dashboard →</a>
         </div>
       </main>
     );
@@ -150,6 +143,7 @@ export function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState<"all" | OrderStatus>("all");
   const [openOrder, setOpenOrder] = useState<AdminOrder | null>(null);
   const shop = useShop();
+  const { lang } = useLang();
   const zones = zonesState.length ? zonesState : shop.zones;
   const [saving, setSaving] = useState("");
   const live = isSupabaseConfigured;
@@ -165,8 +159,12 @@ export function AdminDashboard() {
     building: String(d.building ?? ""), apartment: String(d.apartment ?? ""),
     notes: String(d.notes ?? ""),
     deliveryMethod: (d.delivery_method as "standard" | "express") ?? "standard",
-    paymentMethod: "cod",
+    paymentMethod: (d.payment_method as Order["paymentMethod"]) ?? "cod",
     paymentStatus: (d.payment_status as Order["paymentStatus"]) ?? "pending",
+    paymentRecipientNumber: (d.payment_recipient_number as string | null) ?? undefined,
+    senderPhone: (d.sender_phone as string | null) ?? undefined,
+    transactionRef: (d.transaction_ref as string | null) ?? undefined,
+    paymentScreenshot: (d.payment_screenshot as string | null) ?? undefined,
     items: (((d.order_items as unknown[]) ?? []) as Record<string, unknown>[]).map((i) => ({
       productId: String(i.product_id ?? ""),
       nameEn: String(i.name_en ?? ""), nameAr: String(i.name_ar ?? ""),
@@ -181,7 +179,30 @@ export function AdminDashboard() {
 
   const loadOrders = async () => {
     const sb = getSupabase();
-    if (!sb) return;
+    if (!sb) {
+      // Frontend-only mode: orders live in this browser's localStorage.
+      const local = getLocalOrders();
+      setOrders(local.map((o) => ({
+        id: o.orderNumber,
+        orderNumber: o.orderNumber,
+        firstName: o.firstName, lastName: o.lastName,
+        whatsapp: o.whatsapp, phone: o.phone,
+        governorate: o.governorate, area: o.area, city: o.city, address: o.address,
+        building: o.building, apartment: o.apartment, notes: o.notes,
+        deliveryMethod: o.deliveryMethod,
+        paymentMethod: o.paymentMethod,
+        paymentStatus: o.paymentStatus,
+        paymentRecipientNumber: o.paymentRecipientNumber,
+        senderPhone: o.senderPhone,
+        transactionRef: o.transactionRef,
+        paymentScreenshot: o.paymentScreenshot,
+        items: o.items,
+        subtotal: o.subtotal, deliveryFee: o.deliveryFee, discount: o.discount, total: o.total,
+        status: o.status, createdAt: o.createdAt,
+        timeline: o.timeline,
+      })));
+      return;
+    }
     setOrdersLoading(true);
     setOrdersError(false);
     try {
@@ -254,7 +275,11 @@ export function AdminDashboard() {
 
   const changeStatus = async (o: AdminOrder, s: OrderStatus) => {
     const sb = getSupabase();
-    if (!sb) return;
+    if (!sb) {
+      updateLocalOrder(o.orderNumber, { status: s });
+      setOrders((os) => os.map((x) => (x.id === o.id ? { ...x, status: s } : x)));
+      return;
+    }
     setSaving(o.orderNumber);
     const { error } = await sb.from("orders").update({ status: s }).eq("id", o.id);
     setSaving("");
@@ -263,7 +288,11 @@ export function AdminDashboard() {
 
   const setPay = async (o: AdminOrder, ps: Order["paymentStatus"]) => {
     const sb = getSupabase();
-    if (!sb) return;
+    if (!sb) {
+      updateLocalOrder(o.orderNumber, { paymentStatus: ps });
+      setOrders((os) => os.map((x) => (x.id === o.id ? { ...x, paymentStatus: ps } : x)));
+      return;
+    }
     const { error } = await sb.from("orders").update({ payment_status: ps }).eq("id", o.id);
     if (!error) setOrders((os) => os.map((x) => (x.id === o.id ? { ...x, paymentStatus: ps } : x)));
   };
@@ -570,7 +599,7 @@ export function AdminDashboard() {
                     <th className="text-start px-4 py-3">Order</th>
                     <th className="text-start px-2 py-3">Customer</th>
                     <th className="text-start px-2 py-3">Status</th>
-                    <th className="text-start px-2 py-3">COD</th>
+                    <th className="text-start px-2 py-3">Payment</th>
                     <th className="text-end px-4 py-3">Total</th>
                     <th className="px-2 py-3 w-20"><span className="sr-only">Open</span></th>
                   </tr>
@@ -584,7 +613,10 @@ export function AdminDashboard() {
                         <span className="block text-xs text-mute dark:text-[#a89f92]">{o.governorate}</span>
                       </td>
                       <td className="px-2 py-3"><span className={`inline-block ${chip} ${statusChipCls(o.status)}`}>{STATUS_LABEL[o.status]?.en}</span></td>
-                      <td className="px-2 py-3 text-xs font-bold">{o.paymentStatus === "paid" ? "Paid" : "Pending"}</td>
+                       <td className="px-2 py-3 text-xs font-bold">
+                         {o.paymentMethod === "instapay" ? "InstaPay" : o.paymentMethod === "vodafone_cash" ? "Vodafone Cash" : "COD"}
+                         <span className="block text-[10px] text-mute dark:text-[#a89f92] font-normal">{o.paymentStatus === "pending_verification" ? "Pending verification" : o.paymentStatus === "paid" ? "Paid" : o.paymentStatus === "rejected" ? "Rejected" : "Pending"}</span>
+                       </td>
                       <td className="px-4 py-3 text-end font-extrabold text-ink dark:text-[#f3ede3]" dir="auto">{fmtPrice(o.total, "en")}</td>
                       <td className="px-2 py-3 text-end">
                         <button onClick={() => setOpenOrder(o)} className={`${chip} border border-line dark:border-[#2e2822] hover:border-bronze text-ink dark:text-[#f3ede3]`}>Details</button>
@@ -628,7 +660,17 @@ export function AdminDashboard() {
               <p><span className="text-mute dark:text-[#a89f92]">Placed:</span> {new Date(openOrder.createdAt).toLocaleString()}</p>
               <p><span className="text-mute dark:text-[#a89f92]">Customer:</span> {openOrder.firstName} {openOrder.lastName}</p>
               <p className="inline-flex items-start gap-1.5"><MapPinIcon className="w-4 h-4 mt-0.5 shrink-0 text-bronze" /> {openOrder.address}, {openOrder.area}, {openOrder.city}, {openOrder.governorate} {openOrder.building && `Bldg ${openOrder.building}`} {openOrder.apartment && `Apt ${openOrder.apartment}`}</p>
-              <p className="inline-flex items-center gap-1.5"><TruckIcon className="w-4 h-4 shrink-0 text-bronze" /> {openOrder.deliveryMethod} · {STATUS_LABEL[openOrder.status]?.en} · COD {openOrder.paymentStatus}</p>
+              <p className="inline-flex items-center gap-1.5"><TruckIcon className="w-4 h-4 shrink-0 text-bronze" /> {openOrder.deliveryMethod} · {STATUS_LABEL[openOrder.status]?.en}</p>
+<p className="inline-flex items-center gap-1.5"><CashIcon className="w-4 h-4 shrink-0 text-bronze" /> {t("paymentMethod", lang)}: {openOrder.paymentMethod === "instapay" ? t("instapay", lang) : openOrder.paymentMethod === "vodafone_cash" ? t("vodafoneCash", lang) : t("cod", lang)} · {openOrder.paymentStatus === "pending_verification" ? t("pendingVerification", lang) : openOrder.paymentStatus === "paid" ? (lang === "ar" ? "تم الدفع" : "Paid") : openOrder.paymentStatus === "rejected" ? (lang === "ar" ? "مرفوض" : "Rejected") : (lang === "ar" ? "في الانتظار" : "Pending")}</p>
+{openOrder.paymentRecipientNumber && <p><span className="text-mute dark:text-[#a89f92]">{t("recipientNumber", lang)}:</span> <span dir="ltr" className="font-bold">{openOrder.paymentRecipientNumber}</span></p>}
+{openOrder.senderPhone && <p><span className="text-mute dark:text-[#a89f92]">{t("senderNumber", lang)}:</span> <span dir="ltr" className="font-bold">{openOrder.senderPhone}</span></p>}
+{openOrder.transactionRef && <p><span className="text-mute dark:text-[#a89f92]">{t("transactionRef", lang).replace(" (optional)", "")}:</span> <span dir="ltr" className="font-bold">{openOrder.transactionRef}</span></p>}
+{openOrder.paymentScreenshot && (
+  <div className="grid gap-1">
+    <span className="text-mute dark:text-[#a89f92] text-xs">{t("paymentScreenshot", lang).replace(" (optional)", "")}:</span>
+    <img src={openOrder.paymentScreenshot} alt="payment proof" loading="lazy" className="max-h-64 rounded-2xl border border-line dark:border-[#2e2822] object-contain bg-sand dark:bg-[#201a15]" />
+  </div>
+)}
               {openOrder.notes && <p className="bg-sand dark:bg-[#201a15] rounded-xl p-3 whitespace-pre-wrap" dir="auto">{openOrder.notes}</p>}
               <div className="border-t border-dashed border-line dark:border-[#2e2822] pt-2 mt-1">
                 {openOrder.items.map((i, idx) => { const thumb = firstProductImage([i.image]); return <div key={`${i.productId}-${idx}`} className="flex gap-2 items-center py-1.5">{thumb && <img src={thumb} onError={onImgError} loading="lazy" className="product-photo w-8 h-10 rounded object-cover bg-sand dark:bg-[#201a15]" alt="" />}<span>{i.nameEn} × {i.qty}</span><span className="ms-auto font-bold" dir="auto">{fmtPrice(i.price * i.qty, "en")}</span></div>; })}
@@ -644,11 +686,22 @@ export function AdminDashboard() {
                   </button>
                 ))}
               </div>
-              <div className="flex flex-wrap gap-2 items-center mt-1">
-                <span className="text-xs text-mute dark:text-[#a89f92]">COD payment:</span>
-                <button onClick={() => setPay(openOrder, "paid")} className={`text-xs font-bold ${chip} ${openOrder.paymentStatus === "paid" ? "bg-bronze text-white" : "bg-sand dark:bg-[#201a15] text-ink dark:text-[#f3ede3]"}`}>Mark paid</button>
-                <button onClick={() => setPay(openOrder, "pending")} className={`text-xs font-bold ${chip} ${openOrder.paymentStatus !== "paid" ? "bg-bronze text-white" : "bg-sand dark:bg-[#201a15] text-ink dark:text-[#f3ede3]"}`}>Mark pending</button>
-              </div>
+               <div className="flex flex-wrap gap-2 items-center mt-1">
+                 {openOrder.paymentMethod === "instapay" || openOrder.paymentMethod === "vodafone_cash" ? (
+                   <>
+                     <span className="text-xs text-mute dark:text-[#a89f92]">{t("paymentMethod", lang)}:</span>
+                     <button onClick={() => setPay(openOrder, "paid")} className={`text-xs font-bold ${chip} ${openOrder.paymentStatus === "paid" ? "bg-bronze text-white" : "bg-sand dark:bg-[#201a15] text-ink dark:text-[#f3ede3]"}`}>Approve</button>
+                     <button onClick={() => setPay(openOrder, "rejected")} className={`text-xs font-bold ${chip} ${openOrder.paymentStatus === "rejected" ? "bg-clay text-white" : "bg-sand dark:bg-[#201a15] text-ink dark:text-[#f3ede3]"}`}>Reject</button>
+                     <button onClick={() => setPay(openOrder, "pending_verification")} className={`text-xs font-bold ${chip} ${openOrder.paymentStatus === "pending_verification" ? "bg-bronze text-white" : "bg-sand dark:bg-[#201a15] text-ink dark:text-[#f3ede3]"}`}>Reset</button>
+                   </>
+                 ) : (
+                   <>
+                     <span className="text-xs text-mute dark:text-[#a89f92]">COD payment:</span>
+                     <button onClick={() => setPay(openOrder, "paid")} className={`text-xs font-bold ${chip} ${openOrder.paymentStatus === "paid" ? "bg-bronze text-white" : "bg-sand dark:bg-[#201a15] text-ink dark:text-[#f3ede3]"}`}>Mark paid</button>
+                     <button onClick={() => setPay(openOrder, "pending")} className={`text-xs font-bold ${chip} ${openOrder.paymentStatus !== "paid" ? "bg-bronze text-white" : "bg-sand dark:bg-[#201a15] text-ink dark:text-[#f3ede3]"}`}>Mark pending</button>
+                   </>
+                 )}
+               </div>
             </div>
           </aside>
         </div>

@@ -96,6 +96,12 @@ export interface CreateOrderInput {
   deliveryFee: number;
   discount: number;
   total: number;
+  // Payment
+  paymentMethod: "cod" | "instapay" | "vodafone_cash";
+  paymentRecipientNumber?: string;
+  senderPhone?: string;
+  transactionRef?: string;
+  paymentScreenshot?: string;
 }
 
 function generateOrderNumber(): string {
@@ -122,9 +128,21 @@ export async function createOrderInSupabase(input: CreateOrderInput): Promise<st
 
   const whatsappNorm = normalizeWhatsApp(input.whatsapp);
 
-  // 1. Atomic server-side path — one call, all-or-nothing.
+  const paymentMethod = input.paymentMethod ?? "cod";
+  const itemsPayload = input.items.map((i) => ({
+    product_id: i.productId,
+    name_en: i.nameEn,
+    name_ar: i.nameAr,
+    price: i.price,
+    qty: i.qty,
+    image: i.image,
+  }));
+
+  // 1. Primary: new generic `create_order` RPC — supports COD + InstaPay +
+  //    Vodafone Cash and persists all manual-payment fields. SECURITY DEFINER
+  //    so anon never needs SELECT on orders.
   try {
-    const { data: orderNumber, error: rpcErr } = await sb.rpc("create_cod_order", {
+    const { data: orderNumber, error: rpcErr } = await sb.rpc("create_order", {
       p_first: input.firstName,
       p_last: input.lastName,
       p_whatsapp: input.whatsapp.trim(),
@@ -142,29 +160,63 @@ export async function createOrderInSupabase(input: CreateOrderInput): Promise<st
       p_delivery_fee: input.deliveryFee,
       p_discount: input.discount,
       p_total: input.total,
-      p_items: input.items.map((i) => ({
-        product_id: i.productId,
-        name_en: i.nameEn,
-        name_ar: i.nameAr,
-        price: i.price,
-        qty: i.qty,
-        image: i.image,
-      })),
+      p_payment_method: paymentMethod,
+      p_recipient_number: (input.paymentRecipientNumber ?? "").trim(),
+      p_sender_phone: (input.senderPhone ?? "").trim(),
+      p_transaction_ref: (input.transactionRef ?? "").trim(),
+      p_payment_screenshot: input.paymentScreenshot ?? "",
+      p_items: itemsPayload,
     });
     if (rpcErr) throw rpcErr;
     if (typeof orderNumber === "string" && orderNumber) return orderNumber;
     throw new Error("Order creation failed: empty response");
   } catch (rpcErr) {
-    // Function missing (legacy DB without the migration)? Fall back to the
-    // legacy direct-insert path. Any other error (validation/RLS/network)
-    // from a DB that HAS the function must surface — retrying via a second
-    // path could create a duplicate order.
     const msg = rpcErr instanceof Error ? rpcErr.message : String(rpcErr ?? "");
-    const missingFn =
-      /function.*create_cod_order|404|PGRST202|not.*exist/i.test(msg);
+    const missingFn = /function.*create_order|404|PGRST202|not.*exist/i.test(msg);
+    // Any error other than "function missing" must surface — retrying could
+    // create a duplicate order.
     if (!missingFn) {
       throw rpcErr instanceof Error ? rpcErr : new Error(`Order creation failed: ${msg}`);
     }
+
+    // 2. Legacy DB without `create_order`: try the old `create_cod_order` RPC,
+    //    but ONLY for COD orders (it hardcodes payment_method='cod').
+    if (paymentMethod === "cod") {
+      try {
+        const { data: orderNumber, error: rpcErr2 } = await sb.rpc("create_cod_order", {
+          p_first: input.firstName,
+          p_last: input.lastName,
+          p_whatsapp: input.whatsapp.trim(),
+          p_whatsapp_norm: whatsappNorm,
+          p_phone: input.phone.trim(),
+          p_governorate: input.governorate,
+          p_area: input.area.trim(),
+          p_city: input.city.trim(),
+          p_address: input.address.trim(),
+          p_building: input.building.trim(),
+          p_apartment: input.apartment.trim(),
+          p_notes: input.notes,
+          p_delivery_method: input.deliveryMethod,
+          p_subtotal: input.subtotal,
+          p_delivery_fee: input.deliveryFee,
+          p_discount: input.discount,
+          p_total: input.total,
+          p_items: itemsPayload,
+        });
+        if (rpcErr2) throw rpcErr2;
+        if (typeof orderNumber === "string" && orderNumber) return orderNumber;
+        throw new Error("Order creation failed: empty response");
+      } catch (rpcErr2) {
+        const msg2 = rpcErr2 instanceof Error ? rpcErr2.message : String(rpcErr2 ?? "");
+        const missing2 = /function.*create_cod_order|404|PGRST202|not.*exist/i.test(msg2);
+        if (!missing2) {
+          throw rpcErr2 instanceof Error ? rpcErr2 : new Error(`Order creation failed: ${msg2}`);
+        }
+        // fall through to legacy direct insert
+      }
+    }
+
+    // 3. Last resort: legacy direct inserts (may be blocked by RLS on newer DBs).
     return createOrderLegacy(sb, input, whatsappNorm);
   }
 }
@@ -232,8 +284,15 @@ async function createOrderLegacy(
         apartment: input.apartment,
         notes: input.notes,
         delivery_method: input.deliveryMethod,
-        payment_method: "cod",
-        payment_status: "pending",
+        payment_method: input.paymentMethod ?? "cod",
+        payment_status:
+          input.paymentMethod === "instapay" || input.paymentMethod === "vodafone_cash"
+            ? "pending_verification"
+            : "pending",
+        payment_recipient_number: (input.paymentRecipientNumber ?? "").trim() || null,
+        sender_phone: (input.senderPhone ?? "").trim() || null,
+        transaction_ref: (input.transactionRef ?? "").trim() || null,
+        payment_screenshot: input.paymentScreenshot || null,
         subtotal: input.subtotal,
         delivery_fee: input.deliveryFee,
         discount: input.discount,

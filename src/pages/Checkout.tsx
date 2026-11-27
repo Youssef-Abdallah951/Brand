@@ -10,10 +10,38 @@ import { createOrder } from "../lib/orders";
 import { sanitizeText } from "../lib/sanitize";
 import { usePageMeta } from "../lib/meta";
 import { firstProductImage, onImgError } from "../components/product";
-import { CardIcon, CashIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, ImageIcon, LockIcon, MapPinIcon, ReceiptIcon, RetryIcon, SparklesIcon, TruckIcon, UserIcon } from "../components/icons";
+import { CardIcon, CashIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, ImageIcon, LockIcon, MapPinIcon, ReceiptIcon, RetryIcon, SparklesIcon, TruckIcon, UserIcon, XIcon } from "../components/icons";
 import type { CheckoutForm, Order } from "../lib/types";
 
 const inputCls = "w-full rounded-2xl border border-line dark:border-[#2e2822] bg-white dark:bg-[#1c1815] text-ink dark:text-[#f3ede3] px-4 py-3 text-sm outline-none focus:border-bronze transition placeholder:text-mute/60";
+
+async function compressImage(file: File, maxDim = 1024, quality = 0.7): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          const scale = maxDim / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { reject(new Error("no ctx")); return; }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = () => reject(new Error("bad image"));
+      img.src = reader.result as string;
+    };
+    reader.onerror = () => reject(new Error("read fail"));
+    reader.readAsDataURL(file);
+  });
+}
 const labelCls = "text-xs font-bold text-ink dark:text-[#f3ede3] mb-1.5 block";
 const cardCls = "bg-cream dark:bg-[#191512] border border-line dark:border-[#2e2822] rounded-3xl p-5 sm:p-6 soft-shadow";
 const headingCls = "font-display font-bold text-lg inline-flex items-center gap-2 text-ink dark:text-[#f3ede3]";
@@ -80,6 +108,27 @@ export default function Checkout() {
     setErrors((e) => ({ ...e, [k]: undefined }));
   };
 
+  const isManualPayment = form.paymentMethod === "instapay" || form.paymentMethod === "vodafone_cash";
+
+  const handleScreenshot = async (file: File | null) => {
+    if (!file) { set("paymentScreenshot", ""); return; }
+    if (!file.type.startsWith("image/")) {
+      pushToast(lang === "ar" ? "الملف مش صورة" : "File is not an image");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      pushToast(lang === "ar" ? "حجم الصورة كبير (الحد 4MB)" : "Image too large (max 4MB)");
+      return;
+    }
+    try {
+      // Compress so the proof stays small enough to persist in the order row.
+      const dataUrl = await compressImage(file);
+      set("paymentScreenshot", dataUrl);
+    } catch {
+      pushToast(t("genericError", lang));
+    }
+  };
+
   if (rows.length === 0) return null;
 
   const validate = (): boolean => {
@@ -91,6 +140,11 @@ export default function Checkout() {
     if (!form.area.trim()) e.area = vm("area");
     if (!form.address.trim()) e.address = vm("address");
     if (!form.deliveryMethod) e.deliveryMethod = vm("delivery");
+    if (form.paymentMethod === "instapay" || form.paymentMethod === "vodafone_cash") {
+      if (!form.paymentRecipientNumber) e.paymentRecipientNumber = vm("recipient");
+      if (!form.senderPhone?.trim()) e.senderPhone = vm("sender");
+      else if (!/^01[0125]\d{8}$/.test(form.senderPhone.trim())) e.senderPhone = vm("phone");
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -167,17 +221,14 @@ export default function Checkout() {
         deliveryMethod: form.deliveryMethod as "standard" | "express",
         items,
         subtotal: liveSubtotal, deliveryFee: liveDelivery, discount: liveDiscount, total: liveTotal,
+        paymentMethod: form.paymentMethod,
+        paymentRecipientNumber: form.paymentRecipientNumber,
+        senderPhone: form.senderPhone,
+        transactionRef: form.transactionRef,
+        paymentScreenshot: form.paymentScreenshot,
       });
       clearCart(); // only after the order is safely stored
       pushToast(lang === "ar" ? "تم إنشاء الطلب بنجاح" : "Order created successfully");
-      // Local mode: best-effort WhatsApp popup right away. If the browser
-      // blocks it, the success page always shows the "Send order" button.
-      if (res.mode === "local" && res.whatsapp) {
-        try {
-          const w = window.open(res.whatsapp, "_blank");
-          if (w) w.opener = null;
-        } catch { /* popup blocked — success page CTA covers it */ }
-      }
       nav(`/order-success?order=${res.orderNumber}`, {
         state: {
           orderNumber: res.orderNumber,
@@ -192,8 +243,8 @@ export default function Checkout() {
           apartment: form.apartment.trim(),
           notes,
           deliveryMethod: form.deliveryMethod as "standard" | "express",
-          paymentMethod: "cod" as const,
-          paymentStatus: "pending" as const,
+          paymentMethod: form.paymentMethod,
+          paymentStatus: (form.paymentMethod === "instapay" || form.paymentMethod === "vodafone_cash" ? "pending_verification" : "pending") as "pending" | "pending_verification",
           items,
           subtotal: liveSubtotal,
           deliveryFee: liveDelivery,
@@ -327,13 +378,113 @@ export default function Checkout() {
             )}
           </section>
 
-          {/* PAYMENT — COD ONLY */}
+          {/* PAYMENT METHOD */}
           <section className={cardCls}>
-            <h2 className={`${headingCls} mb-4`}><CardIcon className={`w-5 h-5 ${iconCls}`} /> {t("payment", lang)}</h2>
-            <div className="rounded-2xl border border-bronze/40 bg-sand dark:bg-[#201a15] px-4 py-4">
-              <span className="font-bold inline-flex items-center gap-1.5 text-ink dark:text-[#f3ede3] text-sm"><CashIcon className="w-5 h-5 text-bronze" /> {t("cod", lang)}</span>
-              <span className="block text-xs text-mute dark:text-[#a89f92] mt-1">{lang === "ar" ? "ادفعي كاش عند وصول المندوب — بدون أي دفع مقدم" : "Pay cash when the courier arrives — no prepayment needed"}</span>
+            <h2 className={`${headingCls} mb-4`}><CardIcon className={`w-5 h-5 ${iconCls}`} /> {t("paymentMethod", lang)}</h2>
+            <div className="grid gap-2.5" role="radiogroup" aria-label={t("paymentMethod", lang)}>
+              {([
+                { v: "cod", label: t("cod", lang), sub: lang === "ar" ? "ادفعي كاش عند وصول المندوب — بدون أي دفع مقدم" : "Pay cash when the courier arrives — no prepayment needed", logo: null },
+                { v: "instapay", label: t("instapay", lang), sub: lang === "ar" ? "تحويل عبر InstaPay" : "Transfer via InstaPay", logo: "/assets/instapay.png" },
+                { v: "vodafone_cash", label: t("vodafoneCash", lang), sub: lang === "ar" ? "تحويل عبر Vodafone Cash" : "Transfer via Vodafone Cash", logo: "/assets/vodafone-cash.png" },
+              ] as const).map((o) => {
+                const selected = form.paymentMethod === o.v;
+                return (
+                  <button key={o.v} type="button" role="radio" aria-checked={selected}
+                    onClick={() => { set("paymentMethod", o.v); }}
+                    className={`flex items-center gap-3 rounded-2xl border-2 px-4 py-3.5 text-start transition ${selected ? "border-bronze bg-sand dark:bg-[#201a15]" : "border-line dark:border-[#2e2822] hover:border-bronze/50"}`}>
+                    <span className={`w-5 h-5 rounded-full border-2 grid place-items-center shrink-0 ${selected ? "border-bronze" : "border-line dark:border-[#2e2822]"}`} aria-hidden="true">
+                      {selected && <span className="w-2.5 h-2.5 rounded-full bg-bronze" />}
+                    </span>
+                    {o.logo ? (
+                      <img src={o.logo} alt={o.label} className="h-8 w-auto shrink-0 object-contain" loading="lazy" />
+                    ) : (
+                      <span className="text-bronze shrink-0" aria-hidden="true"><CashIcon className="w-5 h-5" /></span>
+                    )}
+                    <span className="flex-1 min-w-0">
+                      <span className="font-bold block text-ink dark:text-[#f3ede3] text-sm">{o.label}</span>
+                      <span className="text-xs text-mute dark:text-[#a89f92]">{o.sub}</span>
+                    </span>
+                  </button>
+                );
+              })}
             </div>
+            {errors.paymentMethod && <p className="text-clay text-xs font-bold mt-2" role="alert">{errors.paymentMethod}</p>}
+
+            {/* Manual payment details */}
+            {isManualPayment && (
+              <div className="mt-4 grid gap-4 border-t border-line dark:border-[#2e2822] pt-4">
+                <p className="text-xs text-mute dark:text-[#a89f92]">{t("manualPaymentHint", lang)}</p>
+
+                {/* Receiving numbers */}
+                <Field label={t("recipientNumber", lang)} error={errors.paymentRecipientNumber}>
+                  <div className="grid gap-2" role="radiogroup" aria-label={t("recipientNumber", lang)}>
+                    {["01090726501", "01018340567"].map((num) => {
+                      const selected = form.paymentRecipientNumber === num;
+                      return (
+                        <button key={num} type="button" role="radio" aria-checked={selected}
+                          onClick={() => set("paymentRecipientNumber", num)}
+                          className={`flex items-center gap-3 rounded-2xl border-2 px-4 py-3 text-start transition ${selected ? "border-bronze bg-sand dark:bg-[#201a15]" : "border-line dark:border-[#2e2822] hover:border-bronze/50"}`}>
+                          <span className={`w-5 h-5 rounded-full border-2 grid place-items-center shrink-0 ${selected ? "border-bronze" : "border-line dark:border-[#2e2822]"}`} aria-hidden="true">
+                            {selected && <span className="w-2.5 h-2.5 rounded-full bg-bronze" />}
+                          </span>
+                          <span className="font-bold text-ink dark:text-[#f3ede3] text-sm" dir="ltr">{num}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Field>
+
+                {/* Sender number */}
+                <Field label={t("senderNumber", lang)} error={errors.senderPhone}>
+                  <input
+                    value={form.senderPhone ?? ""}
+                    onChange={(e) => set("senderPhone", e.target.value.replace(/\\D/g, "").slice(0, 11))}
+                    className={inputCls}
+                    type="tel" inputMode="numeric" dir="ltr" maxLength={11}
+                    placeholder="01XXXXXXXXX"
+                  />
+                </Field>
+
+                {/* Transaction reference (optional) */}
+                <Field label={t("transactionRef", lang)}>
+                  <input
+                    value={form.transactionRef ?? ""}
+                    onChange={(e) => set("transactionRef", e.target.value)}
+                    className={inputCls}
+                    dir="ltr"
+                    placeholder={lang === "ar" ? "اختياري" : "Optional"}
+                  />
+                </Field>
+
+                {/* Screenshot upload (optional) */}
+                <Field label={t("paymentScreenshot", lang)}>
+                  <div className="grid gap-2">
+                    {form.paymentScreenshot ? (
+                      <div className="relative inline-block">
+                        <img src={form.paymentScreenshot} alt="" className="max-h-40 rounded-2xl border border-line dark:border-[#2e2822] object-contain" />
+                        <button type="button" onClick={() => set("paymentScreenshot", "")}
+                          className="absolute top-2 end-2 w-8 h-8 grid place-items-center rounded-full bg-ink text-white hover:bg-clay transition" aria-label={t("remove", lang)}>
+                          <XIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line dark:border-[#2e2822] px-4 py-6 cursor-pointer hover:border-bronze transition text-sm text-mute dark:text-[#a89f92]">
+                        <ImageIcon className="w-5 h-5" />
+                        <span>{lang === "ar" ? "اختاري صورة" : "Choose image"}</span>
+                        <input type="file" accept="image/*" className="hidden"
+                          onChange={(e) => { const f = e.target.files?.[0] ?? null; handleScreenshot(f); e.target.value = ""; }} />
+                      </label>
+                    )}
+                  </div>
+                </Field>
+
+                {/* Exact total reminder */}
+                <div className="rounded-2xl bg-sand dark:bg-[#201a15] px-4 py-3 flex items-center justify-between text-sm">
+                  <span className="font-bold text-ink dark:text-[#f3ede3]">{t("total", lang)}</span>
+                  <span className="font-extrabold text-bronze-deep dark:text-bronze" dir="auto">{fmtPrice(total, lang)}</span>
+                </div>
+              </div>
+            )}
           </section>
         </div>
 
